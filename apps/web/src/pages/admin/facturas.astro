@@ -26,8 +26,10 @@ const invoices = getStore().invoices;
             <td class="text-bocado-mute">{i.customer_tax_id ?? '—'}</td>
             <td>{formatEUR(i.total_cents)}</td>
             <td>{formatDateTime(i.issued_at)}</td>
-            <td class="text-right pr-5">
-              <a href={`/api/invoices/${i.id}.pdf`} target="_blank" class="btn-lime text-xs">Descargar PDF</a>
+            <td class="text-right pr-5 space-x-2">
+              <a href={`/api/invoices/${i.id}.pdf`} target="_blank" class="btn-lime text-xs">PDF</a>
+              <a href={`/pedido/ticket?order=${i.order_id}`} target="_blank" class="btn-ghost text-xs">Ticket QR</a>
+              <a href={`/admin/impresion/ticket?order=${i.order_id}`} target="_blank" class="btn-ghost text-xs">🖨️</a>
             </td>
           </tr>
         ))}

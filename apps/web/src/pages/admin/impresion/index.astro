@@ -1,0 +1,46 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import { getStore } from '../../../server/db';
+
+const s = getStore().settings;
+---
+<Admin title="Impresora de tickets" crumb="Inicio / Impresión">
+  <section class="max-w-2xl space-y-6 font-admin animate-fade-up">
+    <div class="admin-frame p-6">
+      <h2 class="font-bold text-xl">Configurar impresora térmica</h2>
+      <p class="text-sm text-bocado-mute mt-2 leading-relaxed">
+        BocadO imprime mediante el diálogo del navegador. Conecta tu impresora USB o Bluetooth al ordenador o tablet y
+        selecciónala al imprimir un ticket.
+      </p>
+      <ol class="mt-6 space-y-4 text-sm">
+        <li class="flex gap-3">
+          <span class="admin-install-step">1</span>
+          <span>Instala el driver de tu impresora (Epson, Star, Bixolon, etc.) en Windows, Mac o Linux.</span>
+        </li>
+        <li class="flex gap-3">
+          <span class="admin-install-step">2</span>
+          <span>En <a href="/admin/ajustes" class="text-bocado-violet font-semibold underline">Ajustes</a>, activa la impresora y ponle un nombre (ej. «Cocina»).</span>
+        </li>
+        <li class="flex gap-3">
+          <span class="admin-install-step">3</span>
+          <span>Desde Pedidos, pulsa «Imprimir ticket» y elige esa impresora en el cuadro del sistema.</span>
+        </li>
+        <li class="flex gap-3">
+          <span class="admin-install-step">4</span>
+          <span>Opcional: activa «Imprimir al recibir pedido» para abrir el ticket automáticamente.</span>
+        </li>
+      </ol>
+      <p class="mt-6 text-xs text-bocado-mute">
+        Impresora configurada: <strong>{s.printer_enabled ? s.printer_name : 'Desactivada'}</strong> · Papel{' '}
+        {s.printer_paper_mm} mm
+      </p>
+      <a href="/admin/ajustes" class="btn-lime mt-4 inline-flex">Ir a ajustes de impresora</a>
+    </div>
+  </section>
+</Admin>
+
+<style>
+  .admin-install-step {
+    @apply w-8 h-8 shrink-0 rounded-full bg-bocado-lime text-bocado-ink font-bold grid place-items-center text-sm;
+  }
+</style>

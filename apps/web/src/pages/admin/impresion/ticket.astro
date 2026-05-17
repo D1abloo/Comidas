@@ -1,0 +1,24 @@
+---
+import '../../../styles/global.css';
+import TicketPrint from '../../../components/islands/TicketPrint.tsx';
+import { getStore } from '../../../server/db';
+
+const orderId = Astro.url.searchParams.get('order');
+if (!orderId) {
+  return Astro.redirect('/admin/pedidos');
+}
+const autoPrint = Astro.url.searchParams.get('autoprint') === '1';
+const store = getStore();
+const paperMm = store.settings.printer_paper_mm ?? 80;
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Imprimir ticket · BocadO</title>
+  </head>
+  <body class="bg-bocado-paper text-bocado-ink min-h-screen">
+    <TicketPrint client:only="react" orderId={orderId} autoPrint={autoPrint} paperMm={paperMm} />
+  </body>
+</html>

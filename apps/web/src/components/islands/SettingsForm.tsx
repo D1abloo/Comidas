@@ -58,6 +58,52 @@ export default function SettingsForm({ initialCompany, initialSettings }: { init
           <F label="Teléfono WhatsApp empresa"><input className="input" value={settings.whatsapp_business_phone ?? ''} onChange={(e) => setSettings({ ...settings, whatsapp_business_phone: e.target.value })} /></F>
         </div>
 
+        <h3 className="font-semibold tracking-tight mt-8">Impresora de tickets</h3>
+        <p className="text-sm text-bocado-mute mt-1">
+          Imprime pedidos en impresora térmica desde el navegador.{' '}
+          <a href="/admin/impresion" className="underline text-bocado-violet">
+            Guía de instalación
+          </a>
+        </p>
+        <div className="mt-3 grid gap-3 text-sm">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={settings.printer_enabled ?? false}
+              onChange={(e) => setSettings({ ...settings, printer_enabled: e.target.checked })}
+            />
+            Activar impresión de tickets
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={settings.auto_print_on_order ?? false}
+              onChange={(e) => setSettings({ ...settings, auto_print_on_order: e.target.checked })}
+            />
+            Abrir ticket automáticamente al recibir pedido
+          </label>
+          <F label="Nombre de la impresora (referencia)">
+            <input
+              className="input"
+              placeholder="Ej. Cocina EPSON TM-T20"
+              value={settings.printer_name ?? ''}
+              onChange={(e) => setSettings({ ...settings, printer_name: e.target.value })}
+            />
+          </F>
+          <F label="Ancho del papel">
+            <select
+              className="input"
+              value={settings.printer_paper_mm ?? 80}
+              onChange={(e) =>
+                setSettings({ ...settings, printer_paper_mm: parseInt(e.target.value, 10) as 58 | 80 })
+              }
+            >
+              <option value={58}>58 mm (estrecho)</option>
+              <option value={80}>80 mm (estándar)</option>
+            </select>
+          </F>
+        </div>
+
         <h3 className="font-semibold tracking-tight mt-8">Facturación</h3>
         <div className="mt-3 grid gap-3 text-sm">
           <F label="Prefijo de número de factura"><input className="input" value={settings.invoice_prefix} onChange={(e) => setSettings({ ...settings, invoice_prefix: e.target.value })} /></F>

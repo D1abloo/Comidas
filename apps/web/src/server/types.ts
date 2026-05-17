@@ -76,6 +76,11 @@ export interface CompanySettings {
   whatsapp_business_phone: string;
   delivery_fee_cents: number;
   free_delivery_from_cents: number;
+  /** Impresora térmica / ticket (referencia para el equipo) */
+  printer_enabled: boolean;
+  printer_name: string;
+  printer_paper_mm: 58 | 80;
+  auto_print_on_order: boolean;
 }
 
 export interface Restaurant {
@@ -215,6 +220,8 @@ export interface Invoice {
   id: UUID;
   number: string;
   order_id: UUID;
+  /** Número legible del pedido (BOC-…) para ticket y QR */
+  order_number?: string;
   customer_name: string;
   customer_tax_id: string | null;
   customer_address: Address;

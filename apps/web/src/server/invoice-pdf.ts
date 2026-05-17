@@ -2,18 +2,28 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import type { Invoice, Company } from './types.js';
 import { formatEUR, formatDateTime } from './format.js';
 
+export interface InvoicePdfPaymentBlock {
+  qrPng: Uint8Array;
+  title: string;
+  lines: string[];
+}
+
 const INK = rgb(0.04, 0.04, 0.04);
 const GREY = rgb(0.45, 0.45, 0.45);
 const LIGHT = rgb(0.96, 0.95, 0.92);
 const LIME = rgb(0.84, 1.0, 0.24);
 const LINE = rgb(0.88, 0.87, 0.84);
 
-export async function renderInvoicePDF(invoice: Invoice, company: Company): Promise<Uint8Array> {
+export async function renderInvoicePDF(
+  invoice: Invoice,
+  company: Company,
+  paymentBlock?: InvoicePdfPaymentBlock | null,
+): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
-  const page = pdf.addPage([595.28, 841.89]);
+  let page = pdf.addPage([595.28, 841.89]);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const { width, height } = page.getSize();
+  let { width, height } = page.getSize();
   const left = 44;
   const right = width - 44;
   const contentW = right - left;
@@ -124,6 +134,43 @@ export async function renderInvoicePDF(invoice: Invoice, company: Company): Prom
   text(page, bold, formatEUR(invoice.total_cents), right - 72, y + 6, 12, LIME);
 
   y -= 40;
+
+  if (paymentBlock) {
+    y -= 16;
+    if (y < 220) {
+      page = pdf.addPage([595.28, 841.89]);
+      ({ width, height } = page.getSize());
+      y = height - 48;
+    }
+    const blockH = 200;
+    drawBox(page, left, y - blockH, contentW, blockH, LIGHT);
+    page.drawRectangle({ x: left, y: y - blockH, width: contentW, height: blockH, borderColor: LINE, borderWidth: 1 });
+    label(page, bold, paymentBlock.title, left + 12, y - 18);
+    let ly = y - 36;
+    for (const line of paymentBlock.lines) {
+      text(page, font, line, left + 12, ly, 8, GREY);
+      ly -= 12;
+    }
+    try {
+      const qrImg = await pdf.embedPng(paymentBlock.qrPng);
+      const qrSize = 120;
+      page.drawImage(qrImg, {
+        x: right - qrSize - 16,
+        y: y - blockH + (blockH - qrSize) / 2,
+        width: qrSize,
+        height: qrSize,
+      });
+    } catch {
+      text(page, font, 'QR no disponible', right - 100, y - blockH / 2, 9, GREY);
+    }
+    label(page, font, 'Escanea para pagar o abrir el ticket', left + 12, y - blockH + 14, GREY);
+    y -= blockH + 12;
+  } else if (invoice.payment_status === 'paid') {
+    page.drawRectangle({ x: right - 100, y: y - 8, width: 92, height: 22, color: rgb(0.2, 0.65, 0.35) });
+    text(page, bold, 'PAGADO', right - 82, y, 10, rgb(1, 1, 1));
+    y -= 32;
+  }
+
   drawRule(page, left, right, y);
   y -= 16;
   text(page, font, `${company.legal_name} · ${company.contact_email} · ${company.contact_phone}`, left, y, 8, GREY);

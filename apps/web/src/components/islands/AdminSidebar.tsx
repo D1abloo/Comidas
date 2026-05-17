@@ -10,6 +10,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { href: '/admin', label: 'Dashboard', emoji: '📊', match: '/admin', exact: true, accent: 'from-violet-500 to-indigo-600' },
   { href: '/admin/pedidos', label: 'Pedidos', emoji: '🛵', match: '/admin/pedidos', accent: 'from-orange-500 to-rose-500' },
+  { href: '/admin/impresion', label: 'Impresión', emoji: '🖨️', match: '/admin/impresion', accent: 'from-stone-500 to-stone-700' },
   { href: '/admin/secciones', label: 'Secciones', emoji: '📑', match: '/admin/secciones', accent: 'from-cyan-500 to-blue-600' },
   { href: '/admin/platos', label: 'Platos', emoji: '🍽️', match: '/admin/platos', accent: 'from-amber-500 to-orange-500' },
   { href: '/admin/pagos', label: 'Pagos & QR', emoji: '💳', match: '/admin/pagos', accent: 'from-emerald-500 to-teal-600' },

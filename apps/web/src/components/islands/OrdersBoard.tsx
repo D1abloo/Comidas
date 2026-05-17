@@ -199,13 +199,29 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
                   ))}
                 </select>
                 <button type="button" className="btn-lime w-full text-sm" onClick={() => genInvoice(selected.id)}>
-                  Generar factura
+                  Generar factura (con QR si pendiente)
                 </button>
                 {selected.invoice_id && (
                   <a href={`/api/invoices/${selected.invoice_id}.pdf`} target="_blank" rel="noreferrer" className="btn-ghost text-sm text-center">
-                    Ver PDF
+                    Descargar factura PDF
                   </a>
                 )}
+                <a
+                  href={`/pedido/ticket?order=${selected.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-ghost text-sm text-center"
+                >
+                  Ticket cliente (QR)
+                </a>
+                <a
+                  href={`/admin/impresion/ticket?order=${selected.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-ghost text-sm text-center border-bocado-lime"
+                >
+                  🖨️ Imprimir ticket
+                </a>
               </div>
             </>
           ) : (

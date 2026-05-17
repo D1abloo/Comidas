@@ -13,6 +13,7 @@ export function createInvoiceForOrder(store: Store, order: Order): Invoice | nul
     id: randomUUID(),
     number,
     order_id: order.id,
+    order_number: order.number,
     customer_name: order.customer.full_name,
     customer_tax_id: order.customer.tax_id ?? null,
     customer_address: order.delivery_address,

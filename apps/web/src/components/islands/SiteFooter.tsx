@@ -86,6 +86,15 @@ export default function SiteFooter() {
                   </a>
                 </li>
               ))}
+              <li>
+                <button
+                  type="button"
+                  className="hover:text-white hover:translate-x-0.5 inline-block transition-all text-left"
+                  onClick={() => window.dispatchEvent(new CustomEvent('bocado-show-install'))}
+                >
+                  📲 Instalar app
+                </button>
+              </li>
             </ul>
           </div>
 

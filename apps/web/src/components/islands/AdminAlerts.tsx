@@ -15,6 +15,17 @@ export default function AdminAlerts() {
   const [toasts, setToasts] = useState<Alert[]>([]);
   const known = useRef<Set<string>>(new Set());
   const booted = useRef(false);
+  const autoPrintRef = useRef(false);
+  const printedRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((r) => r.json())
+      .then((d) => {
+        autoPrintRef.current = Boolean(d.settings?.auto_print_on_order);
+      })
+      .catch(() => undefined);
+  }, []);
 
   const ack = useCallback(async (ids: string[]) => {
     if (!ids.length) return;
@@ -45,6 +56,18 @@ export default function AdminAlerts() {
         fresh.forEach((a) => known.current.add(a.id));
         setToasts((prev) => [...fresh, ...prev].slice(0, 4));
         void ack(fresh.map((a) => a.id));
+        if (autoPrintRef.current) {
+          for (const a of fresh) {
+            if (!printedRef.current.has(a.id)) {
+              printedRef.current.add(a.id);
+              window.open(
+                `/admin/impresion/ticket?order=${a.order_id}&autoprint=1`,
+                `print-${a.id}`,
+                'width=420,height=720',
+              );
+            }
+          }
+        }
       } catch {
         /* ignore */
       }
@@ -81,6 +104,14 @@ export default function AdminAlerts() {
             <div className="flex flex-col gap-2 shrink-0">
               <a href="/admin/pedidos" className="admin-toast-btn">
                 Ver pedido
+              </a>
+              <a
+                href={`/admin/impresion/ticket?order=${t.order_id}&autoprint=1`}
+                target="_blank"
+                rel="noreferrer"
+                className="admin-toast-btn !bg-white/20 !text-white"
+              >
+                🖨️ Imprimir
               </a>
               <button type="button" className="admin-toast-dismiss" onClick={() => dismiss(t.id)}>
                 Cerrar

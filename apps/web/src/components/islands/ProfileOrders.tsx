@@ -132,13 +132,18 @@ export default function ProfileOrders({ orders }: { orders: Order[] }) {
                 )}
 
                 <div className="flex flex-wrap gap-2">
-                  {o.invoice_id && (
-                    <a href={`/api/invoices/${o.invoice_id}.pdf`} target="_blank" rel="noreferrer" className="btn-ghost text-sm">
-                      Descargar factura PDF
+                  {o.payment_status !== 'paid' && (
+                    <a href={`/pedido/ticket?order=${o.id}`} className="btn-lime text-sm">
+                      Pagar · ver QR
                     </a>
                   )}
-                  <a href="/pedidos" className="btn-ghost text-sm">
-                    Seguimiento público
+                  {o.invoice_id && (
+                    <a href={`/api/invoices/${o.invoice_id}.pdf`} target="_blank" rel="noreferrer" className="btn-ghost text-sm">
+                      Factura PDF
+                    </a>
+                  )}
+                  <a href={`/pedido/ticket?order=${o.id}`} className="btn-ghost text-sm">
+                    Ver ticket
                   </a>
                 </div>
               </div>

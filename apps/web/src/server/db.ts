@@ -75,6 +75,10 @@ function seed(): Store {
     whatsapp_business_phone: '+34600123456',
     delivery_fee_cents: 199,
     free_delivery_from_cents: 2500,
+    printer_enabled: true,
+    printer_name: 'Ticket cocina',
+    printer_paper_mm: 80,
+    auto_print_on_order: false,
   };
 
   const menu_sections: MenuSection[] = [
