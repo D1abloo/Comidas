@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../../server/db';
 import { pushAdminNewOrderAlert } from '../../../server/admin-alerts';
+import { onOrderCreated } from '../../../server/order-emails';
 import type { Order } from '../../../server/types';
 import { randomUUID } from 'node:crypto';
 
@@ -89,16 +90,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
   store.orders.unshift(order);
   pushAdminNewOrderAlert(store, order);
 
-  // Demo: encolar aviso "pedido recibido"
-  store.notifications.unshift({
-    id: randomUUID(),
-    order_id: order.id,
-    channel: 'email',
-    kind: 'order_created',
-    recipient: order.customer.email,
-    status: 'sent',
-    created_at: new Date().toISOString(),
-  });
+  void onOrderCreated(store, order).catch((err) => console.error('[order] post-create:', err));
+
   if (store.settings.whatsapp_notifications_enabled) {
     store.notifications.unshift({
       id: randomUUID(),

@@ -13,6 +13,7 @@
     "@astrojs/node": "^8.3.3",
     "@astrojs/react": "^3.6.2",
     "@astrojs/tailwind": "^5.1.0",
+    "@supabase/supabase-js": "^2.105.4",
     "astro": "^4.15.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",

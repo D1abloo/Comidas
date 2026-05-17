@@ -1,149 +1,202 @@
-# BocadO Delivery — Demo unificada
+# BocadO Delivery
 
-Tienda online de comida a domicilio + panel admin en **una sola app** Astro corriendo en
-**http://localhost:4321**. Sin Docker, sin servicios externos, sin Supabase. Todo en memoria.
+Tienda online de comida a domicilio con panel admin, carta por secciones, pagos (TPV / Bizum / efectivo), facturas PDF y notificaciones por email.
 
-## Arranque
+## Requisitos
+
+- Node.js **20+**
+- npm **10+**
+
+## Arranque rápido (modo DEMO)
 
 ```bash
-cd /home/isaac/Escritorio/comidas
+cd /ruta/a/comidas
 npm install
+cp .env.example .env.local   # opcional: personaliza
 npm run dev
 ```
 
-Abre <http://localhost:4321>.
-
-## Cuentas de demo
+Abre **http://localhost:4321**
 
 | Rol | Email | Contraseña |
-| --- | --- | --- |
+|-----|-------|------------|
 | Cliente | `cliente@bocado.app` | `cliente1234` |
-| Administrador | `admin@bocado.app` | `admin1234` |
+| Admin | `admin@bocado.app` | `admin1234` |
 
-Puedes crear nuevas cuentas en:
+En DEMO los datos viven **en memoria** (se pierden al reiniciar `npm run dev`), salvo lo que guardes en Supabase si lo tienes configurado.
 
-- `/registro` — clientes
-- `/admin/registro` — administradores
+---
 
-## Modo demo
+## Variables de entorno
 
-Toda la base de datos vive en memoria. **Se reinicia cada vez que se reinicia `npm run dev`.**
-Cualquier cambio (nuevo plato, pedido, factura, cuenta) desaparece al parar el servidor.
+Copia `.env.example` → `.env.local` (en la **raíz** del repo o en `apps/web/`).
 
-## Mapa de la app (un solo localhost)
+| Variable | Uso |
+|----------|-----|
+| `PUBLIC_APP_URL` | URL pública (enlaces en emails y QR) |
+| `SESSION_SECRET` | Firma de cookies de sesión |
+| `BIZUM_COMPANY_PHONE` | Teléfono Bizum por defecto |
+| `PUBLIC_SUPABASE_URL` | URL del proyecto Supabase |
+| `PUBLIC_SUPABASE_ANON_KEY` | Clave anon (cliente futuro / RLS) |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Solo servidor** — persistencia de pedidos |
+| `EMAIL_ENABLED` | `true` / `false` |
+| `EMAIL_PROVIDER` | `console` \| `resend` |
+| `EMAIL_FROM` | Remitente |
+| `EMAIL_API_KEY` | API key de Resend (si `provider=resend`) |
 
-### Pública
+**Nunca subas `.env.local` a Git.** Rota las claves si se han expuesto.
 
-| Ruta | Qué hace |
-| --- | --- |
-| `/` | Home con hero, filtros y catálogo |
-| `/platos/[slug]` | Detalle de plato con **alérgenos, ingredientes y nutrición** |
-| `/restaurantes` | Listado por restaurante |
-| `/ayuda` | FAQ |
-| `/checkout` | Checkout con TPV, **Bizum QR** y efectivo |
-| `/checkout/ok` | Confirmación |
+---
 
-### Cuenta cliente
+## Email al hacer un pedido
 
-| Ruta | Qué hace |
-| --- | --- |
-| `/login` `/registro` | Acceso y alta de clientes |
-| `/perfil` | Histórico de pedidos del cliente, descarga de facturas |
+Cuando un cliente confirma un pedido (`POST /api/orders`), el sistema:
 
-### Panel admin (mismo localhost)
+1. Calcula el **tiempo estimado de entrega** según los platos.
+2. Envía un **correo** con: número de pedido, líneas del ticket, totales, dirección, tiempo estimado y enlaces al **ticket** y a **Mis pedidos**.
+3. Registra el evento en `/admin/avisos` y en Supabase (`notification_events`) si está conectado.
 
-| Ruta | Qué hace |
-| --- | --- |
-| `/admin/login` `/admin/registro` | Acceso y alta de administradores |
-| `/admin` | Dashboard con KPIs y gráfico de 7 días |
-| `/admin/pedidos` | Cambio de estado, generar factura PDF |
-| `/admin/platos` | Tabla + drawer “Nuevo plato” con secciones (info, precio, **nutrición, ingredientes, alérgenos UE**, imágenes, disponibilidad, dietas) |
-| `/admin/pagos` | Distribución y estados de pago |
-| `/admin/facturas` | Listado y descarga de PDFs |
-| `/admin/avisos` | Histórico de emails y WhatsApp enviados |
-| `/admin/usuarios` | Gestión de roles cliente/admin |
-| `/admin/ajustes` | Datos fiscales, **número Bizum**, métodos de pago, notificaciones, facturación |
+### Configuración por entorno
 
-### API interna (mismo proceso)
+| Entorno | `EMAIL_PROVIDER` | Comportamiento |
+|---------|------------------|----------------|
+| Desarrollo | `console` | El email se imprime en la terminal donde corre `npm run dev` |
+| Producción | `resend` | Envío real vía [Resend](https://resend.com) + `EMAIL_API_KEY` |
 
-| Endpoint | Uso |
-| --- | --- |
-| `POST /api/auth/logout` · `GET /api/auth/me` | Sesión |
-| `POST /api/orders` · `PATCH /api/orders/:id/status` | Pedidos |
-| `POST /api/payments/start` · `POST /api/payments/bizum-confirm` | Pagos (genera QR Bizum real con el número configurado) |
-| `POST /api/dishes` · `PATCH /api/dishes/:id/availability` · `POST /api/dishes/:id/duplicate` · `DELETE /api/dishes/:id` | Catálogo |
-| `POST /api/invoices/generate` · `GET /api/invoices/:id.pdf` | Facturación PDF |
-| `GET PATCH /api/settings` | Empresa + Bizum + notificaciones |
-| `PATCH /api/users/:id/role` · `DELETE /api/users/:id` | Usuarios |
+Activa o desactiva emails globalmente en **Admin → Ajustes → Notificaciones por email**.
 
-## Funcionalidad cubierta
+Plantillas: `apps/web/src/server/email/order-confirmation.ts`  
+Orquestación: `apps/web/src/server/order-emails.ts`
 
-- Autenticación de **clientes** y **administradores** con cookies firmadas (JWT HS256, bcryptjs).
-- Catálogo con **14 alérgenos UE**, ingredientes, nutrición por ración, ración, tiempo, dietas (vegano, vegetariano, sin gluten), picante.
-- Carrito persistente en cliente (`localStorage`) con drawer lateral.
-- Checkout en 3 pasos: cliente, dirección, pago.
-- Pagos:
-  - **TPV** — confirma el pedido (simulado en demo).
-  - **Bizum** — genera un **QR real** con el teléfono configurado por la empresa, importe y concepto. El cliente confirma desde su app.
-  - **Efectivo** — pago al repartidor.
-- Generación de **factura PDF** con `pdf-lib` (logo, datos fiscales, CIF/NIF, líneas, IVA, totales). Se descarga desde la página del cliente o del admin.
-- Avisos automáticos de cambio de estado (registro en `/admin/avisos`).
-- Panel admin completo: dashboard, pedidos, platos con drawer, pagos, facturas, avisos, usuarios, ajustes.
-- Página `/admin/usuarios` para promocionar clientes a administradores o eliminar cuentas.
-- Configuración desde admin de: datos fiscales, **número de Bizum**, métodos activos, notificaciones por email/WhatsApp, prefijo de factura, gastos y umbral de envío gratis.
+---
 
-## Estructura
+## Supabase
 
-```
-apps/web/                       (única app)
-  src/
-    middleware.ts               (inyecta sesión + protege /admin y /perfil)
-    server/
-      types.ts                  (modelos: User, Dish, Order, Invoice, Allergen, …)
-      db.ts                     (store en memoria + seed con imágenes reales)
-      auth.ts                   (JWT + bcrypt)
-      bizum.ts                  (QR)
-      invoice-pdf.ts            (PDF con pdf-lib)
-      format.ts
-    components/
-      Header.astro Footer.astro Hero.astro Filters.astro DishCard.astro
-      AllergenBadges.astro Logo.astro DemoBanner.astro
-      islands/                  (React: CartButton, CartDrawer, AddToCart,
-                                 FavoriteHeart, CheckoutForm, OrdersBoard,
-                                 DishesBoard, SettingsForm, UsersBoard)
-    layouts/
-      Base.astro                (web pública)
-      Admin.astro               (panel)
-    pages/
-      index.astro restaurantes.astro ayuda.astro
-      platos/[slug].astro
-      login.astro registro.astro perfil.astro
-      checkout.astro checkout/ok.astro
-      admin/
-        login.astro registro.astro
-        index.astro pedidos.astro platos.astro pagos.astro
-        facturas.astro avisos.astro usuarios.astro ajustes.astro
-      api/
-        auth/{logout,me}.ts
-        orders/index.ts   orders/[id]/status.ts
-        payments/{start,bizum-confirm}.ts
-        dishes/index.ts   dishes/[id]/index.ts  dishes/[id]/availability.ts  dishes/[id]/duplicate.ts
-        invoices/generate.ts  invoices/[id].pdf.ts
-        users/[id]/index.ts  users/[id]/role.ts
-        settings.ts
-```
+### 1. Crear proyecto
 
-## Imágenes
+1. [supabase.com](https://supabase.com) → nuevo proyecto.
+2. **Project Settings → API**: copia URL, `anon` y `service_role` a `.env.local`.
 
-Todas las fotos de platos provienen de **URLs reales de Unsplash**, seleccionadas por plato. Si vas a desplegar offline, descárgalas a `public/dishes/` y sustituye las URLs en `src/server/db.ts`.
+### 2. Ejecutar migración
 
-## Más adelante (Supabase)
+En el **SQL Editor** del dashboard, pega y ejecuta:
 
-Cuando quieras pasar a Supabase, sustituye `src/server/db.ts` por un cliente Supabase y mapea las funciones que ya consumen `getStore()`. El resto del código (auth, api, UI) no necesita cambios.
+`supabase/migrations/001_initial.sql`
 
-## Build de producción
+Crea tablas: `orders`, `order_items`, `notification_events`, `app_settings`.
+
+### 3. Comprobar conexión
+
+Con el servidor en marcha y sesión admin:
 
 ```bash
-npm run build
-npm run start    # node ./apps/web/dist/server/entry.mjs
+curl -s http://localhost:4321/api/health/supabase \
+  -H "Cookie: bocado_session=TU_COOKIE_ADMIN"
 ```
+
+Respuesta esperada: `{"ok":true,"configured":true,"orders_count":N}`
+
+Cada pedido nuevo se **upsert** en Supabase (además de memoria en DEMO).
+
+### 4. Regenerar imágenes de carta (opcional)
+
+```bash
+bash apps/web/scripts/fetch-carta-images.sh
+```
+
+---
+
+## Pasar de DEMO a PRO
+
+Checklist ordenada:
+
+### Datos y backend
+
+- [ ] Proyecto Supabase en producción con `001_initial.sql` ejecutado.
+- [ ] `.env.local` / variables en el hosting con `SUPABASE_SERVICE_ROLE_KEY` (secreto).
+- [ ] Sustituir `getStore()` en memoria por lectura/escritura Supabase en todas las APIs (`dishes`, `orders`, `users`, `settings`). Hoy: **pedidos y notificaciones** ya escriben en Supabase; el catálogo sigue en seed hasta completar migración.
+- [ ] Backups automáticos en Supabase.
+- [ ] RLS y policies por `company_id` / usuario (ver `docs/DATABASE.md`).
+
+### Auth
+
+- [ ] Migrar de JWT+cookie propia a **Supabase Auth** (o mantener JWT con usuarios en tabla `profiles`).
+- [ ] `SESSION_SECRET` fuerte y único por entorno.
+- [ ] HTTPS obligatorio en producción.
+
+### Pagos
+
+- [ ] TPV real (Stripe / Redsys) en lugar de simulación en `POST /api/payments/start`.
+- [ ] Bizum: validar pagos (webhook o confirmación manual admin).
+- [ ] No marcar `paid` hasta confirmación real.
+
+### Email y avisos
+
+- [ ] `EMAIL_PROVIDER=resend`, dominio verificado en Resend, `EMAIL_FROM` con tu dominio.
+- [ ] Probar pedido de prueba y revisar spam.
+- [ ] WhatsApp Business API si activas `whatsapp_notifications_enabled`.
+
+### Despliegue
+
+- [ ] `npm run build` sin errores.
+- [ ] `PUBLIC_APP_URL=https://tudominio.com`
+- [ ] Adapter Node (`@astrojs/node`) o Vercel según `docs/DEPLOY_VERCEL.md`.
+- [ ] PWA / `manifest.webmanifest` con tu dominio.
+
+### Legal y operación
+
+- [ ] Páginas `/privacidad`, `/cookies`, `/terminos` revisadas por asesoría.
+- [ ] RGPD: base legal para emails transaccionales (pedido confirmado).
+- [ ] Rotar claves expuestas en chats o repos.
+
+### Seguridad post-configuración
+
+- [ ] **Borrar** claves del historial de chat y rotar en Supabase (Settings → API → regenerate).
+- [ ] Confirmar que `.env.local` no está en Git: `git status` no debe listarlo.
+
+---
+
+## Scripts
+
+| Comando | Descripción |
+|---------|-------------|
+| `npm run dev` | Desarrollo en http://localhost:4321 |
+| `npm run build` | Build producción |
+| `npm run start` | Servidor Node tras build |
+| `bash apps/web/scripts/fetch-carta-images.sh` | Descarga fotos a `apps/web/public/carta/` |
+
+---
+
+## Estructura principal
+
+```
+apps/web/src/
+  server/
+    db.ts                 # Store en memoria (DEMO)
+    supabase.ts           # Cliente admin
+    supabase-orders.ts    # Persistencia pedidos
+    order-emails.ts       # Email + Supabase tras pedido
+    email/                # Plantillas y envío
+  pages/api/
+    orders/               # Crear pedido → dispara email
+    health/supabase.ts    # Test conexión
+supabase/migrations/      # SQL inicial
+docs/                     # DATABASE, deploy, etc.
+```
+
+---
+
+## Mapa de rutas (resumen)
+
+| Área | Rutas |
+|------|--------|
+| Tienda | `/`, `/carta/[slug]`, `/buscar`, `/platos/[slug]`, `/checkout` |
+| Cliente | `/login`, `/registro`, `/perfil`, `/pedidos`, `/pedido/ticket` |
+| Admin | `/admin`, `/admin/pedidos`, `/admin/platos`, `/admin/ajustes`, … |
+| API | `/api/orders`, `/api/payments/*`, `/api/health/supabase` |
+
+---
+
+## Licencia y marcas
+
+Logos de refrescos en `/public/carta/` pueden provenir de Wikimedia Commons (uso informativo en demo). En producción verifica derechos de marca con tu asesoría legal.
