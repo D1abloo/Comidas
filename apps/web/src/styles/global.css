@@ -12,9 +12,24 @@
     font-family: theme('fontFamily.sans');
     -webkit-font-smoothing: antialiased;
   }
+  body.store-front {
+    background-color: #faf8f3;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(214, 255, 61, 0.12), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 0%, rgba(255, 107, 74, 0.06), transparent),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  }
   ::selection {
     background: theme('colors.bocado.lime');
     color: theme('colors.bocado.ink');
+  }
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: theme('fontFamily.display');
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -118,10 +133,55 @@
     @apply px-2 py-1 text-[11px] min-h-0;
   }
   .food-card {
-    @apply rounded-2xl bg-white border border-bocado-line overflow-hidden shadow-card animate-fade-up transition-all duration-300 hover:shadow-[0_12px_40px_-16px_rgba(10,10,10,.18)] hover:-translate-y-0.5;
+    @apply rounded-3xl bg-white border border-bocado-line/80 overflow-hidden shadow-card animate-fade-up transition-all duration-500 hover:shadow-premium hover:-translate-y-1 hover:border-bocado-lime/30;
   }
   .food-hero {
-    @apply relative overflow-hidden rounded-[28px] bg-bocado-ink text-white;
+    @apply relative overflow-hidden rounded-4xl bg-bocado-ink text-white shadow-premium;
+  }
+  .food-hero::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-bocado-lime/10 via-transparent to-bocado-coral/10 pointer-events-none;
+  }
+  .food-hero::after {
+    content: '';
+    @apply absolute -top-24 -right-24 w-80 h-80 rounded-full bg-bocado-lime/15 blur-3xl pointer-events-none;
+  }
+  .premium-eyebrow {
+    @apply text-[11px] font-bold uppercase tracking-[0.22em] text-bocado-mute;
+  }
+  .premium-title {
+    @apply font-display text-3xl md:text-4xl lg:text-[2.75rem] leading-[1.08] text-bocado-ink;
+  }
+  .premium-sub {
+    @apply text-base md:text-lg text-bocado-mute leading-relaxed max-w-xl;
+  }
+  .premium-chip {
+    @apply inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/90 backdrop-blur px-4 py-2.5 text-sm font-medium shadow-sm transition-all duration-300 hover:border-black/20 hover:shadow-md hover:-translate-y-0.5;
+  }
+  .premium-chip[data-active='true'] {
+    @apply bg-bocado-ink text-white border-bocado-ink shadow-md scale-[1.02];
+  }
+  .premium-panel {
+    @apply rounded-3xl border border-bocado-line/80 bg-white/80 backdrop-blur-md shadow-card p-5 sm:p-6;
+  }
+  .premium-stat {
+    @apply flex flex-col gap-1 rounded-2xl bg-white/10 border border-white/10 px-4 py-3 backdrop-blur-sm;
+  }
+  .btn-primary {
+    @apply shadow-[0_8px_24px_-8px_rgba(10,10,10,.35)] hover:shadow-glow;
+  }
+  .btn-lime {
+    @apply shadow-[0_8px_28px_-10px_rgba(214,255,61,.55)] font-semibold;
+  }
+  .page-hero-block {
+    @apply container-bocado pt-10 md:pt-14 pb-4 animate-fade-up;
+  }
+  .trust-card {
+    @apply relative overflow-hidden rounded-3xl border border-bocado-line/70 bg-gradient-to-br from-white to-bocado-paper2/80 p-6 transition-all duration-300 hover:shadow-premium hover:-translate-y-1;
+  }
+  .trust-card::before {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-bocado-lime via-bocado-coral to-bocado-violet opacity-80;
   }
   .scrollbar-hide {
     -ms-overflow-style: none;

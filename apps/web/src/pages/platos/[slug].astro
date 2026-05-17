@@ -14,9 +14,9 @@ const related = store.dishes.filter((d) => d.id !== dish.id && d.cuisine === dis
 const img = dish.images[0]!;
 ---
 <Base title={`${dish.name} · BocadO`} description={dish.description}>
-  <section class="container-bocado pt-12 pb-16 grid md:grid-cols-[1.05fr_1fr] gap-12">
+  <section class="container-bocado pt-10 md:pt-14 pb-20 grid md:grid-cols-[1.05fr_1fr] gap-10 md:gap-14 animate-fade-up">
     <div>
-      <div class="aspect-[5/4] rounded-[28px] overflow-hidden bg-bocado-paper2">
+      <div class="aspect-[5/4] rounded-4xl overflow-hidden bg-bocado-paper2 shadow-premium ring-1 ring-bocado-line/80">
         <img src={img} alt={dish.name} class="w-full h-full object-cover" />
       </div>
       {dish.images.length > 1 && (
@@ -33,7 +33,7 @@ const img = dish.images[0]!;
     <div>
       <a href="/" class="text-xs text-bocado-mute hover:text-bocado-ink">← Volver al catálogo</a>
       <div class="mt-4 text-[11px] uppercase tracking-[0.12em] text-bocado-mute">{restaurant.name} · {dish.cuisine}</div>
-      <h1 class="mt-2 text-4xl md:text-5xl font-semibold tracking-[-0.02em]">{dish.name}</h1>
+      <h1 class="mt-2 font-display text-4xl md:text-5xl lg:text-6xl">{dish.name}</h1>
       <p class="mt-4 text-bocado-mute text-lg">{dish.long_description}</p>
 
       <div class="mt-6 flex items-center gap-6 text-sm">

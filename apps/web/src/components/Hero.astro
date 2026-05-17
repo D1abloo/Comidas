@@ -1,33 +1,82 @@
 ---
+const stats = [
+  { value: '4.9', label: 'Valoración media' },
+  { value: '25 min', label: 'Entrega media' },
+  { value: '30+', label: 'Platos en carta' },
+];
 ---
-<section class="container-bocado pt-12 pb-6 md:pt-16">
-  <div class="food-hero p-8 md:p-12 grid md:grid-cols-[1.1fr_1fr] gap-10 items-center animate-fade-up">
+<section class="container-bocado pt-8 md:pt-12 pb-4">
+  <div class="food-hero p-8 md:p-14 lg:p-16 grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center animate-fade-up">
     <div class="relative z-10">
-      <p class="text-[11px] uppercase tracking-[0.2em] text-white/60">BocadO · Delivery premium</p>
-      <h1 class="mt-4 font-semibold tracking-[-0.03em] text-[44px] leading-[1.05] md:text-[64px]">
-        Tu comida favorita,<br />
-        <span class="text-[#D6FF3D]">a domicilio.</span>
-      </h1>
-      <p class="mt-5 text-white/70 text-lg max-w-lg leading-relaxed">
-        Restaurantes de confianza, fotos reales y seguimiento del pedido en cada paso — como las apps que ya conoces.
+      <p class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.24em] text-bocado-lime/90 mb-5">
+        <span class="w-2 h-2 rounded-full bg-bocado-lime animate-pulse-soft"></span>
+        Delivery premium · Madrid
       </p>
-      <div class="mt-8 flex gap-3 flex-wrap">
-        <a href="#catalogo" class="btn-lime">Explorar menú →</a>
-        <a href="/pedidos" class="btn border border-white/25 text-white hover:bg-white/10 px-5 py-3 rounded-full">Mis pedidos</a>
-            <ul class="mt-10 flex flex-wrap gap-4 text-sm text-white/60">
-        <li class="flex items-center gap-2"><span class="w-2 h-2 bg-[#D6FF3D] rounded-full"></span> 20–40 min</li>
-        <li class="flex items-center gap-2"><span class="w-2 h-2 bg-[#D6FF3D] rounded-full"></span> Bizum · TPV · Efectivo</li>
-        <li class="flex items-center gap-2"><span class="w-2 h-2 bg-[#D6FF3D] rounded-full"></span> Factura PDF automática</li>
+      <h1 class="font-display text-[2.75rem] sm:text-[3.5rem] lg:text-[4.25rem] leading-[1.02] tracking-[-0.03em]">
+        Comida de verdad,<br />
+        <span class="text-bocado-lime italic">en tu puerta.</span>
+      </h1>
+      <p class="mt-6 text-white/75 text-lg md:text-xl max-w-lg leading-relaxed font-light">
+        Pizzas al horno, cazuelas caseras y bowls frescos — con fotos reales, seguimiento en vivo y factura al instante.
+      </p>
+      <div class="mt-9 flex flex-wrap gap-3">
+        <a href="#catalogo" class="btn-lime text-base px-7 py-3.5">Ver carta completa →</a>
+        <a href="#mas-vendido" class="btn border-2 border-white/20 text-white hover:bg-white/10 px-7 py-3.5 rounded-full font-medium transition-all">
+          Lo más vendido
+        </a>
+      </div>
+      <ul class="mt-10 flex flex-wrap gap-3 text-sm">
+        <li class="premium-stat">
+          <span class="text-bocado-lime font-bold text-lg">20–40 min</span>
+          <span class="text-white/55 text-xs">entrega</span>
+        </li>
+        <li class="premium-stat">
+          <span class="text-white font-semibold">Bizum · TPV</span>
+          <span class="text-white/55 text-xs">y efectivo</span>
+        </li>
+        <li class="premium-stat">
+          <span class="text-white font-semibold">PDF</span>
+          <span class="text-white/55 text-xs">factura auto</span>
+        </li>
       </ul>
     </div>
-    <div class="relative hidden md:block">
-            <div class="grid grid-cols-2 gap-3">
-        <img src="https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80" alt="" class="rounded-2xl h-36 w-full object-cover" />
-        <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80" alt="" class="rounded-2xl h-36 w-full object-cover mt-8" />
-        <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&q=80" alt="" class="rounded-2xl h-36 w-full object-cover -mt-4 col-span-2" />
+
+    <div class="relative hidden lg:block z-10">
+      <div class="grid grid-cols-12 gap-3">
+        <div class="col-span-7 row-span-2">
+          <img
+            src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=800&q=85"
+            alt="Pizza artesanal"
+            class="w-full h-[280px] object-cover rounded-3xl shadow-2xl ring-1 ring-white/10"
+          />
+        </div>
+        <div class="col-span-5">
+          <img
+            src="https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500&q=85"
+            alt="Ramen"
+            class="w-full h-[130px] object-cover rounded-2xl shadow-xl ring-1 ring-white/10 mt-4"
+          />
+        </div>
+        <div class="col-span-5">
+          <img
+            src="https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=500&q=85"
+            alt="Cazuela"
+            class="w-full h-[130px] object-cover rounded-2xl shadow-xl ring-1 ring-white/10"
+          />
+        </div>
       </div>
-      <div class="absolute -bottom-2 left-4 bg-[#D6FF3D] text-bocado-ink px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
-        ★ 4.9 · Entrega rápida
+      <div class="absolute -bottom-4 left-6 right-6 flex justify-between items-end gap-3">
+        <div class="bg-bocado-lime text-bocado-ink px-5 py-3 rounded-2xl text-sm font-bold shadow-glow animate-slide-up">
+          ★ 4.9 · Miles de pedidos
+        </div>
+        <div class="grid grid-cols-3 gap-2 bg-black/40 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+          {stats.map((s) => (
+            <div class="text-center px-2">
+              <div class="text-bocado-lime font-display text-lg leading-none">{s.value}</div>
+              <div class="text-[9px] uppercase tracking-wider text-white/50 mt-1">{s.label}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   </div>

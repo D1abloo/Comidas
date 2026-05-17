@@ -15,10 +15,11 @@ const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda
     <meta name="theme-color" content="#0a0a0a" />
     <meta name="description" content={description} />
     <title>{title}</title>
-    <link rel="preconnect" href="https://rsms.me" />
-    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-bocado-paper text-bocado-ink min-h-screen flex flex-col">
+  <body class="store-front bg-bocado-paper text-bocado-ink min-h-screen flex flex-col">
     <DemoBanner />
     {!hideChrome && <Header />}
     <main class="flex-1">

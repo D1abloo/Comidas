@@ -32,7 +32,8 @@ export default function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-20 bg-bocado-ink text-white">
+    <footer className="mt-20 bg-bocado-ink text-white relative overflow-hidden">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-bocado-lime via-bocado-coral to-violet-400" aria-hidden />
       <div className="border-b border-white/10">
         <div className="max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 py-8 flex flex-wrap items-center justify-center gap-4 text-sm text-white/70">
           {PAYMENTS.map((p) => (

@@ -47,19 +47,19 @@ export default function BestsellerCarousel({ dishes, restaurants }: Props) {
   if (!dishes.length) return null;
 
   return (
-    <section id="mas-vendido" className="container-bocado mt-8 md:mt-10 animate-fade-up scroll-mt-28" aria-label="Lo más vendido">
-            <div className="flex items-end justify-between gap-4 mb-5">
+    <section id="mas-vendido" className="container-bocado mt-6 md:mt-8 animate-fade-up scroll-mt-28" aria-label="Lo más vendido">
+      <div className="flex items-end justify-between gap-4 mb-6">
         <div>
-          <p className="label">Top ventas</p>
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Lo más vendido</h2>
-          <p className="text-sm text-bocado-mute mt-1">Los favoritos de la semana en tu zona</p>
+          <p className="premium-eyebrow">🔥 Top ventas</p>
+          <h2 className="premium-title mt-1">Lo más vendido</h2>
+          <p className="premium-sub mt-2 text-sm md:text-base">Los favoritos de la semana en tu zona</p>
         </div>
         <div className="hidden sm:flex gap-2">
           <button
             type="button"
             disabled={!canLeft}
-            onClick={() => scrollBy(-320)}
-            className="w-10 h-10 rounded-full border border-bocado-line bg-white hover:bg-bocado-paper2 disabled:opacity-30 transition"
+            onClick={() => scrollBy(-340)}
+            className="w-11 h-11 rounded-full border border-bocado-line bg-white hover:bg-bocado-lime/20 hover:border-bocado-lime disabled:opacity-30 transition-all font-bold"
             aria-label="Anterior"
           >
             ←
@@ -67,8 +67,8 @@ export default function BestsellerCarousel({ dishes, restaurants }: Props) {
           <button
             type="button"
             disabled={!canRight}
-            onClick={() => scrollBy(320)}
-            className="w-10 h-10 rounded-full border border-bocado-line bg-white hover:bg-bocado-paper2 disabled:opacity-30 transition"
+            onClick={() => scrollBy(340)}
+            className="w-11 h-11 rounded-full border border-bocado-line bg-white hover:bg-bocado-lime/20 hover:border-bocado-lime disabled:opacity-30 transition-all font-bold"
             aria-label="Siguiente"
           >
             →
@@ -77,17 +77,18 @@ export default function BestsellerCarousel({ dishes, restaurants }: Props) {
       </div>
 
       <div className="relative -mx-1">
-                <div
+        <div
           ref={trackRef}
-          className="carousel-track flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1 pb-2 scrollbar-hide"
+          className="carousel-track flex gap-5 overflow-x-auto snap-x snap-mandatory scroll-smooth px-1 pb-3 scrollbar-hide"
         >
-          {dishes.map((d) => {
+          {dishes.map((d, i) => {
             const img = d.images[0];
             return (
               <a
                 key={d.id}
                 href={`/platos/${d.slug}`}
-                className="carousel-card snap-start shrink-0 w-[min(280px,78vw)] group"
+                className="carousel-card snap-start shrink-0 w-[min(300px,82vw)] group"
+                style={{ animationDelay: `${i * 0.05}s` }}
               >
                 <article className="food-card h-full flex flex-col">
                   <div className="relative aspect-[16/10] overflow-hidden">
@@ -96,23 +97,24 @@ export default function BestsellerCarousel({ dishes, restaurants }: Props) {
                         src={img}
                         alt={d.name}
                         loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />
                     )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60" />
                     {d.sold_count != null && d.sold_count > 0 && (
-                      <span className="absolute top-3 left-3 bg-bocado-ink text-white text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">
+                      <span className="absolute top-3 left-3 bg-bocado-ink/90 backdrop-blur text-bocado-lime text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border border-bocado-lime/30">
                         🔥 {d.sold_count}+ pedidos
                       </span>
                     )}
-                    <span className="absolute bottom-3 right-3 bg-bocado-lime text-bocado-ink text-sm font-bold px-3 py-1 rounded-full shadow-sm">
+                    <span className="absolute bottom-3 right-3 bg-bocado-lime text-bocado-ink text-base font-bold px-4 py-1.5 rounded-full shadow-glow">
                       {eur(d.price_cents)}
                     </span>
                   </div>
-                  <div className="p-4 flex-1 flex flex-col">
-                    <p className="text-[10px] uppercase tracking-wider text-bocado-mute">{restaurants[d.restaurant_id]}</p>
-                    <h3 className="font-semibold mt-1 leading-tight group-hover:underline">{d.name}</h3>
-                    <p className="text-xs text-bocado-mute mt-auto pt-3">
-                      ★ {d.rating.toFixed(1)} · {d.delivery_time_min} min
+                  <div className="p-5 flex-1 flex flex-col">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-bocado-mute">{restaurants[d.restaurant_id]}</p>
+                    <h3 className="font-display text-xl mt-1 leading-tight group-hover:text-bocado-coral transition-colors">{d.name}</h3>
+                    <p className="text-xs text-bocado-mute mt-auto pt-4 font-medium">
+                      ★ {d.rating.toFixed(1)} · {d.delivery_time_min} min entrega
                     </p>
                   </div>
                 </article>
@@ -120,8 +122,8 @@ export default function BestsellerCarousel({ dishes, restaurants }: Props) {
             );
           })}
         </div>
-                <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-bocado-paper to-transparent hidden sm:block" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-bocado-paper to-transparent hidden sm:block" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-bocado-paper to-transparent hidden md:block" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-bocado-paper to-transparent hidden md:block" />
       </div>
     </section>
   );

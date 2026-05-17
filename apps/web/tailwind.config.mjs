@@ -6,9 +6,12 @@ export default {
       colors: {
         bocado: {
           ink: '#0a0a0a',
+          ink2: '#141414',
           paper: '#FAF8F3',
           paper2: '#F1EEE6',
+          cream: '#FFFDF8',
           lime: '#D6FF3D',
+          lime2: '#C8F535',
           coral: '#FF6B4A',
           violet: '#7C3AED',
           line: '#E8E5DC',
@@ -16,12 +19,15 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'ui-sans-serif', 'sans-serif'],
-        admin: ['"DM Sans"', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['"DM Sans"', 'system-ui', 'ui-sans-serif', 'sans-serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
+        admin: ['"DM Sans"', 'system-ui', 'sans-serif'],
       },
-      borderRadius: { '2xl': '20px', '3xl': '28px' },
+      borderRadius: { '2xl': '20px', '3xl': '28px', '4xl': '36px' },
       boxShadow: {
-        card: '0 1px 2px rgba(10,10,10,.04), 0 8px 24px -16px rgba(10,10,10,.08)',
+        card: '0 1px 2px rgba(10,10,10,.04), 0 12px 40px -16px rgba(10,10,10,.1)',
+        premium: '0 24px 64px -24px rgba(10,10,10,.18), 0 8px 20px -8px rgba(10,10,10,.08)',
+        glow: '0 0 40px -8px rgba(214,255,61,.45)',
       },
     },
   },

@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
+import CategoryStrip from '../components/CategoryStrip.astro';
 import Filters from '../components/Filters.astro';
 import BestsellerCarousel from '../components/islands/BestsellerCarousel.tsx';
 import MenuCatalog from '../components/islands/MenuCatalog.tsx';
@@ -45,10 +46,16 @@ if (bestsellers.length < 4) {
 ---
 <Base>
   <Hero />
+  <CategoryStrip />
   <BestsellerCarousel client:load dishes={bestsellers} restaurants={restNames} />
   <Filters />
 
-  <section id="catalogo" class="container-bocado mt-10 pb-24">
+  <section id="catalogo" class="container-bocado mt-12 md:mt-16 pb-28 scroll-mt-28">
+    <div class="mb-10 animate-fade-up">
+      <p class="premium-eyebrow">Nuestra carta</p>
+      <h2 class="premium-title mt-2">Elige tu próximo plato</h2>
+      <p class="premium-sub mt-3">Pizzas, pasta, cazuelas y mucho más — cocinado en restaurantes de barrio con entrega rápida.</p>
+    </div>
     <MenuCatalog client:load sections={sections} dishes={dishes} restaurants={restNames} />
   </section>
 

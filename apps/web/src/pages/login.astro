@@ -17,8 +17,8 @@ if (Astro.request.method === 'POST') {
 }
 ---
 <Base title="Acceder · BocadO" hideChrome>
-  <section class="min-h-[calc(100vh-28px)] grid place-items-center px-6">
-    <div class="card w-full max-w-md p-10">
+  <section class="min-h-[calc(100vh-28px)] grid place-items-center px-6 bg-gradient-to-b from-bocado-paper to-bocado-lime/10">
+    <div class="premium-panel w-full max-w-md p-10 shadow-premium animate-fade-up">
       <a href="/" class="inline-flex items-center gap-2">
         <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
           <circle cx="16" cy="16" r="13" stroke="#0a0a0a" stroke-width="1.6" />
@@ -27,7 +27,7 @@ if (Astro.request.method === 'POST') {
         </svg>
         <span class="font-semibold tracking-[-0.02em] text-[18px]">Bocad<span style="color:#D6FF3D">O</span></span>
       </a>
-      <h1 class="mt-6 text-2xl font-semibold tracking-tight">Accede a tu cuenta</h1>
+      <h1 class="mt-6 font-display text-3xl">Accede a tu cuenta</h1>
       <p class="text-sm text-bocado-mute mt-1">¿Aún no tienes? <a href="/registro" class="underline">Crear cuenta</a></p>
 
       <form method="POST" class="mt-6 space-y-3">

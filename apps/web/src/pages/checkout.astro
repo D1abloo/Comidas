@@ -4,13 +4,13 @@ import CheckoutForm from '../components/islands/CheckoutForm.tsx';
 const user = Astro.locals.user;
 ---
 <Base title="Checkout · BocadO">
-  <section class="container-bocado mt-12 mb-32">
-    <p class="label">Finaliza tu pedido</p>
-    <h1 class="mt-3 text-3xl md:text-5xl font-semibold tracking-[-0.02em]">Checkout</h1>
-    <p class="text-bocado-mute mt-2 max-w-xl">
+  <section class="page-hero-block mb-8">
+    <p class="premium-eyebrow">Finaliza tu pedido</p>
+    <h1 class="premium-title mt-2">Checkout</h1>
+    <p class="premium-sub mt-3">
       Rellena tus datos, elige cómo prefieres pagar y recibirás la confirmación al instante.
     </p>
-    <div class="mt-10">
+    <div class="container-bocado mt-6 mb-32">
       <CheckoutForm client:load
         defaultName={user?.full_name ?? ''}
         defaultEmail={user?.email ?? ''}

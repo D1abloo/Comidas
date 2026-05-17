@@ -3,29 +3,34 @@ const url = Astro.url;
 const cuisine = url.searchParams.get('cuisine') ?? '';
 const diet = url.searchParams.get('diet') ?? '';
 const maxTime = url.searchParams.get('max_time') ?? '';
-const cuisines = ['', 'Mediterránea', 'Asiática', 'Italiana', 'Burgers', 'Americana'];
-const labels: Record<string, string> = { '': 'Todas las cocinas' };
+const cuisines = ['', 'Mediterránea', 'Asiática', 'Italiana', 'Española', 'Burgers', 'Americana'];
+const labels: Record<string, string> = { '': 'Todas' };
 ---
-<div class="container-bocado mt-12">
-  <form method="GET" action="/#catalogo" class="flex flex-wrap items-center gap-2">
-    {cuisines.map((c) => (
-      <button name="cuisine" value={c} type="submit" class="chip" data-active={(cuisine === c).toString()}>
-        {labels[c] ?? c}
-      </button>
-    ))}
-    <div class="ml-auto flex items-center gap-2 text-sm">
-      <select name="max_time" onchange="this.form.submit()" class="chip bg-white">
-        <option value="" selected={maxTime === ''}>Tiempo: cualquiera</option>
-        <option value="20" selected={maxTime === '20'}>≤ 20 min</option>
-        <option value="30" selected={maxTime === '30'}>≤ 30 min</option>
-        <option value="45" selected={maxTime === '45'}>≤ 45 min</option>
-      </select>
-      <select name="diet" onchange="this.form.submit()" class="chip bg-white">
-        <option value="" selected={diet === ''}>Dieta: todas</option>
-        <option value="vegan" selected={diet === 'vegan'}>Vegano</option>
-        <option value="vegetarian" selected={diet === 'vegetarian'}>Vegetariano</option>
-        <option value="gluten_free" selected={diet === 'gluten_free'}>Sin gluten</option>
-      </select>
+<div class="container-bocado mt-6 md:mt-8 animate-fade-up stagger-3">
+  <div class="premium-panel">
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+      <span class="premium-eyebrow">Filtrar carta</span>
     </div>
-  </form>
+    <form method="GET" action="/#catalogo" class="flex flex-wrap items-center gap-2">
+      {cuisines.map((c) => (
+        <button name="cuisine" value={c} type="submit" class="premium-chip" data-active={(cuisine === c).toString()}>
+          {labels[c] ?? c}
+        </button>
+      ))}
+      <div class="w-full sm:w-auto sm:ml-auto flex flex-wrap items-center gap-2 mt-2 sm:mt-0">
+        <select name="max_time" onchange="this.form.submit()" class="premium-chip bg-white cursor-pointer">
+          <option value="" selected={maxTime === ''}>⏱ Cualquier tiempo</option>
+          <option value="20" selected={maxTime === '20'}>≤ 20 min</option>
+          <option value="30" selected={maxTime === '30'}>≤ 30 min</option>
+          <option value="45" selected={maxTime === '45'}>≤ 45 min</option>
+        </select>
+        <select name="diet" onchange="this.form.submit()" class="premium-chip bg-white cursor-pointer">
+          <option value="" selected={diet === ''}>🥗 Todas las dietas</option>
+          <option value="vegan" selected={diet === 'vegan'}>Vegano</option>
+          <option value="vegetarian" selected={diet === 'vegetarian'}>Vegetariano</option>
+          <option value="gluten_free" selected={diet === 'gluten_free'}>Sin gluten</option>
+        </select>
+      </div>
+    </form>
+  </div>
 </div>
