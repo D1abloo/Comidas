@@ -1,37 +1,42 @@
 import { useCallback, useEffect, useState } from 'react';
+import { deleteCookie, getCookie, setCookie } from '../../utils/cookies';
 
 type Platform = 'ios' | 'android' | 'desktop';
 
-const STORAGE_KEY = 'bocado-pwa-install-dismissed';
-const DISMISS_DAYS = 14;
+const COOKIE_HIDE = 'bocado_pwa_hide';
+const COOKIE_SNOOZE = 'bocado_pwa_snooze';
+const LEGACY_STORAGE_KEY = 'bocado-pwa-install-dismissed';
+const SNOOZE_DAYS = 14;
+const SNOOZE_SECONDS = SNOOZE_DAYS * 24 * 60 * 60;
+const HIDE_SECONDS = 10 * 365 * 24 * 60 * 60;
 
 const STEPS: Record<Platform, { title: string; steps: string[]; note?: string }> = {
   ios: {
     title: 'iPhone / iPad',
     note: 'Debes usar Safari. En Chrome de iOS no se puede instalar.',
     steps: [
-      'Abre esta web en Safari (si no lo estás ya).',
-      'Pulsa el botón Compartir (cuadrado con flecha hacia arriba).',
-      'Baja en el menú y elige «Añadir a la pantalla de inicio».',
-      'Pulsa «Añadir» arriba a la derecha para confirmar.',
+      'Abre esta web en Safari.',
+      'Pulsa Compartir (cuadrado con flecha).',
+      'Elige «Añadir a la pantalla de inicio».',
+      'Confirma con «Añadir».',
     ],
   },
   android: {
     title: 'Android',
     steps: [
-      'Pulsa el menú del navegador (⋮ tres puntos).',
-      'Elige «Instalar aplicación» o «Añadir a pantalla de inicio».',
-      'Confirma con «Instalar» o «Añadir».',
-      'El icono de BocadO aparecerá en tu inicio como una app.',
+      'Menú del navegador (⋮).',
+      '«Instalar aplicación» o «Añadir a inicio».',
+      'Confirma «Instalar».',
+      'El icono aparecerá en tu inicio.',
     ],
   },
   desktop: {
     title: 'Ordenador',
     steps: [
-      'En Chrome o Edge: busca el icono de instalar (⊕ o monitor) en la barra de direcciones.',
-      'Pulsa «Instalar» en el cuadro de diálogo.',
-      'También puedes usar el menú ⋮ → «Instalar BocadO…» o «Instalar aplicación».',
-      'En Mac con Safari: menú Archivo → «Añadir al Dock» (macOS Sonoma+).',
+      'Chrome/Edge: icono instalar (⊕) en la barra de direcciones.',
+      'Pulsa «Instalar» en el diálogo.',
+      'O menú ⋮ → «Instalar BocadO…».',
+      'Safari (Mac): Archivo → «Añadir al Dock».',
     ],
   },
 };
@@ -47,16 +52,29 @@ function detectPlatform(): Platform | null {
   return 'desktop';
 }
 
-function shouldAutoOpen(): boolean {
+function migrateLegacySnooze(): void {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return true;
+    const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (!raw || getCookie(COOKIE_SNOOZE)) return;
     const ts = parseInt(raw, 10);
-    if (Number.isNaN(ts)) return true;
-    return Date.now() - ts > DISMISS_DAYS * 24 * 60 * 60 * 1000;
+    if (!Number.isNaN(ts)) {
+      setCookie(COOKIE_SNOOZE, String(ts), { maxAgeSeconds: SNOOZE_SECONDS });
+    }
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
   } catch {
-    return true;
+    /* ignore */
   }
+}
+
+function shouldAutoOpen(): boolean {
+  migrateLegacySnooze();
+  if (getCookie(COOKIE_HIDE) === '1') return false;
+
+  const snooze = getCookie(COOKIE_SNOOZE);
+  if (!snooze) return true;
+  const ts = parseInt(snooze, 10);
+  if (Number.isNaN(ts)) return true;
+  return Date.now() - ts > SNOOZE_DAYS * 24 * 60 * 60 * 1000;
 }
 
 interface BeforeInstallPromptEvent extends Event {
@@ -96,10 +114,13 @@ export default function InstallPrompt() {
 
     if (shouldAutoOpen()) {
       const t = window.setTimeout(() => setOpen(true), 1200);
+      const onShow = () => setOpen(true);
+      window.addEventListener('bocado-show-install', onShow);
       return () => {
         window.clearTimeout(t);
         window.removeEventListener('beforeinstallprompt', onBip);
         window.removeEventListener('appinstalled', onInstalled);
+        window.removeEventListener('bocado-show-install', onShow);
       };
     }
 
@@ -113,15 +134,16 @@ export default function InstallPrompt() {
     };
   }, []);
 
-  const dismiss = useCallback((remember: boolean) => {
+  const snooze = useCallback(() => {
     setOpen(false);
-    if (remember) {
-      try {
-        localStorage.setItem(STORAGE_KEY, String(Date.now()));
-      } catch {
-        /* ignore */
-      }
-    }
+    const ts = String(Date.now());
+    setCookie(COOKIE_SNOOZE, ts, { maxAgeSeconds: SNOOZE_SECONDS });
+  }, []);
+
+  const hideForever = useCallback(() => {
+    setOpen(false);
+    setCookie(COOKIE_HIDE, '1', { maxAgeSeconds: HIDE_SECONDS });
+    deleteCookie(COOKIE_SNOOZE);
   }, []);
 
   const runNativeInstall = useCallback(async () => {
@@ -135,52 +157,52 @@ export default function InstallPrompt() {
   if (!open || installed) return null;
 
   const content = STEPS[tab];
+  const showNativeInstall = Boolean(deferred && tab !== 'ios');
 
   return (
     <div className="pwa-install-root" role="dialog" aria-modal="true" aria-labelledby="pwa-install-title">
-      <div className="pwa-install-backdrop" onClick={() => dismiss(false)} aria-hidden />
+      <div className="pwa-install-backdrop" onClick={() => setOpen(false)} aria-hidden />
+
       <div className="pwa-install-panel animate-order-pop">
         <div className="pwa-install-glow" aria-hidden />
 
-        <div className="flex items-start justify-between gap-3 relative z-10">
-          <div className="flex items-center gap-3">
-            <img src="/icons/icon-192.png" alt="" className="w-14 h-14 rounded-2xl shadow-glow ring-2 ring-bocado-lime/40" />
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-bocado-lime">Instalar app</p>
-              <h2 id="pwa-install-title" className="font-display text-xl text-white mt-0.5">
+        <header className="pwa-install-header">
+          <div className="flex items-center gap-3 min-w-0">
+            <img src="/icons/icon-192.png" alt="" className="pwa-install-logo" />
+            <div className="min-w-0">
+              <p className="pwa-install-kicker">Instalar app</p>
+              <h2 id="pwa-install-title" className="pwa-install-title">
                 Añade BocadO a tu dispositivo
               </h2>
             </div>
           </div>
-          <button type="button" className="pwa-install-close" onClick={() => dismiss(false)} aria-label="Cerrar">
+          <button type="button" className="pwa-install-close shrink-0" onClick={() => setOpen(false)} aria-label="Cerrar">
             ×
           </button>
-        </div>
+        </header>
 
-        <p className="text-sm text-white/70 mt-4 relative z-10">
-          Accede más rápido, como una app nativa, con seguimiento de pedidos y tu carta favorita a un toque.
+        <p className="pwa-install-lead">
+          Accede más rápido, con seguimiento de pedidos y tu carta favorita a un toque.
         </p>
 
-        <div className="flex gap-2 mt-5 relative z-10 flex-wrap">
+        <div className="pwa-install-tabs" role="tablist" aria-label="Plataforma">
           {(['ios', 'android', 'desktop'] as Platform[]).map((p) => (
             <button
               key={p}
               type="button"
+              role="tab"
+              aria-selected={tab === p}
               onClick={() => setTab(p)}
               className={`pwa-install-tab ${tab === p ? 'pwa-install-tab--active' : ''}`}
             >
-              {p === 'ios' ? '📱 iPhone' : p === 'android' ? '🤖 Android' : '💻 PC'}
+              {p === 'ios' ? 'iPhone' : p === 'android' ? 'Android' : 'PC'}
             </button>
           ))}
         </div>
 
-        <div className="mt-5 relative z-10">
-          <h3 className="text-sm font-bold text-white mb-3">{content.title}</h3>
-          {content.note && (
-            <p className="text-xs text-amber-200/90 mb-3 bg-amber-500/10 border border-amber-400/20 rounded-xl px-3 py-2">
-              {content.note}
-            </p>
-          )}
+        <div className="pwa-install-body">
+          <h3 className="pwa-install-platform-title">{content.title}</h3>
+          {content.note && <p className="pwa-install-note">{content.note}</p>}
           <ol className="pwa-install-steps">
             {content.steps.map((step, i) => (
               <li key={i}>
@@ -191,16 +213,19 @@ export default function InstallPrompt() {
           </ol>
         </div>
 
-        <div className="mt-6 flex flex-col sm:flex-row gap-2 relative z-10">
-          {deferred && tab !== 'ios' && (
-            <button type="button" className="btn-lime flex-1 justify-center py-3" onClick={runNativeInstall}>
+        <footer className="pwa-install-footer">
+          {showNativeInstall && (
+            <button type="button" className="btn-lime w-full justify-center py-3" onClick={runNativeInstall}>
               Instalar ahora
             </button>
           )}
-          <button type="button" className="pwa-install-secondary flex-1" onClick={() => dismiss(true)}>
+          <button type="button" className="pwa-install-secondary w-full" onClick={snooze}>
             Recordar más tarde
           </button>
-        </div>
+          <button type="button" className="pwa-install-dismiss w-full" onClick={hideForever}>
+            No mostrar más
+          </button>
+        </footer>
       </div>
     </div>
   );

@@ -1,9 +1,18 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import PrinterDetect from './PrinterDetect.tsx';
 
 export default function SettingsForm({ initialCompany, initialSettings }: { initialCompany: any; initialSettings: any }) {
   const [company, setCompany] = useState(initialCompany);
   const [settings, setSettings] = useState(initialSettings);
   const [saved, setSaved] = useState<string | null>(null);
+
+  const onPrinterSelect = useCallback((name: string, enable?: boolean) => {
+    setSettings((prev: typeof initialSettings) => ({
+      ...prev,
+      printer_name: name,
+      ...(enable ? { printer_enabled: true } : {}),
+    }));
+  }, []);
 
   async function save() {
     const r = await fetch('/api/settings', {
@@ -102,6 +111,11 @@ export default function SettingsForm({ initialCompany, initialSettings }: { init
               <option value={80}>80 mm (estándar)</option>
             </select>
           </F>
+          <PrinterDetect
+            paperMm={(settings.printer_paper_mm ?? 80) as 58 | 80}
+            printerName={settings.printer_name ?? ''}
+            onSelect={onPrinterSelect}
+          />
         </div>
 
         <h3 className="font-semibold tracking-tight mt-8">Facturación</h3>

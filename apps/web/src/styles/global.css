@@ -223,28 +223,58 @@
     @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-bocado-lime via-bocado-coral to-bocado-violet opacity-80;
   }
   .pwa-install-root {
-    @apply fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-4 sm:p-6;
+    @apply fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-3 sm:p-6 overflow-hidden;
   }
   .pwa-install-backdrop {
     @apply absolute inset-0 bg-black/55 backdrop-blur-sm;
   }
   .pwa-install-panel {
-    @apply relative w-full max-w-lg rounded-3xl border border-white/15 bg-gradient-to-br from-[#121218] via-[#1a1528] to-[#0f0f12] p-6 sm:p-8 shadow-[0_32px_80px_-16px_rgba(0,0,0,.65)] max-h-[90vh] overflow-y-auto;
+    @apply relative flex flex-col w-full max-w-md rounded-3xl border border-white/15 bg-gradient-to-br from-[#121218] via-[#1a1528] to-[#0f0f12] shadow-[0_32px_80px_-16px_rgba(0,0,0,.65)] max-h-[min(90vh,640px)] overflow-hidden;
   }
   .pwa-install-glow {
     @apply absolute -top-16 -right-16 w-48 h-48 rounded-full bg-bocado-lime/25 blur-3xl pointer-events-none;
+  }
+  .pwa-install-header {
+    @apply relative z-10 flex items-start justify-between gap-3 shrink-0 px-5 pt-5 sm:px-6 sm:pt-6;
+  }
+  .pwa-install-logo {
+    @apply w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shadow-glow ring-2 ring-bocado-lime/40 shrink-0;
+  }
+  .pwa-install-kicker {
+    @apply text-[10px] font-bold uppercase tracking-[0.2em] text-bocado-lime;
+  }
+  .pwa-install-title {
+    @apply font-display text-lg sm:text-xl text-white mt-0.5 leading-tight;
+  }
+  .pwa-install-lead {
+    @apply relative z-10 shrink-0 px-5 sm:px-6 text-sm text-white/70 mt-3 leading-snug;
+  }
+  .pwa-install-tabs {
+    @apply relative z-10 shrink-0 grid grid-cols-3 gap-2 px-5 sm:px-6 mt-4;
+  }
+  .pwa-install-body {
+    @apply relative z-10 flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 sm:px-6 mt-4 pb-2;
+  }
+  .pwa-install-platform-title {
+    @apply text-sm font-bold text-white mb-2;
+  }
+  .pwa-install-note {
+    @apply text-xs text-amber-200/90 mb-3 bg-amber-500/10 border border-amber-400/20 rounded-xl px-3 py-2 leading-snug;
+  }
+  .pwa-install-footer {
+    @apply relative z-10 shrink-0 flex flex-col gap-2 px-5 py-4 sm:px-6 border-t border-white/10 bg-black/20;
   }
   .pwa-install-close {
     @apply w-10 h-10 rounded-full border border-white/20 text-white/80 hover:bg-white/10 text-xl leading-none transition;
   }
   .pwa-install-tab {
-    @apply px-4 py-2 rounded-full text-xs font-bold border border-white/15 text-white/70 hover:bg-white/10 transition;
+    @apply px-2 py-2 rounded-full text-xs font-bold border border-white/15 text-white/70 hover:bg-white/10 transition truncate;
   }
   .pwa-install-tab--active {
     @apply bg-bocado-lime text-bocado-ink border-bocado-lime;
   }
   .pwa-install-steps {
-    @apply space-y-3 text-sm text-white/85;
+    @apply space-y-2.5 text-sm text-white/85;
   }
   .pwa-install-steps li {
     @apply flex gap-3 items-start;
@@ -253,7 +283,10 @@
     @apply shrink-0 w-7 h-7 rounded-full bg-bocado-lime text-bocado-ink text-xs font-bold grid place-items-center;
   }
   .pwa-install-secondary {
-    @apply py-3 px-4 rounded-xl border border-white/20 text-white/80 text-sm font-medium hover:bg-white/10 transition text-center;
+    @apply py-2.5 px-4 rounded-xl border border-white/20 text-white/80 text-sm font-medium hover:bg-white/10 transition text-center;
+  }
+  .pwa-install-dismiss {
+    @apply py-2 text-xs text-white/45 hover:text-white/70 transition text-center;
   }
   .scrollbar-hide {
     -ms-overflow-style: none;
