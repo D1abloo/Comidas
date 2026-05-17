@@ -448,6 +448,7 @@ function seed(): Store {
     {
       id: 'd-limonada',
       restaurant_id: 'r-verde-verde',
+      menu_section_id: 'sec-postres',
       slug: 'limonada-jengibre',
       name: 'Limonada de jengibre',
       description: 'Limón natural, jengibre fresco, hierbabuena.',
