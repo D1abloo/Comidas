@@ -1,0 +1,52 @@
+---
+import Logo from './Logo.astro';
+const year = new Date().getFullYear();
+---
+<footer class="mt-32 border-t border-bocado-line bg-bocado-paper">
+  <div class="container-bocado py-16 grid gap-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+    <div>
+      <Logo />
+      <p class="mt-4 text-bocado-mute text-sm max-w-xs">Comida real, entrega rápida.</p>
+      <p class="mt-2 text-xs text-bocado-mute/80">Seleccionamos restaurantes con cocina honesta y tiempos verificados.</p>
+    </div>
+    <div>
+      <p class="label mb-4">Navegación</p>
+      <ul class="space-y-2 text-sm">
+        <li><a href="/">Inicio</a></li>
+        <li><a href="/restaurantes">Restaurantes</a></li>
+        <li><a href="/pedidos">Pedidos</a></li>
+        <li><a href="/ayuda">Ayuda</a></li>
+        <li><a href="/contacto">Contacto</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="label mb-4">Cuenta</p>
+      <ul class="space-y-2 text-sm">
+        <li><a href="/login">Iniciar sesión</a></li>
+        <li><a href="/registro">Crear cuenta</a></li>
+        <li><a href="/admin/login">Acceso administradores</a></li>
+        <li><a href="/admin/registro">Registro administrador</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="label mb-4">Legal</p>
+      <ul class="space-y-2 text-sm">
+        <li><a href="/privacidad">Privacidad</a></li>
+        <li><a href="/terminos">Términos</a></li>
+      </ul>
+      <div class="mt-6 flex gap-2">
+        {['instagram','x','tiktok','youtube'].map((s) => (
+          <a href="#" aria-label={s} class="w-9 h-9 rounded-full border border-bocado-line grid place-items-center hover:border-bocado-ink/40">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+  <div class="border-t border-bocado-line">
+    <div class="container-bocado py-5 flex flex-col md:flex-row justify-between gap-2 text-xs text-bocado-mute">
+      <span>© {year} BocadO Delivery SL · CIF B12345678</span>
+      <span>Comida real, entrega rápida.</span>
+    </div>
+  </div>
+</footer>

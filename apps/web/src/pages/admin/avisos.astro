@@ -1,0 +1,40 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { getStore } from '../../server/db';
+import { formatDateTime } from '../../server/format';
+
+const events = getStore().notifications;
+const kindLabel: Record<string, string> = {
+  order_created: 'Pedido recibido',
+  order_confirmed: 'Pedido confirmado',
+  order_preparing: 'En preparación',
+  order_delivering: 'En reparto',
+  order_delivered: 'Entregado',
+  order_cancelled: 'Cancelado',
+  invoice_issued: 'Factura emitida',
+  payment_received: 'Pago recibido',
+};
+---
+<Admin title="Avisos" crumb="Inicio / Avisos">
+  <div class="card p-6">
+    <h3 class="font-semibold tracking-tight">Histórico de avisos</h3>
+    <p class="text-sm text-bocado-mute mt-1">
+      Cada cambio de estado genera un email automático y, si está activado en ajustes, un WhatsApp al cliente.
+    </p>
+    <ul class="mt-6 divide-y divide-bocado-line">
+      {events.length === 0 && <li class="py-8 text-center text-bocado-mute text-sm">Sin avisos todavía.</li>}
+      {events.slice(0, 50).map((e) => (
+        <li class="py-3 flex items-center justify-between gap-4">
+          <div class="min-w-0">
+            <div class="text-sm">
+              <span class="chip uppercase text-[10px] mr-2">{e.channel}</span>
+              <b>{kindLabel[e.kind] ?? e.kind}</b> · {e.recipient}
+            </div>
+            <div class="text-xs text-bocado-mute mt-1">{formatDateTime(e.created_at)}</div>
+          </div>
+          <span class="chip" style={`background:${e.status === 'sent' ? '#DCFCE7' : e.status === 'failed' ? '#FECACA' : '#FEF3C7'}`}>{e.status}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+</Admin>

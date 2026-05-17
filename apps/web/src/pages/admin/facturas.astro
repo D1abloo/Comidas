@@ -1,0 +1,42 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { getStore } from '../../server/db';
+import { formatEUR, formatDateTime } from '../../server/format';
+
+const invoices = getStore().invoices;
+---
+<Admin title="Facturas" crumb="Inicio / Facturas">
+  <div class="card overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-bocado-paper2 text-bocado-mute">
+        <tr class="text-left">
+          <th class="font-normal py-3 px-5">Nº Factura</th>
+          <th class="font-normal">Cliente</th>
+          <th class="font-normal">CIF/NIF</th>
+          <th class="font-normal">Total</th>
+          <th class="font-normal">Fecha</th>
+          <th class="font-normal text-right pr-5">PDF</th>
+        </tr>
+      </thead>
+      <tbody>
+        {invoices.map((i) => (
+          <tr class="border-t border-bocado-line">
+            <td class="py-3 px-5 font-medium">{i.number}</td>
+            <td>{i.customer_name}</td>
+            <td class="text-bocado-mute">{i.customer_tax_id ?? '—'}</td>
+            <td>{formatEUR(i.total_cents)}</td>
+            <td>{formatDateTime(i.issued_at)}</td>
+            <td class="text-right pr-5">
+              <a href={`/api/invoices/${i.id}.pdf`} target="_blank" class="btn-lime text-xs">Descargar PDF</a>
+            </td>
+          </tr>
+        ))}
+        {invoices.length === 0 && (
+          <tr><td colspan="6" class="py-10 text-center text-bocado-mute">
+            Aún no hay facturas. Genéralas desde la página de Pedidos.
+          </td></tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</Admin>

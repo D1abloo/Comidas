@@ -1,0 +1,9 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import SettingsForm from '../../components/islands/SettingsForm.tsx';
+import { getStore } from '../../server/db';
+const { company, settings } = getStore();
+---
+<Admin title="Ajustes" crumb="Inicio / Ajustes">
+  <SettingsForm client:load initialCompany={company} initialSettings={settings} />
+</Admin>

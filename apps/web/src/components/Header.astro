@@ -1,0 +1,33 @@
+---
+import Logo from './Logo.astro';
+import CartButton from './islands/CartButton.tsx';
+const { user } = Astro.locals;
+const navLinks = [
+  { href: '/', label: 'Inicio' },
+  { href: '/restaurantes', label: 'Restaurantes' },
+  { href: '/pedidos', label: 'Pedidos' },
+  { href: '/ayuda', label: 'Ayuda' },
+];
+---
+<header class="sticky top-0 z-40 bg-bocado-ink text-white">
+  <div class="container-bocado h-[72px] flex items-center justify-between">
+    <Logo variant="dark" />
+    <nav class="hidden md:flex items-center gap-7 text-sm">
+      {navLinks.map((l) => (
+        <a href={l.href} class="opacity-80 hover:opacity-100 transition">{l.label}</a>
+      ))}
+    </nav>
+    <div class="flex items-center gap-2">
+      {user ? (
+        <a href={user.role === 'admin' ? '/admin' : '/perfil'} class="hidden md:inline-flex h-10 px-4 items-center rounded-full bg-white/10 hover:bg-white/15 text-sm">
+          {user.role === 'admin' ? 'Panel admin' : user.full_name.split(' ')[0]}
+        </a>
+      ) : (
+        <a href="/login" class="hidden md:inline-flex h-10 px-4 items-center rounded-full bg-white/10 hover:bg-white/15 text-sm">
+          Acceder
+        </a>
+      )}
+      <CartButton client:load />
+    </div>
+  </div>
+</header>

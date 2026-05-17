@@ -1,0 +1,13 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import UsersBoard from '../../components/islands/UsersBoard.tsx';
+import { getStore } from '../../server/db';
+
+const users = getStore().users.map((u) => ({
+  id: u.id, email: u.email, full_name: u.full_name, role: u.role, created_at: u.created_at,
+}));
+const self = Astro.locals.user!;
+---
+<Admin title="Usuarios" crumb="Inicio / Usuarios">
+  <UsersBoard client:load initialUsers={users} selfId={self.id} />
+</Admin>

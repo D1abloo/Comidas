@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import { loginUser, setSession } from '../server/auth';
+
+let error = '';
+const next = Astro.url.searchParams.get('next') ?? '/';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const fd = await Astro.request.formData();
+    const user = await loginUser(String(fd.get('email')), String(fd.get('password')));
+    await setSession(Astro.cookies, { id: user.id, email: user.email, full_name: user.full_name, role: user.role });
+    return Astro.redirect(user.role === 'admin' ? '/admin' : (next || '/perfil'));
+  } catch (e: any) {
+    error = e.message ?? 'Error';
+  }
+}
+---
+<Base title="Acceder · BocadO" hideChrome>
+  <section class="min-h-[calc(100vh-28px)] grid place-items-center px-6">
+    <div class="card w-full max-w-md p-10">
+      <a href="/" class="inline-flex items-center gap-2">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="13" stroke="#0a0a0a" stroke-width="1.6" />
+          <path d="M22 7 L27 11 L23 13 Z" fill="#D6FF3D" stroke="#0a0a0a" stroke-width="1" stroke-linejoin="round" />
+          <circle cx="16" cy="16" r="2" fill="#0a0a0a" />
+        </svg>
+        <span class="font-semibold tracking-[-0.02em] text-[18px]">Bocad<span style="color:#D6FF3D">O</span></span>
+      </a>
+      <h1 class="mt-6 text-2xl font-semibold tracking-tight">Accede a tu cuenta</h1>
+      <p class="text-sm text-bocado-mute mt-1">¿Aún no tienes? <a href="/registro" class="underline">Crear cuenta</a></p>
+
+      <form method="POST" class="mt-6 space-y-3">
+        <label class="block"><span class="label">Email</span>
+          <input class="input mt-1" name="email" type="email" required defaultValue="cliente@bocado.app" />
+        </label>
+        <label class="block"><span class="label">Contraseña</span>
+          <input class="input mt-1" name="password" type="password" required defaultValue="cliente1234" />
+        </label>
+        {error && <p class="text-sm text-red-600">{error}</p>}
+        <button class="btn-primary w-full mt-2">Acceder</button>
+      </form>
+
+      <div class="mt-6 text-xs text-bocado-mute text-center">
+        ¿Eres administrador? <a href="/admin/login" class="underline">Acceso del equipo</a>
+      </div>
+    </div>
+  </section>
+</Base>

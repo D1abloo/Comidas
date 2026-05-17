@@ -1,0 +1,16 @@
+{
+  "name": "bocado-delivery",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "npm run dev -w @bocado/web",
+    "build": "npm run build -w @bocado/web",
+    "start": "npm run start -w @bocado/web",
+    "preview": "npm run preview -w @bocado/web"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "npm@10.8.2"
+}

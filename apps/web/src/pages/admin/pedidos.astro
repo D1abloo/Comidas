@@ -1,0 +1,9 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import OrdersBoard from '../../components/islands/OrdersBoard.tsx';
+import { getStore } from '../../server/db';
+const orders = getStore().orders;
+---
+<Admin title="Pedidos" crumb="Inicio / Pedidos">
+  <OrdersBoard client:load initialOrders={orders} />
+</Admin>

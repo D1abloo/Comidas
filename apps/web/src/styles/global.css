@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { background: theme('colors.bocado.paper'); color: theme('colors.bocado.ink'); }
+  body { font-family: theme('fontFamily.sans'); -webkit-font-smoothing: antialiased; }
+  ::selection { background: theme('colors.bocado.lime'); color: theme('colors.bocado.ink'); }
+}
+
+@layer components {
+  .container-bocado { @apply max-w-[1280px] mx-auto px-6 md:px-10; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full font-medium transition select-none; }
+  .btn-primary { @apply btn bg-bocado-ink text-white px-5 py-3 hover:opacity-90; }
+  .btn-lime { @apply btn bg-bocado-lime text-bocado-ink px-5 py-3 hover:brightness-95; }
+  .btn-ghost { @apply btn border border-bocado-ink/15 text-bocado-ink px-5 py-3 hover:bg-bocado-ink/5; }
+  .chip { @apply inline-flex items-center gap-2 rounded-full border border-bocado-ink/10 bg-white px-4 py-2 text-sm hover:border-bocado-ink/40 transition; }
+  .chip[data-active='true'] { @apply bg-bocado-ink text-white border-bocado-ink; }
+  .card { @apply rounded-[20px] bg-white border border-bocado-line shadow-card; }
+  .label { @apply text-[11px] uppercase tracking-[0.12em] text-bocado-mute; }
+  .input { @apply w-full px-3.5 py-2.5 rounded-xl border border-bocado-line bg-white focus:outline-none focus:border-bocado-ink; }
+  .hairline { @apply border-bocado-line; }
+}

@@ -1,0 +1,42 @@
+---
+import Base from '../../layouts/Base.astro';
+import { registerUser, setSession } from '../../server/auth';
+
+let error = '';
+if (Astro.request.method === 'POST') {
+  try {
+    const fd = await Astro.request.formData();
+    const user = await registerUser({
+      full_name: String(fd.get('full_name') ?? ''),
+      email: String(fd.get('email') ?? ''),
+      password: String(fd.get('password') ?? ''),
+      phone: String(fd.get('phone') ?? '') || undefined,
+      role: 'admin',
+    });
+    await setSession(Astro.cookies, { id: user.id, email: user.email, full_name: user.full_name, role: user.role });
+    return Astro.redirect('/admin');
+  } catch (e: any) {
+    error = e.message ?? 'Error';
+  }
+}
+---
+<Base title="Admin · Crear cuenta" hideChrome>
+  <section class="min-h-[calc(100vh-28px)] grid place-items-center px-6 py-10 bg-bocado-paper2">
+    <div class="card w-full max-w-md p-10">
+      <div class="text-[11px] uppercase tracking-wider text-bocado-mute">BocadO · Admin</div>
+      <h1 class="mt-2 text-2xl font-semibold tracking-tight">Crear cuenta del equipo</h1>
+      <p class="text-sm text-bocado-mute mt-1">Acceso completo al panel de gestión.</p>
+      <form method="POST" class="mt-6 space-y-3">
+        <label class="block"><span class="label">Nombre completo</span><input class="input mt-1" name="full_name" required /></label>
+        <label class="block"><span class="label">Email corporativo</span><input class="input mt-1" type="email" name="email" required /></label>
+        <label class="block"><span class="label">Teléfono</span><input class="input mt-1" name="phone" /></label>
+        <label class="block"><span class="label">Contraseña</span><input class="input mt-1" type="password" name="password" required minLength={6} /></label>
+        {error && <p class="text-sm text-red-600">{error}</p>}
+        <button class="btn-primary w-full mt-2">Crear cuenta y entrar</button>
+      </form>
+      <p class="text-xs text-bocado-mute mt-6 text-center">
+        ¿Ya tienes cuenta? <a href="/admin/login" class="underline">Acceder</a>
+      </p>
+    </div>
+  </section>
+</Base>

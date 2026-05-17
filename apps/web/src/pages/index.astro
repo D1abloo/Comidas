@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Filters from '../components/Filters.astro';
+import DishCard from '../components/DishCard.astro';
+import TrustBar from '../components/TrustBar.astro';
+import { getStore } from '../server/db';
+
+const store = getStore();
+const cuisine = Astro.url.searchParams.get('cuisine') ?? '';
+const diet = Astro.url.searchParams.get('diet') ?? '';
+const maxTime = parseInt(Astro.url.searchParams.get('max_time') ?? '0', 10);
+
+let dishes = store.dishes.filter((d) => d.is_available);
+if (cuisine) dishes = dishes.filter((d) => d.cuisine === cuisine);
+if (diet === 'vegan') dishes = dishes.filter((d) => d.vegan);
+if (diet === 'vegetarian') dishes = dishes.filter((d) => d.vegetarian);
+if (diet === 'gluten_free') dishes = dishes.filter((d) => d.gluten_free);
+if (maxTime > 0) dishes = dishes.filter((d) => d.delivery_time_min <= maxTime);
+
+const featured = dishes.filter((d) => d.is_featured).slice(0, 3);
+const restById = Object.fromEntries(store.restaurants.map((r) => [r.id, r]));
+---
+<Base>
+  <Hero />
+  <Filters />
+
+  <section id="destacados" class="container-bocado mt-12">
+    <div class="flex items-end justify-between">
+      <h2 class="text-2xl md:text-3xl font-semibold tracking-tight">Destacados de hoy</h2>
+      <a href="#catalogo" class="text-sm underline underline-offset-4">Ver todos →</a>
+    </div>
+    <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {featured.map((d) => <DishCard dish={d} restaurant={restById[d.restaurant_id]!} />)}
+    </div>
+  </section>
+
+  <section id="catalogo" class="container-bocado mt-16">
+    <div class="flex items-end justify-between">
+      <h2 class="text-2xl md:text-3xl font-semibold tracking-tight">Catálogo</h2>
+      <span class="text-sm text-bocado-mute">{dishes.length} platos disponibles</span>
+    </div>
+    <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {dishes.map((d) => <DishCard dish={d} restaurant={restById[d.restaurant_id]!} />)}
+    </div>
+  </section>
+
+  <TrustBar />
+</Base>

@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import { registerUser, setSession } from '../server/auth';
+
+let error = '';
+if (Astro.request.method === 'POST') {
+  try {
+    const fd = await Astro.request.formData();
+    const user = await registerUser({
+      full_name: String(fd.get('full_name') ?? ''),
+      email: String(fd.get('email') ?? ''),
+      password: String(fd.get('password') ?? ''),
+      phone: String(fd.get('phone') ?? '') || undefined,
+      role: 'customer',
+    });
+    await setSession(Astro.cookies, { id: user.id, email: user.email, full_name: user.full_name, role: user.role });
+    return Astro.redirect('/perfil');
+  } catch (e: any) {
+    error = e.message ?? 'Error';
+  }
+}
+---
+<Base title="Crear cuenta · BocadO" hideChrome>
+  <section class="min-h-[calc(100vh-28px)] grid place-items-center px-6 py-10">
+    <div class="card w-full max-w-md p-10">
+      <a href="/" class="inline-flex items-center gap-2">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="13" stroke="#0a0a0a" stroke-width="1.6" />
+          <path d="M22 7 L27 11 L23 13 Z" fill="#D6FF3D" stroke="#0a0a0a" stroke-width="1" stroke-linejoin="round" />
+          <circle cx="16" cy="16" r="2" fill="#0a0a0a" />
+        </svg>
+        <span class="font-semibold tracking-[-0.02em] text-[18px]">Bocad<span style="color:#D6FF3D">O</span></span>
+      </a>
+      <h1 class="mt-6 text-2xl font-semibold tracking-tight">Crea tu cuenta</h1>
+      <p class="text-sm text-bocado-mute mt-1">Guarda direcciones y consulta el historial de pedidos.</p>
+      <form method="POST" class="mt-6 space-y-3">
+        <label class="block"><span class="label">Nombre completo</span><input class="input mt-1" name="full_name" required /></label>
+        <label class="block"><span class="label">Email</span><input class="input mt-1" type="email" name="email" required /></label>
+        <label class="block"><span class="label">Teléfono</span><input class="input mt-1" name="phone" /></label>
+        <label class="block"><span class="label">Contraseña</span><input class="input mt-1" type="password" name="password" required minLength={6} /></label>
+        {error && <p class="text-sm text-red-600">{error}</p>}
+        <button class="btn-primary w-full mt-2">Crear cuenta</button>
+      </form>
+      <p class="text-xs text-bocado-mute mt-6 text-center">
+        ¿Ya tienes cuenta? <a href="/login" class="underline">Acceder</a>
+      </p>
+    </div>
+  </section>
+</Base>

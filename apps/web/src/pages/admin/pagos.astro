@@ -1,0 +1,47 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { getStore } from '../../server/db';
+import { formatEUR, statusLabel } from '../../server/format';
+
+const store = getStore();
+const orders = store.orders;
+const byMethod: Record<string, number> = { tpv: 0, bizum: 0, cash: 0 };
+orders.forEach((o) => (byMethod[o.payment_method] = (byMethod[o.payment_method] ?? 0) + 1));
+const total = orders.length || 1;
+---
+<Admin title="Pagos" crumb="Inicio / Pagos">
+  <section class="space-y-6">
+    <div class="grid md:grid-cols-3 gap-4">
+      {(['tpv', 'bizum', 'cash'] as const).map((m) => (
+        <div class="card p-5">
+          <div class="label">{m === 'tpv' ? 'Tarjeta · TPV' : m === 'bizum' ? 'Bizum' : 'Efectivo'}</div>
+          <div class="mt-2 text-2xl font-semibold">{Math.round(((byMethod[m] ?? 0) / total) * 100)}%</div>
+          <div class="text-xs text-bocado-mute mt-1">{byMethod[m] ?? 0} pedidos</div>
+        </div>
+      ))}
+    </div>
+
+    <div class="card overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-bocado-paper2 text-bocado-mute">
+          <tr class="text-left">
+            <th class="font-normal py-3 px-5">Pedido</th>
+            <th class="font-normal">Método</th>
+            <th class="font-normal">Importe</th>
+            <th class="font-normal">Estado pago</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((o) => (
+            <tr class="border-t border-bocado-line">
+              <td class="py-3 px-5">{o.number}</td>
+              <td><span class="chip uppercase text-[10px]">{o.payment_method}</span></td>
+              <td>{formatEUR(o.total_cents)}</td>
+              <td><span class="chip">{statusLabel(o.payment_status)}</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</Admin>

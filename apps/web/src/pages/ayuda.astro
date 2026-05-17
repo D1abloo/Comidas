@@ -1,0 +1,26 @@
+---
+import Base from '../layouts/Base.astro';
+const faqs = [
+  { q: '¿En cuánto tiempo llega mi pedido?', a: 'Entre 20 y 40 minutos según restaurante. Cada plato muestra su tiempo verificado.' },
+  { q: '¿Qué métodos de pago aceptáis?', a: 'Tarjeta TPV, Bizum mediante QR y efectivo al recibir el pedido.' },
+  { q: '¿Puedo pedir factura con mis datos?', a: 'Sí. Al hacer el checkout puedes indicar tu CIF/NIF y la generaremos automáticamente en PDF.' },
+  { q: '¿Cómo se gestionan los alérgenos?', a: 'Cada plato lista los 14 alérgenos UE. Si tienes alguna alergia, contáctanos directamente.' },
+];
+---
+<Base title="Ayuda · BocadO">
+  <section class="container-bocado py-16 max-w-3xl">
+    <p class="label">Ayuda</p>
+    <h1 class="text-3xl md:text-5xl font-semibold tracking-[-0.02em] mt-3">Preguntas frecuentes</h1>
+    <div class="mt-10 divide-y divide-bocado-line border-y border-bocado-line">
+      {faqs.map((f) => (
+        <details class="py-5 group">
+          <summary class="cursor-pointer flex justify-between items-center list-none">
+            <span class="font-medium">{f.q}</span>
+            <span class="text-bocado-mute group-open:rotate-45 transition">+</span>
+          </summary>
+          <p class="mt-3 text-bocado-mute text-sm leading-relaxed">{f.a}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+</Base>

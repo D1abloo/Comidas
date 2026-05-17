@@ -1,0 +1,12 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import DishesBoard from '../../components/islands/DishesBoard.tsx';
+import { getStore } from '../../server/db';
+const store = getStore();
+---
+<Admin title="Platos" crumb="Inicio / Catálogo / Platos">
+  <DishesBoard client:load
+    initialDishes={store.dishes}
+    restaurants={store.restaurants}
+  />
+</Admin>

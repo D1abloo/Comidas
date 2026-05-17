@@ -1,0 +1,26 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getStore } from '../../server/db';
+const orderId = Astro.url.searchParams.get('order');
+const order = getStore().orders.find((o) => o.id === orderId);
+---
+<Base title="Pedido confirmado · BocadO">
+  <section class="container-bocado mt-20 mb-32 max-w-xl">
+    <div class="w-12 h-12 rounded-full bg-bocado-lime grid place-items-center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg>
+    </div>
+    <h1 class="mt-6 text-4xl font-semibold tracking-[-0.02em]">¡Pedido confirmado!</h1>
+    {order ? (
+      <p class="mt-3 text-bocado-mute">
+        Tu pedido <b>{order.number}</b> ha sido recibido. Te avisaremos por email y, si está activado, por WhatsApp cuando entre en preparación.
+        El equipo emitirá la factura PDF en cuanto se confirme el pago.
+      </p>
+    ) : (
+      <p class="mt-3 text-bocado-mute">Tu pedido ha sido recibido.</p>
+    )}
+    <div class="mt-8 flex gap-3">
+      <a href="/" class="btn-primary">Volver al inicio</a>
+      <a href="/perfil" class="btn-ghost">Mis pedidos</a>
+    </div>
+  </section>
+</Base>

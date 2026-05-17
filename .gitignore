@@ -1,0 +1,17 @@
+node_modules
+dist
+.output
+.astro
+.vercel
+.turbo
+.next
+.angular
+.cache
+.DS_Store
+coverage
+*.log
+.env
+.env.local
+.env.*.local
+!.env.example
+supabase/.temp

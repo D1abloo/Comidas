@@ -1,0 +1,117 @@
+---
+import Base from '../../layouts/Base.astro';
+import AllergenBadges from '../../components/AllergenBadges.astro';
+import AddToCart from '../../components/islands/AddToCart.tsx';
+import { getStore } from '../../server/db';
+import { formatEUR } from '../../server/format';
+
+const { slug } = Astro.params;
+const store = getStore();
+const dish = store.dishes.find((d) => d.slug === slug);
+if (!dish) return Astro.redirect('/');
+const restaurant = store.restaurants.find((r) => r.id === dish.restaurant_id)!;
+const related = store.dishes.filter((d) => d.id !== dish.id && d.cuisine === dish.cuisine).slice(0, 3);
+const img = dish.images[0]!;
+---
+<Base title={`${dish.name} · BocadO`} description={dish.description}>
+  <section class="container-bocado pt-12 pb-16 grid md:grid-cols-[1.05fr_1fr] gap-12">
+    <div>
+      <div class="aspect-[5/4] rounded-[28px] overflow-hidden bg-bocado-paper2">
+        <img src={img} alt={dish.name} class="w-full h-full object-cover" />
+      </div>
+      {dish.images.length > 1 && (
+        <div class="mt-4 grid grid-cols-4 gap-3">
+          {dish.images.map((u) => (
+            <div class="aspect-square rounded-2xl overflow-hidden bg-bocado-paper2">
+              <img src={u} alt="" class="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <div>
+      <a href="/" class="text-xs text-bocado-mute hover:text-bocado-ink">← Volver al catálogo</a>
+      <div class="mt-4 text-[11px] uppercase tracking-[0.12em] text-bocado-mute">{restaurant.name} · {dish.cuisine}</div>
+      <h1 class="mt-2 text-4xl md:text-5xl font-semibold tracking-[-0.02em]">{dish.name}</h1>
+      <p class="mt-4 text-bocado-mute text-lg">{dish.long_description}</p>
+
+      <div class="mt-6 flex items-center gap-6 text-sm">
+        <span class="inline-flex items-center gap-1.5">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#0a0a0a"><path d="m12 17.3 6.18 3.7-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          <b>{dish.rating.toFixed(1)}</b>
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          {dish.delivery_time_min} min
+        </span>
+        <span>{dish.portion}</span>
+      </div>
+
+      <div class="mt-6 flex gap-2 flex-wrap">
+        {dish.vegan && <span class="chip">Vegano</span>}
+        {dish.vegetarian && !dish.vegan && <span class="chip">Vegetariano</span>}
+        {dish.gluten_free && <span class="chip">Sin gluten</span>}
+        {dish.spicy_level > 0 && <span class="chip">{'🌶️'.repeat(dish.spicy_level)} Picante</span>}
+      </div>
+
+      <div class="mt-8 flex items-center justify-between">
+        <span class="text-4xl font-semibold tracking-tight">{formatEUR(dish.price_cents)}</span>
+        {dish.is_available ? (
+          <AddToCart client:idle variant="large" line={{ dish_id: dish.id, dish_name: dish.name, restaurant_name: restaurant.name, unit_price_cents: dish.price_cents, image: img }} />
+        ) : (
+          <span class="chip">No disponible ahora</span>
+        )}
+      </div>
+
+      <div class="mt-10 grid sm:grid-cols-2 gap-4">
+        <div class="card p-5">
+          <p class="label">Información nutricional</p>
+          <p class="text-xs text-bocado-mute mt-1">Valores por ración ({dish.portion})</p>
+          <dl class="mt-4 grid grid-cols-4 gap-3 text-center text-sm">
+            <div><dt class="text-[10px] uppercase tracking-wider text-bocado-mute">Calorías</dt><dd class="font-semibold mt-1">{dish.nutrition.kcal}</dd></div>
+            <div><dt class="text-[10px] uppercase tracking-wider text-bocado-mute">Proteína</dt><dd class="font-semibold mt-1">{dish.nutrition.protein_g}g</dd></div>
+            <div><dt class="text-[10px] uppercase tracking-wider text-bocado-mute">Hidratos</dt><dd class="font-semibold mt-1">{dish.nutrition.carbs_g}g</dd></div>
+            <div><dt class="text-[10px] uppercase tracking-wider text-bocado-mute">Grasas</dt><dd class="font-semibold mt-1">{dish.nutrition.fat_g}g</dd></div>
+          </dl>
+        </div>
+        <div class="card p-5">
+          <p class="label">Ingredientes</p>
+          <ul class="mt-3 text-sm leading-relaxed">
+            {dish.ingredients.map((i) => <li>· {i}</li>)}
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-6 card p-5">
+        <p class="label">Alérgenos declarados (Reglamento UE 1169/2011)</p>
+        <div class="mt-3">
+          <AllergenBadges allergens={dish.allergens} size="md" />
+        </div>
+        <p class="text-xs text-bocado-mute mt-4">
+          Puede contener trazas. Consulta al restaurante si tienes alguna alergia o intolerancia.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {related.length > 0 && (
+    <section class="container-bocado mt-12 mb-24">
+      <h2 class="text-2xl font-semibold tracking-tight">También te puede gustar</h2>
+      <div class="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {related.map((d) => (
+          <a href={`/platos/${d.slug}`} class="card overflow-hidden">
+            <div class="aspect-[5/4] overflow-hidden">
+              <img src={d.images[0]} alt={d.name} class="w-full h-full object-cover" />
+            </div>
+            <div class="p-5">
+              <div class="text-[11px] uppercase tracking-wider text-bocado-mute">{store.restaurants.find((r) => r.id === d.restaurant_id)?.name}</div>
+              <div class="font-medium mt-1">{d.name}</div>
+              <div class="mt-2 text-sm">{formatEUR(d.price_cents)}</div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+</Base>

@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import { getStore } from '../server/db';
+import { formatEUR, formatDateTime, statusLabel, paymentLabel } from '../server/format';
+
+const user = Astro.locals.user!;
+const store = getStore();
+const myOrders = store.orders
+  .filter((o) => o.customer.user_id === user.id || o.customer.email === user.email)
+  .sort((a, b) => b.created_at.localeCompare(a.created_at));
+---
+<Base title="Mi cuenta · BocadO">
+  <section class="container-bocado py-12 grid md:grid-cols-[1fr_2fr] gap-10">
+    <aside class="card p-6 h-fit">
+      <p class="label">Cuenta</p>
+      <h1 class="text-xl font-semibold tracking-tight mt-1">{user.full_name}</h1>
+      <p class="text-sm text-bocado-mute">{user.email}</p>
+      <hr class="my-4 hairline" />
+      <ul class="space-y-2 text-sm">
+        <li><a href="/perfil" class="font-medium">Mis pedidos</a></li>
+        <li><a href="/" class="text-bocado-mute">Volver a la tienda</a></li>
+      </ul>
+      <form action="/api/auth/logout" method="POST" class="mt-6">
+        <button class="btn-ghost w-full">Cerrar sesión</button>
+      </form>
+    </aside>
+
+    <div>
+      <h2 class="text-2xl font-semibold tracking-tight">Mis pedidos</h2>
+      <p class="text-sm text-bocado-mute mt-1">Histórico de compras de esta cuenta.</p>
+      <div class="mt-6 space-y-3">
+        {myOrders.length === 0 && (
+          <div class="card p-10 text-center text-sm text-bocado-mute">
+            Aún no has hecho ningún pedido.<br/>
+            <a href="/" class="underline">Explorar el catálogo →</a>
+          </div>
+        )}
+        {myOrders.map((o) => (
+          <div class="card p-5 flex items-center justify-between gap-4">
+            <div class="min-w-0">
+              <div class="text-[11px] uppercase tracking-wider text-bocado-mute">{formatDateTime(o.created_at)}</div>
+              <div class="font-medium mt-1">{o.number}</div>
+              <div class="text-sm text-bocado-mute">{o.items.length} platos · {paymentLabel(o.payment_method)}</div>
+            </div>
+            <div class="text-right">
+              <div class="font-semibold">{formatEUR(o.total_cents)}</div>
+              <span class="chip mt-2">{statusLabel(o.status)}</span>
+            </div>
+            {o.invoice_id && (
+              <a href={`/api/invoices/${o.invoice_id}.pdf`} target="_blank" class="btn-ghost text-sm">PDF</a>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,22 @@
+---
+import { ALLERGEN_LABELS, type Allergen } from '../server/types';
+interface Props { allergens: Allergen[]; size?: 'sm' | 'md' }
+const { allergens, size = 'sm' } = Astro.props as Props;
+const icons: Record<Allergen, string> = {
+  gluten: '🌾', lacteos: '🥛', huevos: '🥚', pescado: '🐟', crustaceos: '🦐',
+  moluscos: '🦑', cacahuetes: '🥜', frutos_secos: '🌰', soja: '🌱', apio: '🥬',
+  mostaza: '🟡', sesamo: '⚪', sulfitos: '🍷', altramuces: '🟤',
+};
+const cls = size === 'md' ? 'text-sm px-3 py-1.5' : 'text-[11px] px-2 py-1';
+---
+{allergens.length === 0 ? (
+  <span class={`inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-700 ${cls}`}>Sin alérgenos declarados</span>
+) : (
+  <div class="flex flex-wrap gap-1.5">
+    {allergens.map((a) => (
+      <span class={`inline-flex items-center gap-1.5 rounded-full bg-bocado-paper2 border border-bocado-line text-bocado-ink/80 ${cls}`}>
+        <span aria-hidden="true">{icons[a]}</span> {ALLERGEN_LABELS[a]}
+      </span>
+    ))}
+  </div>
+)}
