@@ -14,13 +14,17 @@ const ALLERGEN_LABEL: Record<string, string> = {
 };
 const CATEGORIES = ['starter', 'main', 'dessert', 'drink', 'side'];
 
-interface Props { initialDishes: any[]; restaurants: { id: string; name: string }[] }
+interface Props {
+  initialDishes: any[];
+  restaurants: { id: string; name: string }[];
+  menuSections: { id: string; title: string; emoji?: string }[];
+}
 
-export default function DishesBoard({ initialDishes, restaurants }: Props) {
+export default function DishesBoard({ initialDishes, restaurants, menuSections }: Props) {
   const [dishes, setDishes] = useState<any[]>(initialDishes);
   const [filter, setFilter] = useState<{ q: string; cat: string; avail: string }>({ q: '', cat: '', avail: '' });
   const [drawer, setDrawer] = useState(false);
-  const [form, setForm] = useState<any>(emptyForm(restaurants[0]?.id));
+  const [form, setForm] = useState<any>(emptyForm(restaurants[0]?.id, menuSections[0]?.id));
 
   const visible = dishes.filter((d) => {
     if (filter.q && !d.name.toLowerCase().includes(filter.q.toLowerCase())) return false;
@@ -50,12 +54,60 @@ export default function DishesBoard({ initialDishes, restaurants }: Props) {
     setDishes((prev) => prev.filter((x) => x.id !== d.id));
   }
   function openNew() {
-    setForm(emptyForm(restaurants[0]?.id));
+    setForm(emptyForm(restaurants[0]?.id, menuSections[0]?.id));
     setDrawer(true);
   }
   function openEdit(d: any) {
-    setForm({ ...d, _price_eur: (d.price_cents / 100).toFixed(2), _images_str: d.images.join('\n'), _ingredients_str: d.ingredients.join(', ') });
+    setForm({
+      ...d,
+      _price_eur: (d.price_cents / 100).toFixed(2),
+      _images_str: d.images.join('\n'),
+      _ingredients_str: d.ingredients.join(', '),
+      content_sections: d.content_sections ?? [],
+    });
     setDrawer(true);
+  }
+
+  function readImageFile(file: File) {
+    return new Promise<string>((resolve, reject) => {
+      if (file.size > 2_000_000) {
+        reject(new Error('Máximo 2 MB por imagen'));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error('No se pudo leer la imagen'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function onImageFiles(files: FileList | null) {
+    if (!files?.length) return;
+    try {
+      const urls: string[] = [];
+      for (const f of Array.from(files)) urls.push(await readImageFile(f));
+      const prev = String(form._images_str ?? form.images?.join('\n') ?? '')
+        .split(/\s+/)
+        .filter(Boolean);
+      setForm({ ...form, _images_str: [...prev, ...urls].join('\n') });
+    } catch (err: any) {
+      alert(err.message ?? 'Error al subir');
+    }
+  }
+
+  function addContentSection() {
+    const sections = [...(form.content_sections ?? [])];
+    sections.push({ id: `sec-${Date.now()}`, title: 'Nueva sección', body: '' });
+    setForm({ ...form, content_sections: sections });
+  }
+
+  function updateContentSection(id: string, patch: { title?: string; body?: string }) {
+    const sections = (form.content_sections ?? []).map((s: any) => (s.id === id ? { ...s, ...patch } : s));
+    setForm({ ...form, content_sections: sections });
+  }
+
+  function removeContentSection(id: string) {
+    setForm({ ...form, content_sections: (form.content_sections ?? []).filter((s: any) => s.id !== id) });
   }
   async function save() {
     const payload = {
@@ -86,7 +138,7 @@ export default function DishesBoard({ initialDishes, restaurants }: Props) {
   }
 
   return (
-    <section className="space-y-6">
+    <section className="admin-content space-y-6 !py-0">
       <div className="flex flex-wrap items-center gap-2">
         <input className="input w-72" placeholder="Buscar plato…" value={filter.q} onChange={(e) => setFilter({ ...filter, q: e.target.value })} />
         <select className="chip" value={filter.cat} onChange={(e) => setFilter({ ...filter, cat: e.target.value })}>
@@ -103,57 +155,41 @@ export default function DishesBoard({ initialDishes, restaurants }: Props) {
         </button>
       </div>
 
-      <div className="card overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-bocado-paper2 text-bocado-mute">
-            <tr className="text-left">
-              <th className="font-normal py-3 px-5">Plato</th>
-              <th className="font-normal">Categoría</th>
-              <th className="font-normal">Precio</th>
-              <th className="font-normal">Alérgenos</th>
-              <th className="font-normal">Disponible</th>
-              <th className="font-normal text-right pr-5">Acciones</th>
+      <div className="admin-frame overflow-x-auto">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Plato</th>
+              <th>Sección</th>
+              <th>Precio</th>
+              <th>Alérgenos</th>
+              <th>On</th>
+              <th className="text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {visible.map((d) => (
-              <tr key={d.id} className="border-t border-bocado-line">
-                <td className="py-3 px-5">
-                  <div className="flex items-center gap-3">
-                    {d.images?.[0] && <img src={d.images[0]} alt="" className="w-10 h-10 rounded-xl object-cover" />}
-                    <div>
-                      <div className="font-medium">{d.name}</div>
-                      <div className="text-xs text-bocado-mute">{d.cuisine}</div>
+              <tr key={d.id}>
+                <td>
+                  <div className="flex items-center gap-2 min-w-0">
+                    {d.images?.[0] && <img src={d.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" />}
+                                        <div className="min-w-0">
+                      <div className="font-medium text-sm truncate">{d.name}</div>
+                      <div className="text-[10px] text-bocado-mute truncate">{d.cuisine}</div>
                     </div>
                   </div>
                 </td>
-                <td><span className="chip">{d.category}</span></td>
-                <td>{eur(d.price_cents)}</td>
+                <td className="text-xs">{menuSections.find((s) => s.id === d.menu_section_id)?.title ?? '—'}</td>
+                <td className="font-medium text-sm whitespace-nowrap">{eur(d.price_cents)}</td>
+                <td className="text-[10px] text-bocado-mute">{d.allergens?.length ?? 0}</td>
                 <td>
-                  {d.allergens?.length ? (
-                    <div className="flex flex-wrap gap-1 max-w-[180px]">
-                      {d.allergens.slice(0, 3).map((a: string) => (
-                        <span key={a} className="chip text-[10px] px-2 py-0.5">{ALLERGEN_LABEL[a] ?? a}</span>
-                      ))}
-                      {d.allergens.length > 3 && <span className="text-xs text-bocado-mute">+{d.allergens.length - 3}</span>}
-                    </div>
-                  ) : <span className="text-xs text-bocado-mute">—</span>}
-                </td>
-                <td>
-                  <button onClick={() => toggle(d)}
-                    className={`w-10 h-5 rounded-full relative transition ${d.is_available ? 'bg-bocado-lime' : 'bg-bocado-line'}`}
-                    aria-label="Disponibilidad">
-                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white border border-bocado-line transition ${d.is_available ? 'left-[22px]' : 'left-0.5'}`}></span>
+                  <button type="button" onClick={() => toggle(d)} className={`w-9 h-5 rounded-full relative transition ${d.is_available ? 'bg-bocado-lime' : 'bg-bocado-line'}`} aria-label="Disponibilidad">
+                    <span className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white border transition ${d.is_available ? 'left-[18px]' : 'left-0.5'}`} />
                   </button>
                 </td>
-                <td className="text-right pr-5">
-                  <div className="inline-flex gap-1">
-                    <button className="btn-ghost text-xs" onClick={() => openEdit(d)}>Editar</button>
-                    <button className="btn-ghost text-xs" onClick={() => dup(d)}>Duplicar</button>
-                    <button className="btn-ghost text-xs" onClick={() => toggle(d)}>{d.is_available ? 'Pausar' : 'Activar'}</button>
-                    <a className="btn-ghost text-xs" href={`/platos/${d.slug}`} target="_blank">Ver tienda</a>
-                    <button className="btn-ghost text-xs text-red-600" onClick={() => del(d)}>Eliminar</button>
-                  </div>
+                <td className="text-right whitespace-nowrap">
+                  <button type="button" className="btn-ghost text-[11px]" onClick={() => openEdit(d)}>Editar</button>
+                  <a className="btn-ghost text-[11px]" href={`/platos/${d.slug}`} target="_blank" rel="noreferrer">Ver</a>
                 </td>
               </tr>
             ))}
@@ -184,6 +220,13 @@ export default function DishesBoard({ initialDishes, restaurants }: Props) {
                   <Field label="Categoría">
                     <select className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
                       {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="Sección del menú">
+                    <select className="input" value={form.menu_section_id ?? ''} onChange={(e) => setForm({ ...form, menu_section_id: e.target.value })}>
+                      {menuSections.map((s) => (
+                        <option key={s.id} value={s.id}>{s.emoji} {s.title}</option>
+                      ))}
                     </select>
                   </Field>
                   <Field label="Cocina"><input className="input" value={form.cuisine ?? ''} onChange={(e) => setForm({ ...form, cuisine: e.target.value })} /></Field>
@@ -232,9 +275,61 @@ export default function DishesBoard({ initialDishes, restaurants }: Props) {
               </Section>
 
               <Section title="Imágenes">
+                <Field label="Subir desde tu dispositivo">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="input text-sm file:mr-3 file:rounded-full file:border-0 file:bg-bocado-lime file:px-4 file:py-2 file:text-sm file:font-medium"
+                    onChange={(e) => onImageFiles(e.target.files)}
+                  />
+                  <p className="text-xs text-bocado-mute mt-1">Demo: se guardan en base64 (máx. 2 MB). También puedes pegar URLs.</p>
+                </Field>
+                {(form._images_str ?? form.images?.join('\n') ?? '').split(/\s+/).filter(Boolean).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {String(form._images_str ?? form.images?.join('\n') ?? '')
+                      .split(/\s+/)
+                      .filter(Boolean)
+                      .slice(0, 4)
+                      .map((url: string, i: number) => (
+                        <img key={i} src={url} alt="" className="w-16 h-16 rounded-xl object-cover border border-bocado-line" />
+                      ))}
+                  </div>
+                )}
                 <Field label="URLs (una por línea)">
                   <textarea rows={3} className="input" value={form._images_str ?? form.images?.join('\n') ?? ''} onChange={(e) => setForm({ ...form, _images_str: e.target.value })} />
                 </Field>
+              </Section>
+
+              <Section title="Secciones del detalle (página del plato)">
+                <p className="text-xs text-bocado-mute mb-3">Bloques extra: origen, maridaje, consejos del chef, etc.</p>
+                <div className="space-y-3">
+                  {(form.content_sections ?? []).map((sec: any) => (
+                    <div key={sec.id} className="card-static p-4 space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          className="input flex-1 text-sm"
+                          placeholder="Título"
+                          value={sec.title}
+                          onChange={(e) => updateContentSection(sec.id, { title: e.target.value })}
+                        />
+                        <button type="button" className="btn-ghost text-xs text-red-600 shrink-0" onClick={() => removeContentSection(sec.id)}>
+                          Quitar
+                        </button>
+                      </div>
+                      <textarea
+                        rows={2}
+                        className="input text-sm"
+                        placeholder="Contenido"
+                        value={sec.body}
+                        onChange={(e) => updateContentSection(sec.id, { body: e.target.value })}
+                      />
+                    </div>
+                  ))}
+                  <button type="button" className="btn-ghost text-sm w-full" onClick={addContentSection}>
+                    + Añadir sección
+                  </button>
+                </div>
               </Section>
 
               <Section title="Disponibilidad y etiquetas">
@@ -274,9 +369,10 @@ function Field({ label, children }: { label: string; children: any }) {
     </label>
   );
 }
-function emptyForm(restaurant_id?: string) {
+function emptyForm(restaurant_id?: string, menu_section_id?: string) {
   return {
     restaurant_id: restaurant_id ?? '',
+    menu_section_id: menu_section_id ?? '',
     name: '',
     description: '',
     long_description: '',
@@ -298,5 +394,6 @@ function emptyForm(restaurant_id?: string) {
     vegan: false,
     vegetarian: false,
     gluten_free: false,
+    content_sections: [],
   };
 }

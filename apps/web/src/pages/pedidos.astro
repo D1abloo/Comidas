@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/Base.astro';
+import OrdersTracker from '../components/islands/OrdersTracker.tsx';
+import { getStore } from '../server/db';
+
+const user = Astro.locals.user;
+const store = getStore();
+const initialOrders = user
+  ? store.orders
+      .filter((o) => o.customer.user_id === user.id || o.customer.email === user.email)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+  : [];
+---
+<Base title="Mis pedidos · BocadO" description="Consulta el estado de tus pedidos en BocadO.">
+  <section class="container-bocado py-12 md:py-16">
+    <div class="max-w-4xl animate-fade-up">
+      <p class="label">Seguimiento</p>
+      <h1 class="text-3xl md:text-4xl font-semibold tracking-tight mt-2">Tus pedidos</h1>
+      <p class="text-bocado-mute mt-2 max-w-lg">
+        {user
+          ? 'Aquí ves el estado en tiempo real de tus pedidos con esta cuenta.'
+          : 'Introduce el email con el que realizaste la compra para ver el estado.'}
+      </p>
+    </div>
+
+    <div class="mt-10 max-w-5xl">
+      <OrdersTracker client:load userEmail={user?.email ?? null} initialOrders={initialOrders} />
+    </div>
+  </section>
+</Base>

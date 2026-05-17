@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../../../server/db';
+import { createInvoiceForOrder } from '../../../../server/invoices';
 import { randomUUID } from 'node:crypto';
 
 export const PATCH: APIRoute = async ({ request, params, locals }) => {
@@ -11,6 +12,10 @@ export const PATCH: APIRoute = async ({ request, params, locals }) => {
   const order = store.orders.find((o) => o.id === params.id);
   if (!order) return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
   order.status = status as any;
+
+  if (status === 'confirmed') {
+    createInvoiceForOrder(store, order);
+  }
 
   // generar aviso
   store.notifications.unshift({

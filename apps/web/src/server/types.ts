@@ -64,6 +64,8 @@ export interface Company {
 export interface CompanySettings {
   bizum_phone: string;
   bizum_concept_template: string;
+  /** Marca de tiempo del último QR Bizum generado (cambio de teléfono, etc.) */
+  bizum_qr_updated_at?: string;
   tpv_enabled: boolean;
   cash_enabled: boolean;
   bizum_enabled: boolean;
@@ -84,7 +86,26 @@ export interface Restaurant {
   rating: number;
 }
 
+/** Secciones del catálogo que el admin crea (Entrantes, Principales, etc.) */
+export interface MenuSection {
+  id: UUID;
+  title: string;
+  slug: string;
+  description?: string;
+  emoji?: string;
+  sort_order: number;
+  is_active: boolean;
+  created_at: ISODate;
+}
+
 export type DishCategory = 'starter' | 'main' | 'dessert' | 'drink' | 'side';
+
+/** Bloques editoriales que el admin puede añadir al detalle del plato */
+export interface DishContentSection {
+  id: string;
+  title: string;
+  body: string;
+}
 
 export interface Nutrition {
   kcal: number;
@@ -96,6 +117,7 @@ export interface Nutrition {
 export interface Dish {
   id: UUID;
   restaurant_id: UUID;
+  menu_section_id?: UUID | null;
   slug: string;
   name: string;
   description: string;
@@ -118,6 +140,7 @@ export interface Dish {
   vegetarian: boolean;
   vegan: boolean;
   gluten_free: boolean;
+  content_sections?: DishContentSection[];
   created_at: ISODate;
 }
 

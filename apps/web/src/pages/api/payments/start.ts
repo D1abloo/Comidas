@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../../server/db';
 import { generateBizumQR } from '../../../server/bizum';
+import { createInvoiceForOrder } from '../../../server/invoices';
 
 export const POST: APIRoute = async ({ request }) => {
   const { order_id } = (await request.json()) as { order_id: string };
@@ -40,10 +41,12 @@ export const POST: APIRoute = async ({ request }) => {
   // TPV simulado: en demo lo marcamos como pagado directamente.
   order.payment_status = 'paid';
   order.status = 'confirmed';
+  const invoice = createInvoiceForOrder(store, order);
   return new Response(JSON.stringify({
     method: 'tpv',
     order_id: order.id,
     simulated: true,
+    invoice_id: invoice?.id,
     redirect_url: `/checkout/ok?order=${order.id}`,
   }), { headers: { 'content-type': 'application/json' } });
 };

@@ -5,6 +5,7 @@ import type {
   Company,
   Dish,
   Invoice,
+  MenuSection,
   NotificationEvent,
   Order,
   Restaurant,
@@ -21,6 +22,7 @@ export interface Store {
   company: Company;
   settings: CompanySettings;
   restaurants: Restaurant[];
+  menu_sections: MenuSection[];
   dishes: Dish[];
   orders: Order[];
   invoices: Invoice[];
@@ -72,6 +74,13 @@ function seed(): Store {
     free_delivery_from_cents: 2500,
   };
 
+  const menu_sections: MenuSection[] = [
+    { id: 'sec-entrantes', title: 'Entrantes', slug: 'entrantes', description: 'Para abrir el apetito', emoji: '🥟', sort_order: 1, is_active: true, created_at: new Date().toISOString() },
+    { id: 'sec-principales', title: 'Platos principales', slug: 'principales', description: 'Lo más pedido de la casa', emoji: '🍔', sort_order: 2, is_active: true, created_at: new Date().toISOString() },
+    { id: 'sec-sides', title: 'Guarniciones', slug: 'guarniciones', description: 'Acompañamientos y extras', emoji: '🍟', sort_order: 3, is_active: true, created_at: new Date().toISOString() },
+    { id: 'sec-postres', title: 'Postres y bebidas', slug: 'postres-bebidas', description: 'Dulce final y refrescos', emoji: '🥤', sort_order: 4, is_active: true, created_at: new Date().toISOString() },
+  ];
+
   const restaurants: Restaurant[] = [
     { id: 'r-casa-nori', name: 'Casa Nori', slug: 'casa-nori', cuisine: 'Asiática', rating: 4.9 },
     { id: 'r-verde-verde', name: 'Verde & Verde', slug: 'verde-y-verde', cuisine: 'Mediterránea', rating: 4.8 },
@@ -109,6 +118,10 @@ function seed(): Store {
       vegetarian: false,
       vegan: false,
       gluten_free: false,
+      content_sections: [
+        { id: 's1', title: 'El caldo', body: 'Cocido 12 horas con huesos de cerdo ibérico. Sin aditivos ni concentrados.' },
+        { id: 's2', title: 'Servido con', body: 'Noodles de trigo, chashu glaseado, huevo marinado 6 min y ajo negro.' },
+      ],
       created_at: new Date().toISOString(),
     },
     {
@@ -469,6 +482,17 @@ function seed(): Store {
     },
   ];
 
+  for (const d of dishes) {
+    d.menu_section_id =
+      d.category === 'starter'
+        ? 'sec-entrantes'
+        : d.category === 'main'
+          ? 'sec-principales'
+          : d.category === 'side'
+            ? 'sec-sides'
+            : 'sec-postres';
+  }
+
   // Algunos pedidos de muestra para que el dashboard tenga datos
   const seedOrders: Order[] = [
     sampleOrder('001041', 'Luis G.', 'luis@example.com', 'tpv', 'paid', 'delivered', [
@@ -489,6 +513,7 @@ function seed(): Store {
     company,
     settings,
     restaurants,
+    menu_sections,
     dishes,
     orders: seedOrders,
     invoices: [],

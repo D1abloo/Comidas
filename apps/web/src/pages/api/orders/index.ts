@@ -3,14 +3,38 @@ import { getStore } from '../../../server/db';
 import type { Order } from '../../../server/types';
 import { randomUUID } from 'node:crypto';
 
-export const GET: APIRoute = async ({ locals }) => {
+export const GET: APIRoute = async ({ locals, url }) => {
   const store = getStore();
-  if (!locals.user || locals.user.role !== 'admin') {
-    return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
+  const email = url.searchParams.get('email')?.trim().toLowerCase();
+
+  if (locals.user?.role === 'admin') {
+    return new Response(JSON.stringify({ orders: store.orders }), {
+      headers: { 'content-type': 'application/json' },
+    });
   }
-  return new Response(JSON.stringify({ orders: store.orders }), {
-    headers: { 'content-type': 'application/json' },
-  });
+
+  if (locals.user) {
+    let orders = store.orders.filter(
+      (o) =>
+        o.customer.user_id === locals.user!.id ||
+        o.customer.email.toLowerCase() === locals.user!.email.toLowerCase(),
+    );
+    if (url.searchParams.get('active') === '1') {
+      orders = orders.filter((o) => o.status !== 'delivered' && o.status !== 'cancelled');
+    }
+    return new Response(JSON.stringify({ orders }), {
+      headers: { 'content-type': 'application/json' },
+    });
+  }
+
+  if (email) {
+    const orders = store.orders.filter((o) => o.customer.email.toLowerCase() === email);
+    return new Response(JSON.stringify({ orders }), {
+      headers: { 'content-type': 'application/json' },
+    });
+  }
+
+  return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
 };
 
 export const POST: APIRoute = async ({ request, locals }) => {

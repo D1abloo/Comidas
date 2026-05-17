@@ -3,21 +3,225 @@
 @tailwind utilities;
 
 @layer base {
-  html { background: theme('colors.bocado.paper'); color: theme('colors.bocado.ink'); }
-  body { font-family: theme('fontFamily.sans'); -webkit-font-smoothing: antialiased; }
-  ::selection { background: theme('colors.bocado.lime'); color: theme('colors.bocado.ink'); }
+  html {
+    background: theme('colors.bocado.paper');
+    color: theme('colors.bocado.ink');
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: theme('fontFamily.sans');
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: theme('colors.bocado.lime');
+    color: theme('colors.bocado.ink');
+  }
 }
 
 @layer components {
-  .container-bocado { @apply max-w-[1280px] mx-auto px-6 md:px-10; }
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full font-medium transition select-none; }
-  .btn-primary { @apply btn bg-bocado-ink text-white px-5 py-3 hover:opacity-90; }
-  .btn-lime { @apply btn bg-bocado-lime text-bocado-ink px-5 py-3 hover:brightness-95; }
-  .btn-ghost { @apply btn border border-bocado-ink/15 text-bocado-ink px-5 py-3 hover:bg-bocado-ink/5; }
-  .chip { @apply inline-flex items-center gap-2 rounded-full border border-bocado-ink/10 bg-white px-4 py-2 text-sm hover:border-bocado-ink/40 transition; }
-  .chip[data-active='true'] { @apply bg-bocado-ink text-white border-bocado-ink; }
-  .card { @apply rounded-[20px] bg-white border border-bocado-line shadow-card; }
-  .label { @apply text-[11px] uppercase tracking-[0.12em] text-bocado-mute; }
-  .input { @apply w-full px-3.5 py-2.5 rounded-xl border border-bocado-line bg-white focus:outline-none focus:border-bocado-ink; }
-  .hairline { @apply border-bocado-line; }
+  .container-bocado {
+    @apply max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10;
+  }
+  .container-narrow {
+    @apply max-w-[960px] mx-auto px-5 sm:px-6 md:px-8;
+  }
+  .admin-content {
+    @apply w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8;
+  }
+  .admin-frame {
+    @apply rounded-2xl bg-white border border-bocado-line shadow-card overflow-hidden;
+  }
+  .admin-table {
+    @apply text-sm table-fixed w-full;
+  }
+  .admin-table thead {
+    @apply bg-bocado-paper2 text-bocado-mute text-[11px] uppercase tracking-wider;
+  }
+  .admin-table th,
+  .admin-table td {
+    @apply py-2.5 px-3 align-middle;
+  }
+  .admin-table tbody tr {
+    @apply border-t border-bocado-line hover:bg-bocado-paper2/40 transition-colors;
+  }
+  .admin-table .btn-ghost {
+    @apply px-2 py-1 text-[11px] min-h-0;
+  }
+  .food-card {
+    @apply rounded-2xl bg-white border border-bocado-line overflow-hidden shadow-card animate-fade-up transition-all duration-300 hover:shadow-[0_12px_40px_-16px_rgba(10,10,10,.18)] hover:-translate-y-0.5;
+  }
+  .food-hero {
+    @apply relative overflow-hidden rounded-[28px] bg-bocado-ink text-white;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-200 select-none;
+  }
+  .btn-primary {
+    @apply btn bg-bocado-ink text-white px-5 py-3 hover:opacity-90 active:scale-[0.98];
+  }
+  .btn-lime {
+    @apply btn bg-bocado-lime text-bocado-ink px-5 py-3 hover:brightness-95 active:scale-[0.98];
+  }
+  .btn-ghost {
+    @apply btn border border-bocado-ink/15 text-bocado-ink px-5 py-3 hover:bg-bocado-ink/5 active:scale-[0.98];
+  }
+  .chip {
+    @apply inline-flex items-center gap-2 rounded-full border border-bocado-ink/10 bg-white px-4 py-2 text-sm transition-all duration-200 hover:border-bocado-ink/40;
+  }
+  .chip[data-active='true'] {
+    @apply bg-bocado-ink text-white border-bocado-ink;
+  }
+  .card {
+    @apply rounded-[20px] bg-white border border-bocado-line shadow-card transition-shadow duration-300 hover:shadow-[0_4px_24px_-8px_rgba(10,10,10,.12)];
+  }
+  .card-static {
+    @apply rounded-[20px] bg-white border border-bocado-line shadow-card;
+  }
+  .label {
+    @apply text-[11px] uppercase tracking-[0.12em] text-bocado-mute;
+  }
+  .input {
+    @apply w-full px-3.5 py-2.5 rounded-xl border border-bocado-line bg-white focus:outline-none focus:border-bocado-ink focus:ring-2 focus:ring-bocado-ink/10 transition;
+  }
+  .hairline {
+    @apply border-bocado-line;
+  }
+  .nav-link {
+    @apply relative opacity-80 hover:opacity-100 transition-opacity duration-200;
+  }
+  .nav-link::after {
+    content: '';
+    @apply absolute left-0 -bottom-1 h-[2px] w-0 bg-bocado-lime transition-all duration-300 rounded-full;
+  }
+  .nav-link:hover::after,
+  .nav-link[data-active='true']::after {
+    @apply w-full;
+  }
+  .nav-link[data-active='true'] {
+    @apply opacity-100;
+  }
+}
+
+/* Animaciones */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes burger-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+@keyframes lime-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes pulse-soft {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+.animate-slide-up {
+  animation: slide-up 0.45s ease-out both;
+}
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+.animate-fade-up {
+  animation: fade-up 0.5s ease-out both;
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+.animate-slide-down {
+  animation: slide-down 0.35s ease-out both;
+}
+.animate-burger {
+  animation: burger-bounce 2.5s ease-in-out infinite;
+}
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+.stagger-4 {
+  animation-delay: 0.2s;
+}
+
+/* Logo hamburguesa hover */
+.logo-burger:hover .burger-patty {
+  fill: #c8f535;
+  transition: fill 0.25s ease;
+}
+.logo-burger:hover .burger-bun-top {
+  transform: translateY(-1px);
+  transition: transform 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

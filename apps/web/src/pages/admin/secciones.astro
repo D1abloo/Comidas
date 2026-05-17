@@ -1,0 +1,15 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import SectionsBoard from '../../components/islands/SectionsBoard.tsx';
+import { getStore } from '../../server/db';
+
+const store = getStore();
+const sections = [...store.menu_sections].sort((a, b) => a.sort_order - b.sort_order);
+const dishCounts: Record<string, number> = {};
+for (const d of store.dishes) {
+  if (d.menu_section_id) dishCounts[d.menu_section_id] = (dishCounts[d.menu_section_id] ?? 0) + 1;
+}
+---
+<Admin title="Secciones del menú" crumb="Inicio / Secciones">
+  <SectionsBoard client:load initialSections={sections} dishCounts={dishCounts} />
+</Admin>

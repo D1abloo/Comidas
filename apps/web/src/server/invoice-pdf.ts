@@ -2,9 +2,11 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import type { Invoice, Company } from './types.js';
 import { formatEUR, formatDateTime } from './format.js';
 
-const BLACK = rgb(0.04, 0.04, 0.04);
+const INK = rgb(0.04, 0.04, 0.04);
 const GREY = rgb(0.45, 0.45, 0.45);
+const LIGHT = rgb(0.96, 0.95, 0.92);
 const LIME = rgb(0.84, 1.0, 0.24);
+const LINE = rgb(0.88, 0.87, 0.84);
 
 export async function renderInvoicePDF(invoice: Invoice, company: Company): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
@@ -12,85 +14,160 @@ export async function renderInvoicePDF(invoice: Invoice, company: Company): Prom
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const { width, height } = page.getSize();
-  const left = 48;
-  const right = width - 48;
-  let y = height - 56;
+  const left = 44;
+  const right = width - 44;
+  const contentW = right - left;
+  let y = height - 48;
 
-  page.drawCircle({ x: left + 10, y: y - 4, size: 12, borderColor: BLACK, borderWidth: 1.5 });
-  page.drawRectangle({ x: left + 16, y: y + 2, width: 8, height: 8, color: LIME });
-  page.drawText('BocadO', { x: left + 32, y: y - 8, size: 18, font: bold, color: BLACK });
-  page.drawText('FACTURA', { x: right - bold.widthOfTextAtSize('FACTURA', 12), y: y - 8, size: 12, font: bold, color: BLACK });
+  // Cabecera con banda
+  page.drawRectangle({ x: 0, y: height - 88, width, height: 88, color: INK });
+  page.drawText(company.trade_name || 'BocadO', { x: left, y: height - 52, size: 22, font: bold, color: rgb(1, 1, 1) });
+  page.drawText('FACTURA SIMPLIFICADA', { x: left, y: height - 72, size: 9, font, color: rgb(0.75, 0.75, 0.75) });
+  page.drawRectangle({ x: right - 148, y: height - 76, width: 148, height: 36, color: LIME });
+  page.drawText(invoice.number, { x: right - 140, y: height - 62, size: 11, font: bold, color: INK });
 
-  y -= 36;
-  page.drawLine({ start: { x: left, y }, end: { x: right, y }, color: BLACK, thickness: 1 });
-
-  y -= 24;
-  label(page, bold, 'EMISOR', left, y);
-  label(page, bold, 'CLIENTE', left + 280, y);
-  y -= 14;
-  text(page, font, company.legal_name, left, y, 11, BLACK);
-  text(page, font, invoice.customer_name, left + 280, y, 11, BLACK);
-  y -= 13;
-  text(page, font, `CIF/NIF: ${company.tax_id}`, left, y, 10, GREY);
-  text(page, font, invoice.customer_tax_id ? `CIF/NIF: ${invoice.customer_tax_id}` : 'Consumidor final', left + 280, y, 10, GREY);
-  y -= 13;
-  text(page, font, company.fiscal_address, left, y, 10, GREY);
-  text(page, font, `${invoice.customer_address.street}, ${invoice.customer_address.number}`, left + 280, y, 10, GREY);
-  y -= 13;
-  text(page, font, `${company.fiscal_postal_code} ${company.fiscal_city}, ${company.fiscal_country}`, left, y, 10, GREY);
-  text(page, font, `${invoice.customer_address.postal_code} ${invoice.customer_address.city}, ${invoice.customer_address.country}`, left + 280, y, 10, GREY);
-
-  y -= 30;
-  label(page, bold, 'Nº FACTURA', left, y);
-  label(page, bold, 'FECHA', left + 180, y);
-  label(page, bold, 'PEDIDO', left + 320, y);
-  label(page, bold, 'PAGO', left + 460, y);
-  y -= 14;
-  text(page, font, invoice.number, left, y, 11, BLACK);
-  text(page, font, formatDateTime(invoice.issued_at), left + 180, y, 11, BLACK);
-  text(page, font, invoice.order_id.slice(0, 8), left + 320, y, 11, BLACK);
-  text(page, font, ({ tpv: 'Tarjeta', cash: 'Efectivo', bizum: 'Bizum' } as Record<string, string>)[invoice.payment_method] ?? invoice.payment_method, left + 460, y, 11, BLACK);
-
-  y -= 36;
-  page.drawRectangle({ x: left, y: y - 4, width: right - left, height: 22, color: rgb(0.97, 0.97, 0.94) });
-  label(page, bold, 'CONCEPTO', left + 8, y + 6);
-  label(page, bold, 'CANT', left + 320, y + 6);
-  label(page, bold, 'PRECIO', left + 370, y + 6);
-  label(page, bold, 'IVA', left + 440, y + 6);
-  label(page, bold, 'TOTAL', right - 60, y + 6);
-
+  y = height - 108;
+  drawRule(page, left, right, y);
   y -= 22;
+
+  // Bloques emisor / cliente
+  const colW = (contentW - 24) / 2;
+  drawBox(page, left, y - 72, colW, 72, LIGHT);
+  drawBox(page, left + colW + 24, y - 72, colW, 72, LIGHT);
+  label(page, bold, 'DATOS DEL EMISOR', left + 10, y - 16);
+  label(page, bold, 'DATOS DEL CLIENTE', left + colW + 34, y - 16);
+  text(page, font, company.legal_name, left + 10, y - 32, 10, INK);
+  text(page, font, invoice.customer_name, left + colW + 34, y - 32, 10, INK);
+  text(page, font, `CIF: ${company.tax_id}`, left + 10, y - 46, 9, GREY);
+  text(
+    page,
+    font,
+    invoice.customer_tax_id ? `NIF/CIF: ${invoice.customer_tax_id}` : 'Consumidor final',
+    left + colW + 34,
+    y - 46,
+    9,
+    GREY,
+  );
+  text(page, font, `${company.fiscal_address}, ${company.fiscal_postal_code} ${company.fiscal_city}`, left + 10, y - 58, 8, GREY);
+  text(
+    page,
+    font,
+    `${invoice.customer_address.street} ${invoice.customer_address.number}, ${invoice.customer_address.postal_code} ${invoice.customer_address.city}`,
+    left + colW + 34,
+    y - 58,
+    8,
+    GREY,
+  );
+
+  y -= 88;
+  // Meta pedido
+  const metaH = 36;
+  drawBox(page, left, y - metaH, contentW, metaH, rgb(1, 1, 1));
+  page.drawRectangle({ x: left, y: y - metaH, width: contentW, height: metaH, borderColor: LINE, borderWidth: 1 });
+  const metaCols = [
+    ['Fecha emisión', formatDateTime(invoice.issued_at)],
+    ['Pedido', invoice.order_id.slice(0, 8).toUpperCase()],
+    [
+      'Forma de pago',
+      ({ tpv: 'Tarjeta TPV', cash: 'Efectivo', bizum: 'Bizum' } as Record<string, string>)[invoice.payment_method] ??
+        invoice.payment_method,
+    ],
+    ['Estado pago', invoice.payment_status],
+  ];
+  metaCols.forEach(([l, v], i) => {
+    const mx = left + i * (contentW / 4) + 8;
+    label(page, font, l, mx, y - 14);
+    text(page, bold, v, mx, y - 28, 9, INK);
+  });
+
+  y -= metaH + 20;
+  label(page, bold, 'DETALLE DE CONCEPTOS', left, y);
+  y -= 12;
+
+  // Tabla
+  const headY = y - 20;
+  page.drawRectangle({ x: left, y: headY, width: contentW, height: 20, color: INK });
+  const cols = [
+    { label: 'Descripción', x: left + 8, w: 240 },
+    { label: 'Ud.', x: left + 260, w: 36 },
+    { label: 'P. unit.', x: left + 300, w: 70 },
+    { label: 'IVA', x: left + 378, w: 40 },
+    { label: 'Importe', x: right - 72, w: 64 },
+  ];
+  cols.forEach((c) => label(page, bold, c.label, c.x, headY + 6, rgb(1, 1, 1)));
+
+  y = headY - 4;
   for (const line of invoice.lines) {
-    text(page, font, trunc(line.description, 48), left + 8, y - 10, 10, BLACK);
-    text(page, font, String(line.quantity), left + 320, y - 10, 10, BLACK);
-    text(page, font, formatEUR(line.unit_price_cents), left + 370, y - 10, 10, BLACK);
-    text(page, font, `${Math.round(line.vat_rate * 100)}%`, left + 440, y - 10, 10, BLACK);
-    text(page, font, formatEUR(line.total_cents), right - 60, y - 10, 10, BLACK);
-    y -= 18;
-    page.drawLine({ start: { x: left, y: y + 2 }, end: { x: right, y: y + 2 }, color: rgb(0.9, 0.9, 0.88), thickness: 0.5 });
+    y -= 20;
+    text(page, font, trunc(line.description, 42), left + 8, y, 9, INK);
+    text(page, font, String(line.quantity), left + 268, y, 9, INK);
+    text(page, font, formatEUR(line.unit_price_cents), left + 300, y, 9, INK);
+    text(page, font, `${Math.round(line.vat_rate * 100)}%`, left + 386, y, 9, GREY);
+    text(page, font, formatEUR(line.total_cents), right - 72, y, 9, INK);
+    drawRule(page, left, right, y - 4, 0.4);
   }
 
+  y -= 28;
+  // Totales
+  const totalsX = right - 200;
+  const rows = [
+    ['Base imponible', formatEUR(invoice.subtotal_cents)],
+    ['IVA (10%)', formatEUR(invoice.vat_cents)],
+  ];
+  rows.forEach(([l, v], i) => {
+    text(page, font, l, totalsX, y - i * 16, 9, GREY);
+    text(page, font, v, right - 72, y - i * 16, 9, INK);
+  });
+  y -= 44;
+  page.drawRectangle({ x: totalsX - 8, y: y - 6, width: 208, height: 28, color: INK });
+  text(page, bold, 'TOTAL A PAGAR', totalsX, y + 6, 11, rgb(1, 1, 1));
+  text(page, bold, formatEUR(invoice.total_cents), right - 72, y + 6, 12, LIME);
+
+  y -= 40;
+  drawRule(page, left, right, y);
   y -= 16;
-  text(page, font, 'Subtotal', right - 160, y, 10, GREY);
-  text(page, font, formatEUR(invoice.subtotal_cents), right - 60, y, 10, BLACK);
-  y -= 14;
-  text(page, font, 'IVA', right - 160, y, 10, GREY);
-  text(page, font, formatEUR(invoice.vat_cents), right - 60, y, 10, BLACK);
-  y -= 18;
-  page.drawRectangle({ x: right - 170, y: y - 4, width: 130, height: 22, color: BLACK });
-  text(page, bold, 'TOTAL', right - 160, y + 4, 11, rgb(1, 1, 1));
-  text(page, bold, formatEUR(invoice.total_cents), right - 96, y + 4, 11, LIME);
+  text(page, font, `${company.legal_name} · ${company.contact_email} · ${company.contact_phone}`, left, y, 8, GREY);
+  y -= 12;
+  text(
+    page,
+    font,
+    'Documento emitido electrónicamente. IVA incluido. Válido a efectos fiscales según normativa vigente.',
+    left,
+    y,
+    8,
+    GREY,
+  );
 
-  text(page, font, `Factura emitida electrónicamente por ${company.legal_name}.`, left, 60, 9, GREY);
-  text(page, font, 'IVA incluido. Documento válido a efectos fiscales.', left, 48, 9, GREY);
-
-  return await pdf.save();
+  return pdf.save();
 }
 
-function label(p: import('pdf-lib').PDFPage, f: import('pdf-lib').PDFFont, t: string, x: number, y: number) {
-  p.drawText(t, { x, y, size: 8, font: f, color: rgb(0.4, 0.4, 0.4) });
+function drawRule(p: import('pdf-lib').PDFPage, x1: number, x2: number, y: number, thickness = 1) {
+  p.drawLine({ start: { x: x1, y }, end: { x: x2, y }, color: LINE, thickness });
 }
-function text(p: import('pdf-lib').PDFPage, f: import('pdf-lib').PDFFont, t: string, x: number, y: number, size: number, color: ReturnType<typeof rgb>) {
+function drawBox(p: import('pdf-lib').PDFPage, x: number, y: number, w: number, h: number, color: ReturnType<typeof rgb>) {
+  p.drawRectangle({ x, y, width: w, height: h, color });
+}
+function label(
+  p: import('pdf-lib').PDFPage,
+  f: import('pdf-lib').PDFFont,
+  t: string,
+  x: number,
+  y: number,
+  color = GREY,
+) {
+  p.drawText(t, { x, y, size: 7, font: f, color });
+}
+function text(
+  p: import('pdf-lib').PDFPage,
+  f: import('pdf-lib').PDFFont,
+  t: string,
+  x: number,
+  y: number,
+  size: number,
+  color: ReturnType<typeof rgb>,
+) {
   p.drawText(t, { x, y, size, font: f, color });
 }
-function trunc(s: string, n: number) { return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+function trunc(s: string, n: number) {
+  return s.length > n ? s.slice(0, n - 1) + '…' : s;
+}
