@@ -21,7 +21,6 @@ function FooterLogo() {
   );
 }
 
-const PAYMENTS = ['Bizum', 'Visa', 'Mastercard', 'Efectivo'];
 const SOCIAL = [
   { id: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/', Icon: InstagramIcon },
   { id: 'x', label: 'X (Twitter)', href: 'https://x.com/', Icon: XIcon },
@@ -37,16 +36,6 @@ export default function SiteFooter() {
   return (
     <footer className="mt-20 bg-bocado-ink text-white relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-bocado-lime via-bocado-coral to-violet-400" aria-hidden />
-      <div className="border-b border-white/10">
-        <div className="max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 py-8 flex flex-wrap items-center justify-center gap-4 text-sm text-white/70">
-          {PAYMENTS.map((p) => (
-            <span key={p} className="px-4 py-2 rounded-full border border-white/15 bg-white/5">
-              {p}
-            </span>
-          ))}
-        </div>
-      </div>
-
       <div className="max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 py-14 md:py-16">
                 <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-4 space-y-4">

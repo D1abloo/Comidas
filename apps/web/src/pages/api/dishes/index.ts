@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     slug: slugify(body.name ?? 'plato'),
     created_at: new Date().toISOString(),
     rating: 4.7,
-    images: [],
+    images: body.images?.length ? body.images : ['https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80'],
     tags: [],
     allergens: [],
     ingredients: [],

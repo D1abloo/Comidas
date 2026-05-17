@@ -82,6 +82,16 @@ function seed(): Store {
   };
 
   const menu_sections: MenuSection[] = [
+    {
+      id: 'sec-menu-dia',
+      title: 'Menú del día',
+      slug: 'menu-del-dia',
+      description: 'Oferta del día — precios especiales hasta agotar existencias',
+      emoji: '⭐',
+      sort_order: 0,
+      is_active: true,
+      created_at: new Date().toISOString(),
+    },
     { id: 'sec-entrantes', title: 'Entrantes', slug: 'entrantes', description: 'Para abrir el apetito', emoji: '🥟', sort_order: 1, is_active: true, created_at: new Date().toISOString() },
     { id: 'sec-pizzas-pasta', title: 'Pizza y pasta', slug: 'pizza-pasta', description: 'Italiano de verdad', emoji: '🍕', sort_order: 2, is_active: true, created_at: new Date().toISOString() },
     { id: 'sec-cazuelas', title: 'Cazuelas y guisos', slug: 'cazuelas', description: 'Sabores de cuchara', emoji: '🍲', sort_order: 3, is_active: true, created_at: new Date().toISOString() },
@@ -495,6 +505,7 @@ function seed(): Store {
   ];
 
   for (const d of dishes) {
+    if (d.menu_section_id === 'sec-menu-dia') continue;
     if (d.menu_section_id) continue;
     if (d.tags?.includes('pizza') || d.tags?.includes('pasta')) {
       d.menu_section_id = 'sec-pizzas-pasta';
