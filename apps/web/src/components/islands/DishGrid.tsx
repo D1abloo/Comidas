@@ -1,5 +1,6 @@
 import AddToCart from './AddToCart';
 import AvailabilityBadge from './AvailabilityBadge';
+const DISH_IMAGE_FALLBACK = '/carta/placeholder.jpg';
 
 export interface GridDish {
   id: string;
@@ -15,6 +16,7 @@ export interface GridDish {
   restaurant_id: string;
   vegan?: boolean;
   vegetarian?: boolean;
+  category?: string;
 }
 
 const eur = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(c / 100);
@@ -45,6 +47,7 @@ export function DishGrid({
 
 function DishTile({ dish, restaurant, delay }: { dish: GridDish; restaurant?: string; delay?: number }) {
   const img = dish.images[0];
+  const isBrandDrink = dish.category === 'drink' || dish.slug.endsWith('-lata');
   const available = dish.is_available !== false;
   return (
     <article
@@ -57,7 +60,16 @@ function DishTile({ dish, restaurant, delay }: { dish: GridDish; restaurant?: st
             src={img}
             alt={dish.name}
             loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+            className={`w-full h-full transition-transform duration-700 ease-out ${
+              isBrandDrink
+                ? 'object-contain p-8 bg-white group-hover:scale-105'
+                : 'object-cover group-hover:scale-110'
+            }`}
+            onError={(e) => {
+              const el = e.currentTarget;
+              if (el.src.includes('placeholder')) return;
+              el.src = DISH_IMAGE_FALLBACK;
+            }}
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />

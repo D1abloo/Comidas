@@ -29,6 +29,8 @@ export interface MenuPdfInput {
   sections: MenuSection[];
   dishes: Dish[];
   restaurants: Restaurant[];
+  /** Origen del sitio para resolver /carta/*.jpg en PDF */
+  siteOrigin?: string;
 }
 
 type PdfCtx = {
@@ -39,6 +41,7 @@ type PdfCtx = {
   y: number;
   contentW: number;
   restById: Record<string, string>;
+  siteOrigin?: string;
   newPage: () => void;
   ensureSpace: (needed: number) => void;
 };
@@ -103,7 +106,7 @@ async function drawDishEntry(ctx: PdfCtx, dish: Dish): Promise<void> {
 
   ensureSpace(rowH);
 
-  const embedded = await embedDishThumbnail(ctx.pdf, dish.images[0]);
+  const embedded = await embedDishThumbnail(ctx.pdf, dish.images[0], ctx.siteOrigin);
   const rowTop = y;
 
   if (embedded) {
@@ -217,6 +220,7 @@ export async function renderMenuPDF(input: MenuPdfInput): Promise<Uint8Array> {
     y,
     contentW,
     restById,
+    siteOrigin: input.siteOrigin,
     newPage,
     ensureSpace,
   };

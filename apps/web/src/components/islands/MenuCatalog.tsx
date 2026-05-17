@@ -11,6 +11,7 @@ interface Section {
 
 interface Dish extends GridDish {
   menu_section_id?: string | null;
+  category?: string;
 }
 
 interface Props {

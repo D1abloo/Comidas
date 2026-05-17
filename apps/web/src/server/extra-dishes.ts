@@ -348,7 +348,7 @@ export function extraDishes(): Dish[] {
       created_at: ts(),
     },
     {
-      id: 'd-gyozas',
+      id: 'd-gyozas-cerdo',
       restaurant_id: 'r-casa-nori',
       menu_section_id: 'sec-entrantes',
       slug: 'gyozas-cerdo',

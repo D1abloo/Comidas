@@ -14,6 +14,7 @@ import type {
 } from './types.js';
 import { extraDishes } from './extra-dishes.js';
 import { applyDishImages } from './dish-images.js';
+import { assignMenuSections, sortDishesForMenu } from './menu-assign.js';
 
 /**
  * Almacén en memoria. Se inicializa al arrancar el servidor con datos de demo.
@@ -115,6 +116,7 @@ function seed(): Store {
     {
       id: 'd-ramen',
       restaurant_id: 'r-casa-nori',
+      menu_section_id: 'sec-principales',
       slug: 'ramen-tonkotsu',
       name: 'Ramen tonkotsu',
       description: 'Caldo de cerdo cocido 12h, chashu, huevo marinado.',
@@ -150,6 +152,7 @@ function seed(): Store {
     {
       id: 'd-gyozas',
       restaurant_id: 'r-casa-nori',
+      menu_section_id: 'sec-entrantes',
       slug: 'gyozas-pollo',
       name: 'Gyozas de pollo',
       description: '6 unidades a la plancha, salsa ponzu.',
@@ -180,6 +183,7 @@ function seed(): Store {
     {
       id: 'd-poke',
       restaurant_id: 'r-casa-nori',
+      menu_section_id: 'sec-principales',
       slug: 'poke-salmon',
       name: 'Poke de salmón',
       description: 'Salmón, arroz sushi, edamame, aguacate y sésamo.',
@@ -210,6 +214,7 @@ function seed(): Store {
     {
       id: 'd-bowl-med',
       restaurant_id: 'r-verde-verde',
+      menu_section_id: 'sec-principales',
       slug: 'bowl-mediterraneo',
       name: 'Bowl mediterráneo',
       description: 'Quinoa, hummus, falafel y verduras asadas.',
@@ -240,6 +245,7 @@ function seed(): Store {
     {
       id: 'd-ensalada-cesar',
       restaurant_id: 'r-verde-verde',
+      menu_section_id: 'sec-entrantes',
       slug: 'ensalada-cesar',
       name: 'Ensalada César de pollo',
       description: 'Cogollos, pollo crujiente, parmesano y croutons.',
@@ -270,6 +276,7 @@ function seed(): Store {
     {
       id: 'd-pizza-marg',
       restaurant_id: 'r-forno-21',
+      menu_section_id: 'sec-pizzas-pasta',
       slug: 'pizza-margherita-bufala',
       name: 'Pizza margherita di bufala',
       description: 'Tomate San Marzano, mozzarella di bufala, albahaca.',
@@ -300,6 +307,7 @@ function seed(): Store {
     {
       id: 'd-pizza-diavola',
       restaurant_id: 'r-forno-21',
+      menu_section_id: 'sec-pizzas-pasta',
       slug: 'pizza-diavola',
       name: 'Pizza diavola',
       description: 'Tomate, mozzarella fior di latte, salami picante.',
@@ -330,6 +338,7 @@ function seed(): Store {
     {
       id: 'd-burger',
       restaurant_id: 'r-prado-burger',
+      menu_section_id: 'sec-principales',
       slug: 'prado-classic',
       name: 'Prado Classic',
       description: 'Smash burger, cheddar curado, pickles y salsa de la casa.',
@@ -360,6 +369,7 @@ function seed(): Store {
     {
       id: 'd-patatas',
       restaurant_id: 'r-prado-burger',
+      menu_section_id: 'sec-sides',
       slug: 'patatas-rustic',
       name: 'Patatas rústicas',
       description: 'Cortadas en gajo, doble fritura, romero y sal Maldon.',
@@ -390,6 +400,7 @@ function seed(): Store {
     {
       id: 'd-tiramisu',
       restaurant_id: 'r-forno-21',
+      menu_section_id: 'sec-postres',
       slug: 'tiramisu-clasico',
       name: 'Tiramisú clásico',
       description: 'Mascarpone, café espresso, cacao puro.',
@@ -420,6 +431,7 @@ function seed(): Store {
     {
       id: 'd-brownie',
       restaurant_id: 'r-prado-burger',
+      menu_section_id: 'sec-postres',
       slug: 'brownie-chocolate',
       name: 'Brownie de chocolate y nueces',
       description: 'Cremoso por dentro, crujiente fuera, helado de vainilla.',
@@ -481,7 +493,8 @@ function seed(): Store {
     ...extraDishes(),
   ];
 
-  applyDishImages(dishes);
+  assignMenuSections(dishes);
+  const dishesSorted = sortDishesForMenu(dishes);
 
   const adminHash = bcrypt.hashSync('admin1234', 8);
   const customerHash = bcrypt.hashSync('cliente1234', 8);
@@ -509,34 +522,9 @@ function seed(): Store {
     },
   ];
 
-  for (const d of dishes) {
-    if (d.menu_section_id === 'sec-menu-dia') continue;
-    if (d.menu_section_id) continue;
-    if (d.tags?.includes('pizza') || d.tags?.includes('pasta')) {
-      d.menu_section_id = 'sec-pizzas-pasta';
-      continue;
-    }
-    if (d.tags?.includes('cazuela')) {
-      d.menu_section_id = 'sec-cazuelas';
-      continue;
-    }
-    if (d.category === 'drink' || d.tags?.some((t) => ['bebida', 'refresco', 'isotonica', 'energetica'].includes(t))) {
-      d.menu_section_id = 'sec-bebidas';
-      continue;
-    }
-    if (d.category === 'dessert' || d.tags?.includes('postre')) {
-      d.menu_section_id = 'sec-postres';
-      continue;
-    }
-    d.menu_section_id =
-      d.category === 'starter'
-        ? 'sec-entrantes'
-        : d.category === 'main'
-          ? 'sec-principales'
-          : d.category === 'side'
-            ? 'sec-sides'
-            : 'sec-postres';
-  }
+  applyDishImages(dishesSorted);
+  dishes.length = 0;
+  dishes.push(...dishesSorted);
 
   // Algunos pedidos de muestra para que el dashboard tenga datos
   const seedOrders: Order[] = [
