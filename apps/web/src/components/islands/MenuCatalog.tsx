@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import AddToCart from './AddToCart';
-import AvailabilityBadge from './AvailabilityBadge';
+import { DishGrid, type GridDish } from './DishGrid';
 
 interface Section {
   id: string;
@@ -10,32 +9,20 @@ interface Section {
   description?: string;
 }
 
-interface Dish {
-  id: string;
-  slug: string;
-  name: string;
-  description: string;
-  price_cents: number;
-  rating: number;
-  delivery_time_min: number;
-  images: string[];
-  is_featured?: boolean;
-  is_available?: boolean;
+interface Dish extends GridDish {
   menu_section_id?: string | null;
-  restaurant_id: string;
-  vegan?: boolean;
-  vegetarian?: boolean;
 }
 
 interface Props {
   sections: Section[];
   dishes: Dish[];
   restaurants: Record<string, string>;
+  previewLimit?: number;
 }
 
-const eur = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(c / 100);
+const PREVIEW_LIMIT = 4;
 
-export default function MenuCatalog({ sections, dishes, restaurants }: Props) {
+export default function MenuCatalog({ sections, dishes, restaurants, previewLimit = PREVIEW_LIMIT }: Props) {
   const [activeSection, setActiveSection] = useState(sections[0]?.id ?? 'all');
 
   const bySection = useMemo(() => {
@@ -77,9 +64,11 @@ export default function MenuCatalog({ sections, dishes, restaurants }: Props) {
       {sections.map((sec, si) => {
         const list = bySection.get(sec.id) ?? [];
         if (!list.length) return null;
+        const preview = list.slice(0, previewLimit);
+        const hasMore = list.length > previewLimit;
         return (
           <section key={sec.id} id={`sec-${sec.slug}`} className="scroll-mt-32 animate-fade-up" style={{ animationDelay: `${si * 0.04}s` }}>
-            <div className="flex items-end justify-between gap-4 mb-8 pb-4 border-b border-bocado-line/60">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 pb-4 border-b border-bocado-line/60">
               <div className="flex items-center gap-4">
                 <span className="w-14 h-14 rounded-2xl bg-gradient-to-br from-bocado-lime/30 to-bocado-coral/20 grid place-items-center text-3xl shadow-sm">
                   {sec.emoji}
@@ -89,78 +78,25 @@ export default function MenuCatalog({ sections, dishes, restaurants }: Props) {
                   {sec.description && <p className="text-sm text-bocado-mute mt-1">{sec.description}</p>}
                 </div>
               </div>
-              <span className="hidden sm:inline text-xs font-semibold text-bocado-mute bg-bocado-paper2 px-3 py-1.5 rounded-full">
-                {list.length} platos
-              </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xs font-semibold text-bocado-mute bg-bocado-paper2 px-3 py-1.5 rounded-full">
+                  {list.length} platos
+                </span>
+                {hasMore && (
+                  <a
+                    href={`/carta/${sec.slug}`}
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-bocado-ink hover:text-bocado-coral transition-colors"
+                  >
+                    Ver todos los platos
+                    <span aria-hidden>→</span>
+                  </a>
+                )}
+              </div>
             </div>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {list.map((d, i) => (
-                <DishTile key={d.id} dish={d} restaurant={restaurants[d.restaurant_id]} delay={i * 0.03} />
-              ))}
-            </div>
+            <DishGrid dishes={preview} restaurants={restaurants} />
           </section>
         );
       })}
     </div>
-  );
-}
-
-function DishTile({ dish, restaurant, delay }: { dish: Dish; restaurant?: string; delay?: number }) {
-  const img = dish.images[0];
-  const available = dish.is_available !== false;
-  return (
-    <article
-      className={`food-card group flex flex-col ${!available ? 'opacity-85 ring-1 ring-red-200/60' : ''}`}
-      style={{ animationDelay: `${delay ?? 0}s` }}
-    >
-      <a href={`/platos/${dish.slug}`} className="block relative aspect-[4/3] overflow-hidden">
-        {img && (
-          <img
-            src={img}
-            alt={dish.name}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 items-start">
-          <AvailabilityBadge available={available} size="md" />
-          {dish.is_featured && (
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-bocado-coral text-white px-2.5 py-1 rounded-full">
-              Destacado
-            </span>
-          )}
-        </div>
-        <div className="absolute bottom-3 left-3 right-3 text-white z-10">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-white/80">{restaurant}</p>
-          <h3 className="font-display text-lg leading-tight mt-0.5">{dish.name}</h3>
-        </div>
-        <span className="absolute top-3 right-3 bg-bocado-lime text-bocado-ink text-sm font-bold px-3 py-1.5 rounded-full shadow-glow z-10">
-          {eur(dish.price_cents)}
-        </span>
-      </a>
-      <div className="p-4 flex items-center justify-between gap-2 mt-auto border-t border-bocado-line/50 bg-gradient-to-b from-white to-bocado-cream/50">
-        <span className="text-xs text-bocado-mute font-medium">
-          ★ {dish.rating.toFixed(1)} · {dish.delivery_time_min} min
-        </span>
-        <div className="flex items-center gap-2">
-          {dish.vegan && <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Vegano</span>}
-          {available ? (
-            <AddToCart
-              variant="pill"
-              line={{
-                dish_id: dish.id,
-                dish_name: dish.name,
-                restaurant_name: restaurant,
-                unit_price_cents: dish.price_cents,
-                image: img,
-              }}
-            />
-          ) : (
-            <span className="text-[10px] font-semibold text-red-700">No disponible</span>
-          )}
-        </div>
-      </div>
-    </article>
   );
 }

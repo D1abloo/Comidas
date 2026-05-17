@@ -518,7 +518,7 @@ export function extraDishes(): Dish[] {
     {
       id: 'd-coca-cola',
       restaurant_id: 'r-prado-burger',
-      menu_section_id: 'sec-postres',
+      menu_section_id: 'sec-bebidas',
       slug: 'coca-cola-lata',
       name: 'Coca-Cola',
       description: 'Lata 330 ml, bien fría.',
@@ -546,7 +546,7 @@ export function extraDishes(): Dish[] {
     {
       id: 'd-pepsi',
       restaurant_id: 'r-prado-burger',
-      menu_section_id: 'sec-postres',
+      menu_section_id: 'sec-bebidas',
       slug: 'pepsi-lata',
       name: 'Pepsi',
       description: 'Lata 330 ml, bien fría.',
@@ -574,7 +574,7 @@ export function extraDishes(): Dish[] {
     {
       id: 'd-fanta',
       restaurant_id: 'r-prado-burger',
-      menu_section_id: 'sec-postres',
+      menu_section_id: 'sec-bebidas',
       slug: 'fanta-naranja-lata',
       name: 'Fanta Naranja',
       description: 'Lata 330 ml, sabor naranja.',
@@ -602,7 +602,7 @@ export function extraDishes(): Dish[] {
     {
       id: 'd-aquarius',
       restaurant_id: 'r-verde-verde',
-      menu_section_id: 'sec-postres',
+      menu_section_id: 'sec-bebidas',
       slug: 'aquarius-limon-lata',
       name: 'Aquarius Limón',
       description: 'Lata 330 ml, isotónica sabor limón.',
@@ -630,7 +630,7 @@ export function extraDishes(): Dish[] {
     {
       id: 'd-monster',
       restaurant_id: 'r-prado-burger',
-      menu_section_id: 'sec-postres',
+      menu_section_id: 'sec-bebidas',
       slug: 'monster-energy-lata',
       name: 'Monster Energy',
       description: 'Lata 500 ml, bebida energética.',

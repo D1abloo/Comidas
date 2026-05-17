@@ -1,11 +1,13 @@
 ---
 const cats = [
-  { emoji: '🍕', label: 'Pizza', href: '/?cuisine=Italiana#catalogo' },
-  { emoji: '🍜', label: 'Asiático', href: '/?cuisine=Asiática#catalogo' },
-  { emoji: '🍲', label: 'Cazuelas', href: '/#catalogo' },
-  { emoji: '🍔', label: 'Burgers', href: '/?cuisine=Burgers#catalogo' },
-  { emoji: '🥗', label: 'Saludable', href: '/?diet=vegan#catalogo' },
-  { emoji: '🍝', label: 'Pasta', href: '/?cuisine=Italiana#catalogo' },
+  { emoji: '🍕', label: 'Pizza', href: '/buscar?cuisine=Italiana' },
+  { emoji: '🍜', label: 'Asiático', href: '/buscar?cuisine=Asiática' },
+  { emoji: '🍲', label: 'Cazuelas', href: '/carta/cazuelas' },
+  { emoji: '🍔', label: 'Burgers', href: '/buscar?cuisine=Burgers' },
+  { emoji: '🥗', label: 'Saludable', href: '/buscar?diet=vegan' },
+  { emoji: '🍝', label: 'Pasta', href: '/carta/pizza-pasta' },
+  { emoji: '🥤', label: 'Bebidas', href: '/carta/bebidas' },
+  { emoji: '🍰', label: 'Postres', href: '/carta/postres' },
 ];
 ---
 <section class="container-bocado -mt-2 mb-2 animate-fade-up stagger-2" aria-label="Categorías rápidas">

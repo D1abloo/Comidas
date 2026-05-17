@@ -13,6 +13,7 @@ import type {
   User,
 } from './types.js';
 import { extraDishes } from './extra-dishes.js';
+import { applyDishImages } from './dish-images.js';
 
 /**
  * Almacén en memoria. Se inicializa al arrancar el servidor con datos de demo.
@@ -97,7 +98,8 @@ function seed(): Store {
     { id: 'sec-cazuelas', title: 'Cazuelas y guisos', slug: 'cazuelas', description: 'Sabores de cuchara', emoji: '🍲', sort_order: 3, is_active: true, created_at: new Date().toISOString() },
     { id: 'sec-principales', title: 'Platos principales', slug: 'principales', description: 'Lo más pedido de la casa', emoji: '🍔', sort_order: 4, is_active: true, created_at: new Date().toISOString() },
     { id: 'sec-sides', title: 'Guarniciones', slug: 'guarniciones', description: 'Acompañamientos y extras', emoji: '🍟', sort_order: 5, is_active: true, created_at: new Date().toISOString() },
-    { id: 'sec-postres', title: 'Postres y bebidas', slug: 'postres-bebidas', description: 'Dulce final y refrescos', emoji: '🥤', sort_order: 6, is_active: true, created_at: new Date().toISOString() },
+    { id: 'sec-postres', title: 'Postres', slug: 'postres', description: 'Dulce final de la casa', emoji: '🍰', sort_order: 6, is_active: true, created_at: new Date().toISOString() },
+    { id: 'sec-bebidas', title: 'Bebidas', slug: 'bebidas', description: 'Refrescos y energéticas', emoji: '🥤', sort_order: 7, is_active: true, created_at: new Date().toISOString() },
   ];
 
   const restaurants: Restaurant[] = [
@@ -448,7 +450,7 @@ function seed(): Store {
     {
       id: 'd-limonada',
       restaurant_id: 'r-verde-verde',
-      menu_section_id: 'sec-postres',
+      menu_section_id: 'sec-bebidas',
       slug: 'limonada-jengibre',
       name: 'Limonada de jengibre',
       description: 'Limón natural, jengibre fresco, hierbabuena.',
@@ -478,6 +480,8 @@ function seed(): Store {
     },
     ...extraDishes(),
   ];
+
+  applyDishImages(dishes);
 
   const adminHash = bcrypt.hashSync('admin1234', 8);
   const customerHash = bcrypt.hashSync('cliente1234', 8);
@@ -514,6 +518,14 @@ function seed(): Store {
     }
     if (d.tags?.includes('cazuela')) {
       d.menu_section_id = 'sec-cazuelas';
+      continue;
+    }
+    if (d.category === 'drink' || d.tags?.some((t) => ['bebida', 'refresco', 'isotonica', 'energetica'].includes(t))) {
+      d.menu_section_id = 'sec-bebidas';
+      continue;
+    }
+    if (d.category === 'dessert' || d.tags?.includes('postre')) {
+      d.menu_section_id = 'sec-postres';
       continue;
     }
     d.menu_section_id =

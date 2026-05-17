@@ -8,6 +8,11 @@ import MenuCatalog from '../components/islands/MenuCatalog.tsx';
 import { getStore } from '../server/db';
 import type { Dish } from '../server/types';
 
+const q = Astro.url.searchParams.get('q');
+if (q?.trim()) {
+  return Astro.redirect(`/buscar?q=${encodeURIComponent(q.trim())}`);
+}
+
 const store = getStore();
 const dishes = store.dishes;
 const dishesForOrder = store.dishes.filter((d) => d.is_available);

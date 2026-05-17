@@ -35,7 +35,15 @@ function BurgerLogo({ compact }: { compact?: boolean }) {
   );
 }
 
-export default function SiteHeader({ user, currentPath }: { user: User | null; currentPath: string }) {
+export default function SiteHeader({
+  user,
+  currentPath,
+  searchQuery = '',
+}: {
+  user: User | null;
+  currentPath: string;
+  searchQuery?: string;
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [promoHidden, setPromoHidden] = useState(false);
@@ -99,7 +107,7 @@ export default function SiteHeader({ user, currentPath }: { user: User | null; c
             </a>
 
             <div className="hidden md:flex flex-1 max-w-md mx-4">
-              <form action="/" method="get" className="w-full relative group">
+              <form action="/buscar" method="get" className="w-full relative group">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                     <circle cx="11" cy="11" r="7" />
@@ -109,6 +117,7 @@ export default function SiteHeader({ user, currentPath }: { user: User | null; c
                 <input
                   name="q"
                   type="search"
+                  defaultValue={searchQuery}
                   placeholder="Buscar platos, restaurantes…"
                   className="w-full h-10 pl-11 pr-4 rounded-full bg-white/10 border border-white/10 text-sm text-white placeholder:text-white/45 focus:bg-white/15 focus:border-bocado-lime/50 focus:outline-none focus:ring-2 focus:ring-bocado-lime/20 transition-all"
                 />
@@ -181,13 +190,15 @@ export default function SiteHeader({ user, currentPath }: { user: User | null; c
               menuOpen ? 'max-h-[480px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
             }`}
           >
-            <div className="px-5 py-3 md:hidden">
+            <form action="/buscar" method="get" className="px-5 py-3 md:hidden">
               <input
+                name="q"
                 type="search"
-                placeholder="Buscar…"
+                defaultValue={searchQuery}
+                placeholder="Buscar platos…"
                 className="w-full h-10 px-4 rounded-full bg-white/10 border border-white/10 text-sm text-white placeholder:text-white/45"
               />
-            </div>
+            </form>
             <nav className="px-5 pb-4 flex flex-col gap-1">
               {NAV.map((l, i) => (
                 <a

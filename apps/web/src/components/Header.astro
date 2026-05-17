@@ -2,5 +2,11 @@
 import SiteHeader from './islands/SiteHeader.tsx';
 const { user } = Astro.locals;
 const currentPath = Astro.url.pathname;
+const searchQuery = Astro.url.searchParams.get('q') ?? '';
 ---
-<SiteHeader client:load user={user ? { id: user.id, full_name: user.full_name, role: user.role } : null} currentPath={currentPath} />
+<SiteHeader
+  client:load
+  user={user ? { id: user.id, full_name: user.full_name, role: user.role } : null}
+  currentPath={currentPath}
+  searchQuery={searchQuery}
+/>
