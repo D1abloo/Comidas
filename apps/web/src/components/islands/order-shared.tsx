@@ -104,8 +104,24 @@ export function OrderTimeline({ status }: { status: OrderStatus }) {
 }
 
 export function statusChipClass(status: string) {
-  if (status === 'delivered') return '!bg-emerald-50 !text-emerald-800 !border-emerald-200';
-  if (status === 'cancelled') return '!bg-red-50 !text-red-700 !border-red-200';
-  if (status === 'delivering' || status === 'preparing') return '!bg-amber-50 !text-amber-900 !border-amber-200';
+  if (status === 'delivered') return '!bg-emerald-400/20 !text-emerald-900 !border-emerald-400 font-semibold';
+  if (status === 'cancelled') return '!bg-red-400/20 !text-red-800 !border-red-300 font-semibold';
+  if (status === 'delivering') return '!bg-orange-400/25 !text-orange-950 !border-orange-400 font-semibold';
+  if (status === 'preparing') return '!bg-amber-300/35 !text-amber-950 !border-amber-400 font-semibold';
+  if (status === 'confirmed') return '!bg-sky-400/20 !text-sky-950 !border-sky-400 font-semibold';
+  if (status === 'pending') return '!bg-violet-400/20 !text-violet-950 !border-violet-400 font-semibold';
   return '';
+}
+
+export function statusFilterClass(status: string, active: boolean) {
+  const base = active ? 'admin-filter-chip admin-filter-chip--active' : 'admin-filter-chip';
+  if (!active) return base;
+  if (status === '') return `${base} !bg-bocado-ink`;
+  if (status === 'delivered') return `${base} !bg-emerald-500`;
+  if (status === 'cancelled') return `${base} !bg-red-500`;
+  if (status === 'delivering') return `${base} !bg-orange-500`;
+  if (status === 'preparing') return `${base} !bg-amber-500 !text-bocado-ink`;
+  if (status === 'confirmed') return `${base} !bg-sky-500`;
+  if (status === 'pending') return `${base} !bg-violet-500`;
+  return `${base} !bg-bocado-ink`;
 }

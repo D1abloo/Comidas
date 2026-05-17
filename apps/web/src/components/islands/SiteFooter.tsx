@@ -2,7 +2,14 @@ import { useState } from 'react';
 
 function FooterLogo() {
   return (
-    <svg width={36} height={36} viewBox="0 0 40 40" fill="none" aria-hidden className="shrink-0 group-hover:scale-105 transition-transform duration-300">
+    <svg
+      width={40}
+      height={40}
+      viewBox="0 0 40 40"
+      fill="none"
+      aria-hidden
+      className="shrink-0 group-hover:scale-105 transition-transform duration-300"
+    >
       <circle cx="20" cy="20" r="18" stroke="#0a0a0a" strokeWidth="1.2" opacity="0.2" />
       <path d="M10 14c0-3.3 2.5-6 10-6s10 2.7 10 6" stroke="#0a0a0a" strokeWidth="1.8" strokeLinecap="round" fill="none" />
       <path d="M11 17.5c2.5-1 4.5-1.5 9-1.5s6.5.5 9 1.5" stroke="#D6FF3D" strokeWidth="1.4" strokeLinecap="round" fill="none" />
@@ -12,6 +19,7 @@ function FooterLogo() {
   );
 }
 
+const PAYMENTS = ['Bizum', 'Visa', 'Mastercard', 'Efectivo'];
 const SOCIAL = [
   { id: 'instagram', label: 'Instagram' },
   { id: 'x', label: 'X' },
@@ -24,33 +32,55 @@ export default function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-24 border-t border-bocado-line bg-bocado-paper">
+    <footer className="mt-20 bg-bocado-ink text-white">
+      <div className="border-b border-white/10">
+        <div className="max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 py-8 flex flex-wrap items-center justify-center gap-4 text-sm text-white/70">
+          {PAYMENTS.map((p) => (
+            <span key={p} className="px-4 py-2 rounded-full border border-white/15 bg-white/5">
+              {p}
+            </span>
+          ))}
+        </div>
+      </div>
+
       <div className="max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 py-14 md:py-16">
-        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-[1.35fr_1fr_1fr_1.2fr]">
-          <div className="space-y-4 animate-fade-up">
+                <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-8">
+          <div className="lg:col-span-4 space-y-4">
             <a href="/" className="inline-flex items-center gap-3 group">
               <FooterLogo />
-              <span className="font-semibold tracking-[-0.03em] text-xl">
+              <span className="font-semibold tracking-[-0.03em] text-2xl">
                 Bocad<span className="text-[#D6FF3D]">O</span>
               </span>
             </a>
-            <p className="text-bocado-mute text-sm max-w-xs leading-relaxed">
-              Comida real, entrega rápida. Fotos verificadas, alérgenos declarados y tiempos que cumplimos.
+            <p className="text-white/65 text-sm leading-relaxed max-w-sm">
+              Comida de restaurantes de confianza, a domicilio. Seguimiento en vivo, alérgenos declarados y factura
+              automática.
             </p>
-            <p className="text-xs text-bocado-mute/80 italic">Sabores limpios. Entrega real.</p>
+            <div className="flex gap-2 pt-2">
+              {SOCIAL.map((s) => (
+                <a
+                  key={s.id}
+                  href="#"
+                  aria-label={s.label}
+                  className="w-10 h-10 rounded-full border border-white/15 grid place-items-center text-[10px] font-bold uppercase hover:bg-bocado-lime hover:text-bocado-ink hover:border-bocado-lime transition-all duration-200"
+                >
+                  {s.id[0]}
+                </a>
+              ))}
+            </div>
           </div>
 
-          <div className="animate-fade-up stagger-1">
-            <p className="label mb-4">Navegación</p>
-            <ul className="space-y-2.5 text-sm">
+          <div className="lg:col-span-2">
+            <p className="text-[11px] uppercase tracking-[0.14em] text-white/45 mb-4">Descubre</p>
+            <ul className="space-y-2.5 text-sm text-white/75">
               {[
                 ['/', 'Inicio'],
+                ['/#mas-vendido', 'Lo más vendido'],
+                ['/#catalogo', 'Carta completa'],
                 ['/restaurantes', 'Restaurantes'],
-                ['/pedidos', 'Mis pedidos'],
-                ['/ayuda', 'Ayuda'],
               ].map(([href, label]) => (
                 <li key={href}>
-                  <a href={href} className="text-bocado-ink/80 hover:text-bocado-ink hover:translate-x-0.5 inline-block transition-all duration-200">
+                  <a href={href} className="hover:text-white hover:translate-x-0.5 inline-block transition-all">
                     {label}
                   </a>
                 </li>
@@ -58,17 +88,17 @@ export default function SiteFooter() {
             </ul>
           </div>
 
-          <div className="animate-fade-up stagger-2">
-            <p className="label mb-4">Cuenta</p>
-            <ul className="space-y-2.5 text-sm">
+          <div className="lg:col-span-2">
+            <p className="text-[11px] uppercase tracking-[0.14em] text-white/45 mb-4">Tu cuenta</p>
+            <ul className="space-y-2.5 text-sm text-white/75">
               {[
-                ['/login', 'Iniciar sesión'],
-                ['/registro', 'Crear cuenta'],
+                ['/pedidos', 'Seguir pedido'],
                 ['/perfil', 'Mi perfil'],
-                ['/admin/login', 'Acceso empresa'],
+                ['/login', 'Iniciar sesión'],
+                ['/registro', 'Registrarse'],
               ].map(([href, label]) => (
                 <li key={href}>
-                  <a href={href} className="text-bocado-ink/80 hover:text-bocado-ink transition-colors">
+                  <a href={href} className="hover:text-white transition-colors">
                     {label}
                   </a>
                 </li>
@@ -76,12 +106,12 @@ export default function SiteFooter() {
             </ul>
           </div>
 
-          <div className="animate-fade-up stagger-3">
-            <p className="label mb-4">Newsletter</p>
-            <p className="text-sm text-bocado-mute mb-3">Ofertas y novedades de restaurantes.</p>
+          <div className="lg:col-span-4">
+            <p className="text-[11px] uppercase tracking-[0.14em] text-white/45 mb-4">Newsletter</p>
+            <p className="text-sm text-white/65 mb-4">Cupones y novedades de restaurantes cerca de ti.</p>
             {subscribed ? (
-              <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-                ¡Gracias! Te avisaremos pronto.
+              <p className="text-sm text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-3">
+                ¡Gracias! Pronto recibirás nuestras ofertas.
               </p>
             ) : (
               <form
@@ -89,7 +119,7 @@ export default function SiteFooter() {
                   e.preventDefault();
                   if (email) setSubscribed(true);
                 }}
-                className="flex gap-2"
+                className="flex flex-col sm:flex-row gap-2"
               >
                 <input
                   type="email"
@@ -97,33 +127,39 @@ export default function SiteFooter() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@email.com"
-                  className="input flex-1 text-sm"
+                  className="flex-1 h-11 px-4 rounded-xl bg-white/10 border border-white/15 text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-bocado-lime/60 focus:ring-2 focus:ring-bocado-lime/20"
                 />
-                <button type="submit" className="btn-lime px-4 shrink-0" aria-label="Suscribirse">
-                  →
+                <button
+                  type="submit"
+                  className="h-11 px-6 rounded-xl bg-bocado-lime text-bocado-ink font-semibold text-sm hover:brightness-95 transition shrink-0"
+                >
+                  Suscribirme
                 </button>
               </form>
             )}
-            <div className="mt-6 flex gap-2">
-              {SOCIAL.map((s) => (
-                <a
-                  key={s.id}
-                  href="#"
-                  aria-label={s.label}
-                  className="w-10 h-10 rounded-full border border-bocado-line grid place-items-center hover:border-bocado-ink hover:bg-bocado-lime/30 hover:scale-105 transition-all duration-200"
-                >
-                  <span className="text-[10px] font-bold uppercase">{s.id[0]}</span>
-                </a>
-              ))}
-            </div>
+            <p className="text-[10px] text-white/40 mt-4">
+              Para restaurantes:{' '}
+              <a href="/admin/login" className="underline hover:text-white">
+                Acceso empresa
+              </a>
+            </p>
           </div>
         </div>
 
-        <div className="border-t border-bocado-line mt-12 pt-6 flex flex-col sm:flex-row justify-between gap-3 text-xs text-bocado-mute">
-          <span>© {year} BocadO Delivery SL · CIF B12345678</span>
-          <div className="flex gap-4">
-            <a href="/privacidad" className="hover:text-bocado-ink transition">Privacidad</a>
-            <a href="/terminos" className="hover:text-bocado-ink transition">Términos</a>
+        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between gap-4 text-xs text-white/45">
+          <span>
+            © {year} BocadO Delivery SL · CIF B12345678 · Madrid, España
+          </span>
+          <div className="flex flex-wrap gap-4">
+            <a href="/privacidad" className="hover:text-white transition">
+              Privacidad
+            </a>
+            <a href="/terminos" className="hover:text-white transition">
+              Términos
+            </a>
+            <a href="/ayuda" className="hover:text-white transition">
+              Ayuda
+            </a>
           </div>
         </div>
       </div>

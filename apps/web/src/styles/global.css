@@ -25,11 +25,81 @@
   .container-narrow {
     @apply max-w-[960px] mx-auto px-5 sm:px-6 md:px-8;
   }
+  .font-admin {
+    font-family: theme('fontFamily.admin');
+  }
   .admin-content {
-    @apply w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8;
+    @apply w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8;
   }
   .admin-frame {
-    @apply rounded-2xl bg-white border border-bocado-line shadow-card overflow-hidden;
+    @apply rounded-2xl bg-white border border-bocado-line shadow-[0_8px_32px_-12px_rgba(10,10,10,.12)] overflow-hidden;
+  }
+  .admin-sidebar {
+    @apply w-[272px] bg-gradient-to-b from-[#0f0f12] via-[#14141a] to-[#1a1028] text-white border-r border-white/5;
+  }
+  .admin-brand {
+    @apply h-[76px] flex items-center gap-3 px-5 border-b border-white/10;
+  }
+  .admin-brand-icon {
+    @apply w-11 h-11 rounded-2xl bg-gradient-to-br from-bocado-lime to-emerald-400 grid place-items-center text-xl shadow-lg shadow-lime-500/20 animate-pulse-soft;
+  }
+  .admin-nav-card {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/75 border border-transparent transition-all duration-300 animate-fade-up hover:text-white hover:bg-white/10 hover:translate-x-1 hover:border-white/10;
+  }
+  .admin-nav-card--active {
+    @apply !text-white bg-white/10 border-bocado-lime/40 shadow-[inset_3px_0_0_#D6FF3D] translate-x-0;
+  }
+  .admin-nav-card-icon {
+    @apply w-9 h-9 rounded-xl grid place-items-center text-base shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3;
+  }
+  .admin-nav-card-dot {
+    @apply ml-auto w-2 h-2 rounded-full bg-bocado-lime shadow-[0_0_8px_#D6FF3D];
+  }
+  .admin-logout-btn {
+    @apply px-3 py-1.5 rounded-lg border border-white/20 text-white/70 hover:bg-white/10 hover:text-white text-[11px] font-medium transition-colors;
+  }
+  .admin-topbar {
+    @apply h-[64px] sm:h-[72px] border-b border-bocado-line bg-gradient-to-r from-white via-white to-bocado-lime/10 backdrop-blur flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 sticky top-0 z-30;
+  }
+  .admin-crumb {
+    @apply text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-bocado-mute font-semibold;
+  }
+  .admin-page-title {
+    @apply text-lg sm:text-2xl font-bold tracking-tight text-bocado-ink;
+  }
+  .admin-store-link {
+    @apply text-xs sm:text-sm font-semibold px-4 py-2 rounded-full bg-bocado-ink text-white hover:bg-bocado-violet transition-colors;
+  }
+  .admin-toast-stack {
+    @apply fixed bottom-4 right-4 z-[200] flex flex-col gap-3 max-w-[min(100vw-2rem,380px)];
+  }
+  .admin-toast {
+    @apply relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-[#1a1a22] to-[#2d1f4e] p-4 shadow-[0_20px_50px_-12px_rgba(0,0,0,.5)];
+  }
+  .admin-toast-glow {
+    @apply absolute -top-8 -right-8 w-32 h-32 rounded-full bg-bocado-lime/30 blur-2xl pointer-events-none;
+  }
+  .admin-toast-icon {
+    @apply w-11 h-11 rounded-xl bg-bocado-lime/20 grid place-items-center text-xl shrink-0 animate-pulse-soft;
+  }
+  .admin-toast-btn {
+    @apply text-xs font-bold px-3 py-2 rounded-lg bg-bocado-lime text-bocado-ink hover:brightness-95 transition;
+  }
+  .admin-toast-dismiss {
+    @apply text-xs text-white/60 hover:text-white px-2 py-1;
+  }
+  .admin-stat-card {
+    @apply card p-5 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1;
+  }
+  .admin-stat-card::before {
+    content: '';
+    @apply absolute top-0 right-0 w-24 h-24 rounded-full opacity-20 blur-2xl;
+  }
+  .admin-filter-chip {
+    @apply chip font-semibold text-xs sm:text-sm;
+  }
+  .admin-filter-chip--active {
+    @apply !border-transparent !text-white shadow-md;
   }
   .admin-table {
     @apply text-sm table-fixed w-full;
@@ -59,6 +129,21 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+  .carousel-track {
+    scroll-padding-inline: 0.25rem;
+  }
+  .carousel-card {
+    scroll-snap-align: start;
+  }
+  .site-header-wrap {
+    @apply will-change-transform;
+  }
+  body.has-order-tracker {
+    padding-bottom: 5.5rem;
+  }
+  body.has-order-tracker main {
+    scroll-padding-bottom: 6rem;
   }
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-200 select-none;
@@ -174,6 +259,34 @@
   50% {
     transform: scale(1.05);
   }
+}
+@keyframes order-pop {
+  0% {
+    opacity: 0;
+    transform: translateX(24px) scale(0.92);
+  }
+  60% {
+    transform: translateX(-4px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+@keyframes nav-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+.animate-order-pop {
+  animation: order-pop 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+.admin-nav-card-icon {
+  animation: nav-float 4s ease-in-out infinite;
 }
 .animate-slide-up {
   animation: slide-up 0.45s ease-out both;

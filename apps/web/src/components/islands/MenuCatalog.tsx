@@ -35,8 +35,6 @@ const eur = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', c
 export default function MenuCatalog({ sections, dishes, restaurants }: Props) {
   const [activeSection, setActiveSection] = useState(sections[0]?.id ?? 'all');
 
-  const featured = useMemo(() => dishes.filter((d) => d.is_featured).slice(0, 4), [dishes]);
-
   const bySection = useMemo(() => {
     const map = new Map<string, Dish[]>();
     for (const s of sections) map.set(s.id, []);
@@ -72,22 +70,6 @@ export default function MenuCatalog({ sections, dishes, restaurants }: Props) {
           </button>
         ))}
       </div>
-
-      {featured.length > 0 && (
-        <section id="destacados" className="animate-fade-up">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="label">Popular ahora</p>
-              <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Lo más pedido</h2>
-            </div>
-          </div>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {featured.map((d, i) => (
-              <DishTile key={d.id} dish={d} restaurant={restaurants[d.restaurant_id]} delay={i * 0.04} />
-            ))}
-          </div>
-        </section>
-      )}
 
       {sections.map((sec, si) => {
         const list = bySection.get(sec.id) ?? [];

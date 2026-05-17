@@ -44,22 +44,22 @@ const recent = store.orders.slice(0, 5);
 <Admin title="Dashboard" crumb="Inicio / Dashboard">
   <section class="space-y-8">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="card p-5">
+      <div class="admin-stat-card">
         <div class="label">Ventas hoy</div>
         <div class="mt-2 text-2xl font-semibold">{formatEUR(salesToday)}</div>
         <div class="text-xs text-bocado-mute mt-1">solo pagadas</div>
       </div>
-      <div class="card p-5">
+      <div class="admin-stat-card">
         <div class="label">Pedidos activos</div>
-        <div class="mt-2 text-2xl font-semibold">{activeOrders}</div>
+        <div class="mt-2 text-2xl font-bold text-orange-600">{activeOrders}</div>
         <div class="text-xs text-bocado-mute mt-1">en curso</div>
       </div>
-      <div class="card p-5">
+      <div class="admin-stat-card">
         <div class="label">Facturación mensual</div>
         <div class="mt-2 text-2xl font-semibold">{formatEUR(monthly)}</div>
         <div class="text-xs text-bocado-mute mt-1">acumulado</div>
       </div>
-      <div class="card p-5">
+      <div class="admin-stat-card">
         <div class="label">Platos agotados</div>
         <div class="mt-2 text-2xl font-semibold">{outOfStock}</div>
         <div class="text-xs text-bocado-mute mt-1">requieren reposición</div>

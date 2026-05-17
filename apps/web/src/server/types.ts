@@ -236,3 +236,15 @@ export interface NotificationEvent {
   status: 'sent' | 'failed' | 'pending';
   created_at: ISODate;
 }
+
+/** Alertas en tiempo real para el panel admin (nuevo pedido, etc.) */
+export interface AdminAlert {
+  id: UUID;
+  order_id: UUID;
+  order_number: string;
+  customer_name: string;
+  total_cents: number;
+  item_count: number;
+  seen: boolean;
+  created_at: ISODate;
+}

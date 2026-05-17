@@ -7,6 +7,7 @@ import {
   eur,
   fmtDateTime,
   statusChipClass,
+  statusFilterClass,
   type OrderStatus,
 } from './order-shared';
 
@@ -51,15 +52,15 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
   }
 
   return (
-    <section className="admin-content space-y-6 !py-0">
+    <section className="admin-content space-y-6 !py-0 font-admin">
             <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={() => setFilter('')} className={`chip ${!filter ? '!bg-bocado-ink !text-white' : ''}`}>
+        <button type="button" onClick={() => setFilter('')} className={statusFilterClass('', !filter)}>
           Todos ({orders.length})
         </button>
         {STATUS.map((s) => {
           const n = orders.filter((o) => o.status === s).length;
           return (
-            <button key={s} type="button" onClick={() => setFilter(s)} className={`chip ${filter === s ? '!bg-bocado-ink !text-white' : ''}`}>
+            <button key={s} type="button" onClick={() => setFilter(s)} className={statusFilterClass(s, filter === s)}>
               {STATUS_LABEL[s]} ({n})
             </button>
           );
@@ -70,7 +71,7 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
         <div className="admin-frame">
                     <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-bocado-paper2 text-bocado-mute">
+              <thead className="bg-gradient-to-r from-bocado-paper2 to-bocado-lime/15 text-bocado-ink text-xs uppercase tracking-wider font-bold">
                 <tr className="text-left">
                   <th className="font-normal py-3 px-5">Pedido</th>
                   <th className="font-normal">Cliente</th>

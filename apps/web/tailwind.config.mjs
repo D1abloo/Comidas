@@ -9,12 +9,15 @@ export default {
           paper: '#FAF8F3',
           paper2: '#F1EEE6',
           lime: '#D6FF3D',
+          coral: '#FF6B4A',
+          violet: '#7C3AED',
           line: '#E8E5DC',
           mute: '#7A7670',
         },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'ui-sans-serif', 'sans-serif'],
+        admin: ['"DM Sans"', 'Inter', 'system-ui', 'sans-serif'],
       },
       borderRadius: { '2xl': '20px', '3xl': '28px' },
       boxShadow: {

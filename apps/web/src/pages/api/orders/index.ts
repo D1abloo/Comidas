@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../../server/db';
+import { pushAdminNewOrderAlert } from '../../../server/admin-alerts';
 import type { Order } from '../../../server/types';
 import { randomUUID } from 'node:crypto';
 
@@ -86,6 +87,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     created_at: new Date().toISOString(),
   };
   store.orders.unshift(order);
+  pushAdminNewOrderAlert(store, order);
 
   // Demo: encolar aviso "pedido recibido"
   store.notifications.unshift({

@@ -5,12 +5,14 @@ import type {
   Company,
   Dish,
   Invoice,
+  AdminAlert,
   MenuSection,
   NotificationEvent,
   Order,
   Restaurant,
   User,
 } from './types.js';
+import { extraDishes } from './extra-dishes.js';
 
 /**
  * Almacén en memoria. Se inicializa al arrancar el servidor con datos de demo.
@@ -27,6 +29,7 @@ export interface Store {
   orders: Order[];
   invoices: Invoice[];
   notifications: NotificationEvent[];
+  admin_alerts: AdminAlert[];
   counters: { order: number; invoice: number };
 }
 
@@ -76,9 +79,11 @@ function seed(): Store {
 
   const menu_sections: MenuSection[] = [
     { id: 'sec-entrantes', title: 'Entrantes', slug: 'entrantes', description: 'Para abrir el apetito', emoji: '🥟', sort_order: 1, is_active: true, created_at: new Date().toISOString() },
-    { id: 'sec-principales', title: 'Platos principales', slug: 'principales', description: 'Lo más pedido de la casa', emoji: '🍔', sort_order: 2, is_active: true, created_at: new Date().toISOString() },
-    { id: 'sec-sides', title: 'Guarniciones', slug: 'guarniciones', description: 'Acompañamientos y extras', emoji: '🍟', sort_order: 3, is_active: true, created_at: new Date().toISOString() },
-    { id: 'sec-postres', title: 'Postres y bebidas', slug: 'postres-bebidas', description: 'Dulce final y refrescos', emoji: '🥤', sort_order: 4, is_active: true, created_at: new Date().toISOString() },
+    { id: 'sec-pizzas-pasta', title: 'Pizza y pasta', slug: 'pizza-pasta', description: 'Italiano de verdad', emoji: '🍕', sort_order: 2, is_active: true, created_at: new Date().toISOString() },
+    { id: 'sec-cazuelas', title: 'Cazuelas y guisos', slug: 'cazuelas', description: 'Sabores de cuchara', emoji: '🍲', sort_order: 3, is_active: true, created_at: new Date().toISOString() },
+    { id: 'sec-principales', title: 'Platos principales', slug: 'principales', description: 'Lo más pedido de la casa', emoji: '🍔', sort_order: 4, is_active: true, created_at: new Date().toISOString() },
+    { id: 'sec-sides', title: 'Guarniciones', slug: 'guarniciones', description: 'Acompañamientos y extras', emoji: '🍟', sort_order: 5, is_active: true, created_at: new Date().toISOString() },
+    { id: 'sec-postres', title: 'Postres y bebidas', slug: 'postres-bebidas', description: 'Dulce final y refrescos', emoji: '🥤', sort_order: 6, is_active: true, created_at: new Date().toISOString() },
   ];
 
   const restaurants: Restaurant[] = [
@@ -86,6 +91,8 @@ function seed(): Store {
     { id: 'r-verde-verde', name: 'Verde & Verde', slug: 'verde-y-verde', cuisine: 'Mediterránea', rating: 4.8 },
     { id: 'r-forno-21', name: 'Forno 21', slug: 'forno-21', cuisine: 'Italiana', rating: 4.7 },
     { id: 'r-prado-burger', name: 'Prado Burger', slug: 'prado-burger', cuisine: 'Burgers', rating: 4.7 },
+    { id: 'r-pasta-luca', name: 'Pasta Luca', slug: 'pasta-luca', cuisine: 'Italiana', rating: 4.8 },
+    { id: 'r-la-cazuela', name: 'La Cazuela', slug: 'la-cazuela', cuisine: 'Española', rating: 4.7 },
   ];
 
   const dishes: Dish[] = [
@@ -454,6 +461,7 @@ function seed(): Store {
       gluten_free: true,
       created_at: new Date().toISOString(),
     },
+    ...extraDishes(),
   ];
 
   const adminHash = bcrypt.hashSync('admin1234', 8);
@@ -483,6 +491,15 @@ function seed(): Store {
   ];
 
   for (const d of dishes) {
+    if (d.menu_section_id) continue;
+    if (d.tags?.includes('pizza') || d.tags?.includes('pasta')) {
+      d.menu_section_id = 'sec-pizzas-pasta';
+      continue;
+    }
+    if (d.tags?.includes('cazuela')) {
+      d.menu_section_id = 'sec-cazuelas';
+      continue;
+    }
     d.menu_section_id =
       d.category === 'starter'
         ? 'sec-entrantes'
@@ -496,15 +513,15 @@ function seed(): Store {
   // Algunos pedidos de muestra para que el dashboard tenga datos
   const seedOrders: Order[] = [
     sampleOrder('001041', 'Luis G.', 'luis@example.com', 'tpv', 'paid', 'delivered', [
-      { dish: dishes[0]!, qty: 1 },
-      { dish: dishes[1]!, qty: 1 },
+      { dish: dishes.find((x) => x.id === 'd-ramen')!, qty: 1 },
+      { dish: dishes.find((x) => x.id === 'd-bowl-med')!, qty: 1 },
     ]),
     sampleOrder('001042', 'Marta R.', 'marta@example.com', 'bizum', 'awaiting_confirmation', 'delivering', [
-      { dish: dishes[3]!, qty: 1 },
-      { dish: dishes[11]!, qty: 1 },
+      { dish: dishes.find((x) => x.id === 'd-pizza-marg')!, qty: 1 },
+      { dish: dishes.find((x) => x.id === 'd-carbonara')!, qty: 1 },
     ]),
     sampleOrder('001043', 'Ana V.', 'ana@example.com', 'cash', 'pending', 'preparing', [
-      { dish: dishes[5]!, qty: 1 },
+      { dish: dishes.find((x) => x.id === 'd-fabada')!, qty: 1 },
     ]),
   ];
 
@@ -518,6 +535,7 @@ function seed(): Store {
     orders: seedOrders,
     invoices: [],
     notifications: [],
+    admin_alerts: [],
     counters: { order: 1044, invoice: 1 },
   };
 }
