@@ -10,7 +10,11 @@
   }
   body {
     font-family: theme('fontFamily.sans');
+    font-size: 16px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   body.store-front {
     background-color: #faf8f3;
@@ -28,8 +32,9 @@
   h3,
   .font-display {
     font-family: theme('fontFamily.display');
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
   }
 }
 
@@ -147,7 +152,7 @@
     @apply flex flex-col items-center justify-center p-5 rounded-2xl border border-bocado-line bg-white hover:border-bocado-lime hover:bg-bocado-lime/10 hover:-translate-y-1 hover:shadow-premium transition-all duration-300;
   }
   .admin-table {
-    @apply text-sm table-fixed w-full;
+    @apply text-[15px] leading-snug table-fixed w-full;
   }
   .admin-table thead {
     @apply bg-bocado-paper2 text-bocado-mute text-[11px] uppercase tracking-wider;
@@ -380,7 +385,7 @@
     @apply text-[11px] uppercase tracking-[0.12em] text-bocado-mute;
   }
   .input {
-    @apply w-full px-3.5 py-2.5 rounded-xl border border-bocado-line bg-white focus:outline-none focus:border-bocado-ink focus:ring-2 focus:ring-bocado-ink/10 transition;
+    @apply w-full px-3.5 py-2.5 rounded-xl border border-bocado-line bg-white text-[15px] leading-snug focus:outline-none focus:border-bocado-ink focus:ring-2 focus:ring-bocado-ink/10 transition;
   }
   .hairline {
     @apply border-bocado-line;

@@ -1,0 +1,18 @@
+---
+interface Props {
+  available: boolean;
+  size?: 'sm' | 'md';
+}
+const { available, size = 'sm' } = Astro.props as Props;
+const sizeClass = size === 'md' ? 'text-xs px-2.5 py-1' : 'text-[10px] px-2 py-0.5';
+---
+<span
+  class:list={[
+    'inline-flex items-center gap-1.5 font-semibold border rounded-full whitespace-nowrap',
+    sizeClass,
+    available ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-red-800 border-red-200',
+  ]}
+>
+  <span class:list={['w-1.5 h-1.5 rounded-full shrink-0', available ? 'bg-emerald-500' : 'bg-red-500']}></span>
+  {available ? 'Disponible' : 'No disponible'}
+</span>

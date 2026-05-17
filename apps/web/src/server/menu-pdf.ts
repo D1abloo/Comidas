@@ -85,7 +85,14 @@ async function drawDishEntry(ctx: PdfCtx, dish: Dish): Promise<void> {
 
   const rest = restById[dish.restaurant_id] ?? '';
   const header = pdfSafeText(`${dish.name}  ·  ${formatEUR(dish.price_cents)}`);
-  const meta = [rest, dish.portion, dish.vegetarian ? 'Vegetariano' : '', dish.vegan ? 'Vegano' : '', dish.gluten_free ? 'Sin gluten' : '']
+  const meta = [
+    dish.is_available ? 'Estado: Disponible' : 'Estado: No disponible',
+    rest,
+    dish.portion,
+    dish.vegetarian ? 'Vegetariano' : '',
+    dish.vegan ? 'Vegano' : '',
+    dish.gluten_free ? 'Sin gluten' : '',
+  ]
     .filter(Boolean)
     .join(' · ');
 
@@ -252,9 +259,7 @@ export async function renderMenuPDF(input: MenuPdfInput): Promise<Uint8Array> {
     .filter((s) => s.is_active)
     .sort((a, b) => a.sort_order - b.sort_order);
 
-  const dishes = input.dishes
-    .filter((d) => d.is_available)
-    .sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  const dishes = [...input.dishes].sort((a, b) => a.name.localeCompare(b.name, 'es'));
 
   const sectionIds = new Set(activeSections.map((s) => s.id));
   const orphans = dishes.filter((d) => !d.menu_section_id || !sectionIds.has(d.menu_section_id));

@@ -4,6 +4,7 @@ import { formatEUR } from '../server/format';
 import AddToCart from './islands/AddToCart.tsx';
 import FavoriteHeart from './islands/FavoriteHeart.tsx';
 import AllergenBadges from './AllergenBadges.astro';
+import AvailabilityBadge from './AvailabilityBadge.astro';
 
 interface Props { dish: Dish; restaurant: Restaurant }
 const { dish, restaurant } = Astro.props as Props;
@@ -13,13 +14,12 @@ if (dish.vegan) dietBadges.push('Vegano');
 else if (dish.vegetarian) dietBadges.push('Vegetariano');
 if (dish.gluten_free) dietBadges.push('Sin gluten');
 ---
-<article class="card overflow-hidden group flex flex-col">
+<article class:list={['card overflow-hidden group flex flex-col', !dish.is_available && 'opacity-90']}>
   <a href={`/platos/${dish.slug}`} class="block relative aspect-[5/4] overflow-hidden">
     <img src={img} alt={dish.name} loading="lazy"
          class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />
-    <div class="absolute top-3 left-3 inline-flex items-center gap-1.5 bg-white/90 backdrop-blur text-[11px] px-2.5 py-1 rounded-full">
-      <span class:list={['w-1.5 h-1.5 rounded-full', dish.is_available ? 'bg-emerald-500' : 'bg-red-500']}></span>
-      {dish.is_available ? 'Disponible' : 'Agotado'}
+    <div class="absolute top-3 left-3">
+      <AvailabilityBadge available={dish.is_available} size="md" />
     </div>
     <div class="absolute top-3 right-3"><FavoriteHeart client:idle id={dish.id} /></div>
     {dietBadges.length > 0 && (

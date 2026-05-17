@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AvailabilityBadge from './AvailabilityBadge';
 
 const eur = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(c / 100);
 
@@ -163,7 +164,7 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
               <th>Sección</th>
               <th>Precio</th>
               <th>Alérgenos</th>
-              <th>On</th>
+              <th>Estado</th>
               <th className="text-right">Acciones</th>
             </tr>
           </thead>
@@ -183,9 +184,20 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
                 <td className="font-medium text-sm whitespace-nowrap">{eur(d.price_cents)}</td>
                 <td className="text-[10px] text-bocado-mute">{d.allergens?.length ?? 0}</td>
                 <td>
-                  <button type="button" onClick={() => toggle(d)} className={`w-9 h-5 rounded-full relative transition ${d.is_available ? 'bg-bocado-lime' : 'bg-bocado-line'}`} aria-label="Disponibilidad">
-                    <span className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white border transition ${d.is_available ? 'left-[18px]' : 'left-0.5'}`} />
-                  </button>
+                  <div className="flex flex-col gap-2 items-start">
+                    <AvailabilityBadge available={!!d.is_available} size="md" />
+                    <button
+                      type="button"
+                      onClick={() => toggle(d)}
+                      className={`w-9 h-5 rounded-full relative transition ${d.is_available ? 'bg-bocado-lime' : 'bg-bocado-line'}`}
+                      aria-label={d.is_available ? 'Marcar como no disponible' : 'Marcar como disponible'}
+                      title={d.is_available ? 'Cambiar a no disponible' : 'Cambiar a disponible'}
+                    >
+                      <span
+                        className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white border transition ${d.is_available ? 'left-[18px]' : 'left-0.5'}`}
+                      />
+                    </button>
+                  </div>
                 </td>
                 <td className="text-right whitespace-nowrap">
                   <button type="button" className="btn-ghost text-[11px]" onClick={() => openEdit(d)}>Editar</button>
@@ -332,9 +344,24 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
                 </div>
               </Section>
 
-              <Section title="Disponibilidad y etiquetas">
+              <Section title="Estado en carta y etiquetas">
+                <div className="flex flex-wrap items-center gap-4 mb-4">
+                  <AvailabilityBadge available={!!form.is_available} size="md" />
+                  <p className="text-xs text-bocado-mute">
+                    {form.is_available
+                      ? 'Visible en la tienda y en el PDF de carta.'
+                      : 'Oculto para pedidos; aparece en carta como no disponible.'}
+                  </p>
+                </div>
                 <div className="flex flex-wrap gap-4 text-sm">
-                  <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.is_available} onChange={(e) => setForm({ ...form, is_available: e.target.checked })} /> Disponible ahora</label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={!!form.is_available}
+                      onChange={(e) => setForm({ ...form, is_available: e.target.checked })}
+                    />
+                    Publicar como disponible
+                  </label>
                   <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} /> Destacado</label>
                   <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.vegan} onChange={(e) => setForm({ ...form, vegan: e.target.checked })} /> Vegano</label>
                   <label className="flex items-center gap-2"><input type="checkbox" checked={!!form.vegetarian} onChange={(e) => setForm({ ...form, vegetarian: e.target.checked })} /> Vegetariano</label>

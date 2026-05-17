@@ -9,7 +9,8 @@ import { getStore } from '../server/db';
 import type { Dish } from '../server/types';
 
 const store = getStore();
-const dishes = store.dishes.filter((d) => d.is_available);
+const dishes = store.dishes;
+const dishesForOrder = store.dishes.filter((d) => d.is_available);
 
 const allSections = store.menu_sections.filter((s) => s.is_active).sort((a, b) => a.sort_order - b.sort_order);
 const catalogSections = allSections.filter((s) => s.id !== 'sec-menu-dia');
@@ -28,14 +29,14 @@ for (const o of store.orders) {
   }
 }
 
-let bestsellers: (Dish & { sold_count?: number })[] = [...dishes]
+let bestsellers: (Dish & { sold_count?: number })[] = [...dishesForOrder]
   .map((d) => ({ ...d, sold_count: soldCount.get(d.id) ?? 0 }))
   .filter((d) => d.sold_count > 0)
   .sort((a, b) => b.sold_count - a.sold_count)
   .slice(0, 10);
 
 if (bestsellers.length < 4) {
-  bestsellers = dishes
+  bestsellers = dishesForOrder
     .filter((d) => d.is_featured)
     .slice(0, 8)
     .map((d) => ({ ...d, sold_count: soldCount.get(d.id) ?? 0 }));

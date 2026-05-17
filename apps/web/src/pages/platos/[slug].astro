@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import AllergenBadges from '../../components/AllergenBadges.astro';
+import AvailabilityBadge from '../../components/AvailabilityBadge.astro';
 import AddToCart from '../../components/islands/AddToCart.tsx';
 import { getStore } from '../../server/db';
 import { formatEUR } from '../../server/format';
@@ -34,6 +35,9 @@ const img = dish.images[0]!;
       <a href="/" class="text-xs text-bocado-mute hover:text-bocado-ink">← Volver al catálogo</a>
       <div class="mt-4 text-[11px] uppercase tracking-[0.12em] text-bocado-mute">{restaurant.name} · {dish.cuisine}</div>
       <h1 class="mt-2 font-display text-4xl md:text-5xl lg:text-6xl">{dish.name}</h1>
+      <div class="mt-3">
+        <AvailabilityBadge available={dish.is_available} size="md" />
+      </div>
       <p class="mt-4 text-bocado-mute text-lg">{dish.long_description}</p>
 
       <div class="mt-6 flex items-center gap-6 text-sm">
@@ -60,7 +64,7 @@ const img = dish.images[0]!;
         {dish.is_available ? (
           <AddToCart client:idle variant="large" line={{ dish_id: dish.id, dish_name: dish.name, restaurant_name: restaurant.name, unit_price_cents: dish.price_cents, image: img }} />
         ) : (
-          <span class="chip">No disponible ahora</span>
+          <AvailabilityBadge available={false} size="md" />
         )}
       </div>
 

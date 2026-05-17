@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import AddToCart from './AddToCart';
+import AvailabilityBadge from './AvailabilityBadge';
 
 interface Section {
   id: string;
@@ -19,6 +20,7 @@ interface Dish {
   delivery_time_min: number;
   images: string[];
   is_featured?: boolean;
+  is_available?: boolean;
   menu_section_id?: string | null;
   restaurant_id: string;
   vegan?: boolean;
@@ -105,8 +107,12 @@ export default function MenuCatalog({ sections, dishes, restaurants }: Props) {
 
 function DishTile({ dish, restaurant, delay }: { dish: Dish; restaurant?: string; delay?: number }) {
   const img = dish.images[0];
+  const available = dish.is_available !== false;
   return (
-    <article className="food-card group flex flex-col" style={{ animationDelay: `${delay ?? 0}s` }}>
+    <article
+      className={`food-card group flex flex-col ${!available ? 'opacity-85 ring-1 ring-red-200/60' : ''}`}
+      style={{ animationDelay: `${delay ?? 0}s` }}
+    >
       <a href={`/platos/${dish.slug}`} className="block relative aspect-[4/3] overflow-hidden">
         {img && (
           <img
@@ -117,11 +123,14 @@ function DishTile({ dish, restaurant, delay }: { dish: Dish; restaurant?: string
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        {dish.is_featured && (
-          <span className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider bg-bocado-coral text-white px-2.5 py-1 rounded-full">
-            Destacado
-          </span>
-        )}
+        <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 items-start">
+          <AvailabilityBadge available={available} size="md" />
+          {dish.is_featured && (
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-bocado-coral text-white px-2.5 py-1 rounded-full">
+              Destacado
+            </span>
+          )}
+        </div>
         <div className="absolute bottom-3 left-3 right-3 text-white z-10">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-white/80">{restaurant}</p>
           <h3 className="font-display text-lg leading-tight mt-0.5">{dish.name}</h3>
@@ -136,16 +145,20 @@ function DishTile({ dish, restaurant, delay }: { dish: Dish; restaurant?: string
         </span>
         <div className="flex items-center gap-2">
           {dish.vegan && <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Vegano</span>}
-          <AddToCart
-            variant="pill"
-            line={{
-              dish_id: dish.id,
-              dish_name: dish.name,
-              restaurant_name: restaurant,
-              unit_price_cents: dish.price_cents,
-              image: img,
-            }}
-          />
+          {available ? (
+            <AddToCart
+              variant="pill"
+              line={{
+                dish_id: dish.id,
+                dish_name: dish.name,
+                restaurant_name: restaurant,
+                unit_price_cents: dish.price_cents,
+                image: img,
+              }}
+            />
+          ) : (
+            <span className="text-[10px] font-semibold text-red-700">No disponible</span>
+          )}
         </div>
       </div>
     </article>
