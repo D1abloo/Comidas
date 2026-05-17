@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { canUseMarketing } from '../../utils/cookie-consent';
+import { InstagramIcon, TikTokIcon, XIcon } from './SocialIcons';
 
 function FooterLogo() {
   return (
@@ -21,14 +23,15 @@ function FooterLogo() {
 
 const PAYMENTS = ['Bizum', 'Visa', 'Mastercard', 'Efectivo'];
 const SOCIAL = [
-  { id: 'instagram', label: 'Instagram' },
-  { id: 'x', label: 'X' },
-  { id: 'tiktok', label: 'TikTok' },
-];
+  { id: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/', Icon: InstagramIcon },
+  { id: 'x', label: 'X (Twitter)', href: 'https://x.com/', Icon: XIcon },
+  { id: 'tiktok', label: 'TikTok', href: 'https://www.tiktok.com/', Icon: TikTokIcon },
+] as const;
 
 export default function SiteFooter() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [newsletterNote, setNewsletterNote] = useState<string | null>(null);
   const year = new Date().getFullYear();
 
   return (
@@ -61,11 +64,13 @@ export default function SiteFooter() {
               {SOCIAL.map((s) => (
                 <a
                   key={s.id}
-                  href="#"
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   aria-label={s.label}
-                  className="w-10 h-10 rounded-full border border-white/15 grid place-items-center text-[10px] font-bold uppercase hover:bg-bocado-lime hover:text-bocado-ink hover:border-bocado-lime transition-all duration-200"
+                  className="w-10 h-10 rounded-full border border-white/15 grid place-items-center text-white hover:bg-bocado-lime hover:text-bocado-ink hover:border-bocado-lime transition-all duration-200"
                 >
-                  {s.id[0]}
+                  <s.Icon className="w-[18px] h-[18px]" />
                 </a>
               ))}
             </div>
@@ -77,7 +82,7 @@ export default function SiteFooter() {
               {[
                 ['/', 'Inicio'],
                 ['/#mas-vendido', 'Lo más vendido'],
-                ['/#catalogo', 'Carta completa'],
+                ['/api/carta.pdf', 'Carta completa (PDF)'],
                 ['/restaurantes', 'Restaurantes'],
               ].map(([href, label]) => (
                 <li key={href}>
@@ -127,7 +132,13 @@ export default function SiteFooter() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (email) setSubscribed(true);
+                  if (!email) return;
+                  if (!canUseMarketing()) {
+                    setNewsletterNote('Activa las cookies de marketing en «Gestionar cookies» para suscribirte.');
+                    return;
+                  }
+                  setNewsletterNote(null);
+                  setSubscribed(true);
                 }}
                 className="flex flex-col sm:flex-row gap-2"
               >
@@ -147,6 +158,9 @@ export default function SiteFooter() {
                 </button>
               </form>
             )}
+            {newsletterNote && (
+              <p className="text-xs text-amber-200/90 mt-3">{newsletterNote}</p>
+            )}
             <p className="text-[10px] text-white/40 mt-4">
               Para restaurantes:{' '}
               <a href="/admin/login" className="underline hover:text-white">
@@ -160,17 +174,27 @@ export default function SiteFooter() {
           <span>
             © {year} BocadO Delivery SL · CIF B12345678 · Madrid, España
           </span>
-          <div className="flex flex-wrap gap-4">
+          <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Enlaces legales">
+            <a href="/terminos" className="hover:text-white transition">
+              Condiciones de uso
+            </a>
             <a href="/privacidad" className="hover:text-white transition">
               Privacidad
             </a>
-            <a href="/terminos" className="hover:text-white transition">
-              Términos
+            <a href="/cookies" className="hover:text-white transition">
+              Cookies
             </a>
+            <button
+              type="button"
+              className="hover:text-white transition text-left"
+              onClick={() => window.dispatchEvent(new CustomEvent('bocado-cookie-settings'))}
+            >
+              Gestionar cookies
+            </button>
             <a href="/ayuda" className="hover:text-white transition">
               Ayuda
             </a>
-          </div>
+          </nav>
         </div>
       </div>
     </footer>

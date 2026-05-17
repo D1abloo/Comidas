@@ -215,13 +215,6 @@
   .page-hero-block {
     @apply container-bocado pt-10 md:pt-14 pb-4 animate-fade-up;
   }
-  .trust-card {
-    @apply relative overflow-hidden rounded-3xl border border-bocado-line/70 bg-gradient-to-br from-white to-bocado-paper2/80 p-6 transition-all duration-300 hover:shadow-premium hover:-translate-y-1;
-  }
-  .trust-card::before {
-    content: '';
-    @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-bocado-lime via-bocado-coral to-bocado-violet opacity-80;
-  }
   .pwa-install-root {
     @apply fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-3 sm:p-6 overflow-hidden;
   }
@@ -287,6 +280,55 @@
   }
   .pwa-install-dismiss {
     @apply py-2 text-xs text-white/45 hover:text-white/70 transition text-center;
+  }
+  .cookie-consent-root {
+    @apply fixed inset-x-0 bottom-0 z-[350] p-4 sm:p-6 pointer-events-none;
+  }
+  .cookie-consent-panel {
+    @apply pointer-events-auto mx-auto max-w-lg rounded-2xl border border-bocado-line bg-white p-5 sm:p-6 shadow-[0_24px_60px_-12px_rgba(0,0,0,.25)];
+  }
+  .cookie-consent-kicker {
+    @apply text-[10px] font-bold uppercase tracking-[0.2em] text-bocado-violet;
+  }
+  .cookie-consent-title {
+    @apply font-display text-xl mt-1 tracking-tight;
+  }
+  .cookie-consent-text {
+    @apply text-sm text-bocado-mute mt-3 leading-relaxed;
+  }
+  .cookie-consent-options {
+    @apply mt-4 space-y-2;
+  }
+  .cookie-consent-option {
+    @apply flex gap-3 items-start p-3 rounded-xl border border-bocado-line bg-bocado-paper/60 cursor-pointer;
+  }
+  .cookie-consent-option--locked {
+    @apply opacity-80 cursor-default bg-bocado-paper2;
+  }
+  .cookie-consent-actions {
+    @apply mt-5 flex flex-col gap-2;
+  }
+  .cookie-consent-btn-secondary {
+    @apply py-2.5 px-4 rounded-xl border border-bocado-line text-sm font-medium text-bocado-ink hover:bg-bocado-paper2 transition text-center;
+  }
+  .cookie-consent-links {
+    @apply mt-4 text-center text-xs text-bocado-mute flex flex-wrap justify-center gap-2;
+  }
+  .cookie-consent-links a {
+    @apply underline hover:text-bocado-violet;
+  }
+  .legal-prose h2 {
+    @apply font-semibold text-base mt-2 text-bocado-ink;
+  }
+  .legal-prose p,
+  .legal-prose ul {
+    @apply text-bocado-mute;
+  }
+  .legal-prose ul {
+    @apply list-disc pl-5 space-y-1;
+  }
+  .legal-prose a {
+    @apply text-bocado-violet underline;
   }
   .scrollbar-hide {
     -ms-overflow-style: none;

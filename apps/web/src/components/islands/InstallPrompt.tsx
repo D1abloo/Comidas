@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { hasConsentChoice } from '../../utils/cookie-consent';
 import { deleteCookie, getCookie, setCookie } from '../../utils/cookies';
 
 type Platform = 'ios' | 'android' | 'desktop';
@@ -112,7 +113,7 @@ export default function InstallPrompt() {
     window.addEventListener('beforeinstallprompt', onBip);
     window.addEventListener('appinstalled', onInstalled);
 
-    if (shouldAutoOpen()) {
+    if (hasConsentChoice() && shouldAutoOpen()) {
       const t = window.setTimeout(() => setOpen(true), 1200);
       const onShow = () => setOpen(true);
       window.addEventListener('bocado-show-install', onShow);

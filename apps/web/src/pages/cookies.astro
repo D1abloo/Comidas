@@ -1,0 +1,67 @@
+---
+import LegalLayout from '../components/LegalLayout.astro';
+---
+<LegalLayout title="Política de cookies" eyebrow="Cookies">
+  <section>
+    <h2>1. ¿Qué son las cookies?</h2>
+    <p>
+      Las cookies son pequeños archivos que se guardan en tu dispositivo cuando visitas BocadO. Nos permiten
+      recordar preferencias, mantener tu sesión y, si lo autorizas, analizar el uso de la web o mostrarte
+      comunicaciones comerciales.
+    </p>
+  </section>
+
+  <section>
+    <h2>2. Tipos de cookies que usamos</h2>
+    <ul>
+      <li>
+        <strong>Necesarias (siempre activas):</strong> sesión de usuario, seguridad, carrito de compra,
+        preferencias del banner de cookies e instalación PWA.
+      </li>
+      <li>
+        <strong>Analítica (opcional):</strong> estadísticas agregadas para mejorar rendimiento y contenidos.
+      </li>
+      <li>
+        <strong>Marketing (opcional):</strong> newsletter, cupones y recordatorios de pedidos o promociones.
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>3. Cookies concretas</h2>
+    <div class="overflow-x-auto -mx-1">
+      <table class="w-full text-left text-xs border border-bocado-line rounded-xl overflow-hidden mt-3">
+        <thead class="bg-bocado-paper2">
+          <tr>
+            <th class="p-3 font-semibold">Nombre</th>
+            <th class="p-3 font-semibold">Finalidad</th>
+            <th class="p-3 font-semibold">Duración</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-bocado-line">
+          <tr><td class="p-3">bocado_session</td><td class="p-3">Sesión e identificación</td><td class="p-3">Sesión / 7 días</td></tr>
+          <tr><td class="p-3">bocado_cookie_consent</td><td class="p-3">Guardar tu elección de cookies</td><td class="p-3">12 meses</td></tr>
+          <tr><td class="p-3">bocado_pwa_snooze / bocado_pwa_hide</td><td class="p-3">Recordar aviso de instalar app</td><td class="p-3">14 días / permanente</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Cómo gestionarlas</h2>
+    <p>
+      Puedes aceptar, rechazar o personalizar cookies desde el banner al entrar en la web o en cualquier momento
+      con el enlace <strong>«Gestionar cookies»</strong> del pie de página. También puedes configurar tu navegador
+      para bloquear o eliminar cookies, aunque algunas funciones (pedido, login) podrían dejar de funcionar.
+    </p>
+  </section>
+
+  <section>
+    <h2>5. Más información</h2>
+    <p>
+      Responsable: BocadO Delivery SL. Consulta también nuestra
+      <a href="/privacidad" class="text-bocado-violet underline">política de privacidad</a> y las
+      <a href="/terminos" class="text-bocado-violet underline">condiciones de uso</a>.
+    </p>
+  </section>
+</LegalLayout>

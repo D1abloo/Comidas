@@ -3,6 +3,7 @@ import { eur } from './order-shared';
 
 type Alert = {
   id: string;
+  kind?: 'new_order' | 'bizum_paid';
   order_id: string;
   order_number: string;
   customer_name: string;
@@ -58,6 +59,7 @@ export default function AdminAlerts() {
         void ack(fresh.map((a) => a.id));
         if (autoPrintRef.current) {
           for (const a of fresh) {
+            if (a.kind === 'bizum_paid') continue;
             if (!printedRef.current.has(a.id)) {
               printedRef.current.add(a.id);
               window.open(
@@ -86,40 +88,49 @@ export default function AdminAlerts() {
 
   return (
     <div className="admin-toast-stack" aria-live="assertive">
-      {toasts.map((t) => (
-        <article key={t.id} className="admin-toast animate-order-pop">
-          <div className="admin-toast-glow" aria-hidden />
-          <div className="flex items-start gap-3 relative z-10">
-            <span className="admin-toast-icon" aria-hidden>
-              🔔
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-lime-300">Nuevo pedido</p>
-              <p className="text-base font-bold text-white mt-0.5">{t.order_number}</p>
-              <p className="text-sm text-white/80 mt-1">
-                {t.customer_name} · {t.item_count} artículo{t.item_count !== 1 ? 's' : ''}
-              </p>
-              <p className="text-lg font-semibold text-bocado-lime mt-2">{eur(t.total_cents)}</p>
+      {toasts.map((t) => {
+        const isBizum = t.kind === 'bizum_paid';
+        return (
+          <article key={t.id} className="admin-toast animate-order-pop">
+            <div className="admin-toast-glow" aria-hidden />
+            <div className="flex items-start gap-3 relative z-10">
+              <span className="admin-toast-icon" aria-hidden>
+                {isBizum ? '💳' : '🔔'}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p
+                  className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isBizum ? 'text-sky-300' : 'text-lime-300'}`}
+                >
+                  {isBizum ? 'Bizum completado' : 'Nuevo pedido'}
+                </p>
+                <p className="text-base font-bold text-white mt-0.5">{t.order_number}</p>
+                <p className="text-sm text-white/80 mt-1">
+                  {t.customer_name} · {t.item_count} artículo{t.item_count !== 1 ? 's' : ''}
+                </p>
+                <p className="text-lg font-semibold text-bocado-lime mt-2">{eur(t.total_cents)}</p>
+              </div>
+              <div className="flex flex-col gap-2 shrink-0">
+                <a href={isBizum ? '/admin/pagos' : '/admin/pedidos'} className="admin-toast-btn">
+                  {isBizum ? 'Ver pagos' : 'Ver pedido'}
+                </a>
+                {!isBizum && (
+                  <a
+                    href={`/admin/impresion/ticket?order=${t.order_id}&autoprint=1`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="admin-toast-btn !bg-white/20 !text-white"
+                  >
+                    🖨️ Imprimir
+                  </a>
+                )}
+                <button type="button" className="admin-toast-dismiss" onClick={() => dismiss(t.id)}>
+                  Cerrar
+                </button>
+              </div>
             </div>
-            <div className="flex flex-col gap-2 shrink-0">
-              <a href="/admin/pedidos" className="admin-toast-btn">
-                Ver pedido
-              </a>
-              <a
-                href={`/admin/impresion/ticket?order=${t.order_id}&autoprint=1`}
-                target="_blank"
-                rel="noreferrer"
-                className="admin-toast-btn !bg-white/20 !text-white"
-              >
-                🖨️ Imprimir
-              </a>
-              <button type="button" className="admin-toast-dismiss" onClick={() => dismiss(t.id)}>
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </div>
   );
 }

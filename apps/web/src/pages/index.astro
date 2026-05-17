@@ -5,7 +5,6 @@ import CategoryStrip from '../components/CategoryStrip.astro';
 import Filters from '../components/Filters.astro';
 import BestsellerCarousel from '../components/islands/BestsellerCarousel.tsx';
 import MenuCatalog from '../components/islands/MenuCatalog.tsx';
-import TrustBar from '../components/TrustBar.astro';
 import { getStore } from '../server/db';
 import type { Dish } from '../server/types';
 
@@ -59,5 +58,4 @@ if (bestsellers.length < 4) {
     <MenuCatalog client:load sections={sections} dishes={dishes} restaurants={restNames} />
   </section>
 
-  <TrustBar />
 </Base>

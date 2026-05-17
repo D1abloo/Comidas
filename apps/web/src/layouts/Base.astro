@@ -5,6 +5,7 @@ import Footer from '../components/Footer.astro';
 import DemoBanner from '../components/DemoBanner.astro';
 import OrderTrackerBar from '../components/islands/OrderTrackerBar.tsx';
 import InstallPrompt from '../components/islands/InstallPrompt.tsx';
+import CookieConsent from '../components/islands/CookieConsent.tsx';
 interface Props { title?: string; description?: string; hideChrome?: boolean }
 const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda online de comida a domicilio con fotos reales, tiempos verificados y entrega rápida.', hideChrome = false } = Astro.props as Props;
 ---
@@ -35,6 +36,7 @@ const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda
     </main>
     {!hideChrome && <Footer />}
     {!hideChrome && <OrderTrackerBar client:load />}
+    <CookieConsent client:load />
     <InstallPrompt client:load />
   </body>
 </html>

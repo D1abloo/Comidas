@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+interface Props {
+  title: string;
+  eyebrow?: string;
+  updated?: string;
+}
+const { title, eyebrow = 'Información legal', updated = 'mayo 2026' } = Astro.props as Props;
+---
+<Base title={`${title} · BocadO`}>
+  <article class="container-bocado py-14 md:py-16 max-w-3xl legal-prose">
+    <p class="label">{eyebrow}</p>
+    <h1 class="font-display text-3xl md:text-4xl tracking-tight mt-2">{title}</h1>
+    <p class="text-sm text-bocado-mute mt-2">Última actualización: {updated}</p>
+    <div class="mt-10 space-y-6 text-sm text-bocado-ink/90 leading-relaxed">
+      <slot />
+    </div>
+  </article>
+</Base>
