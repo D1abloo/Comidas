@@ -140,7 +140,8 @@ Checklist ordenada:
 
 - [ ] `npm run build` sin errores.
 - [ ] `PUBLIC_APP_URL=https://tudominio.com`
-- [ ] Adapter Node (`@astrojs/node`) o Vercel según `docs/DEPLOY_VERCEL.md`.
+- [ ] **Vercel:** adaptador `@astrojs/vercel` (automático con `VERCEL=1`). Ver `docs/DEPLOY_VERCEL.md` si aparece `404 NOT_FOUND`.
+- [ ] **VPS/Node:** `npm run start` con adaptador `@astrojs/node` (sin variable `VERCEL`).
 - [ ] PWA / `manifest.webmanifest` con tu dominio.
 
 ### Legal y operación
