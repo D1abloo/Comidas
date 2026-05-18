@@ -1,0 +1,11 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import DishImagesBoard from '../../components/islands/DishImagesBoard.tsx';
+import { getStore } from '../../server/db';
+
+const store = getStore();
+const sections = store.menu_sections.filter((s) => s.is_active).sort((a, b) => a.sort_order - b.sort_order);
+---
+<Admin title="Imágenes de la carta" crumb="Inicio / Catálogo / Imágenes">
+  <DishImagesBoard client:load dishes={store.dishes} sections={sections} />
+</Admin>

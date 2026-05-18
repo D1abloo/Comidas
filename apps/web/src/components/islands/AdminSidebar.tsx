@@ -13,6 +13,7 @@ const NAV: NavItem[] = [
   { href: '/admin/impresion', label: 'Impresión', emoji: '🖨️', match: '/admin/impresion', accent: 'from-stone-500 to-stone-700' },
   { href: '/admin/secciones', label: 'Secciones', emoji: '📑', match: '/admin/secciones', accent: 'from-cyan-500 to-blue-600' },
   { href: '/admin/platos', label: 'Platos', emoji: '🍽️', match: '/admin/platos', accent: 'from-amber-500 to-orange-500' },
+  { href: '/admin/imagenes', label: 'Imágenes', emoji: '🖼️', match: '/admin/imagenes', accent: 'from-yellow-400 to-amber-500' },
   { href: '/admin/pagos', label: 'Pagos & QR', emoji: '💳', match: '/admin/pagos', accent: 'from-emerald-500 to-teal-600' },
   { href: '/admin/facturas', label: 'Facturas', emoji: '🧾', match: '/admin/facturas', accent: 'from-slate-500 to-zinc-600' },
   { href: '/admin/avisos', label: 'Avisos', emoji: '🔔', match: '/admin/avisos', accent: 'from-pink-500 to-fuchsia-600' },
