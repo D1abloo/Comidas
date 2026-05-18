@@ -11,9 +11,10 @@ Si ves `404: NOT_FOUND` con un id tipo `cdg1::…`, suele ser porque Vercel no e
 1. El proyecto debe usar **`@astrojs/vercel`** (ya configurado en `astro.config.mjs` cuando `VERCEL=1`).
 2. **No** uses solo el adaptador Node (`@astrojs/node`) en producción Vercel.
 3. En el proyecto Vercel → **Settings → General**:
-   - **Root Directory:** dejar vacío (raíz del repo) o `apps/web` (si usas solo esa carpeta, el build debe ser `npm run build` dentro de ella).
-   - **Framework Preset:** Astro (o Other + comandos del `vercel.json`).
-4. **Build Command:** `npm run build -w @bocado/web` (raíz) o `npm run build` (si root = `apps/web`).
+   - **Root Directory:** `apps/web` (recomendado; usa `apps/web/vercel.json`).
+   - Alternativa: raíz del repo + `vercel.json` en la raíz.
+   - **Framework Preset:** Astro.
+4. **Build Command:** `npm run build` (con root = `apps/web`) o `npm run build -w @bocado/web` (con root = raíz).
 5. **No** fijes `outputDirectory` a `dist` manualmente; el adaptador Vercel genera `.vercel/output`.
 6. Añade todas las variables de `.env.example` en **Environment Variables**.
 7. Tras cambiar el adaptador, haz **Redeploy** sin caché.
