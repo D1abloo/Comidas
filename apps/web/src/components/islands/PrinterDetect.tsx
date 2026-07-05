@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react'
 import {
   detectPrinters,
   openPrinterTestPrint,
@@ -13,11 +13,16 @@ type Props = {
 };
 
 export default function PrinterDetect({ paperMm, printerName, onSelect }: Props) {
-  const [consent, setConsent] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [printers, setPrinters] = useState<DetectedPrinter[] | null>(null);
-  const [source, setSource] = useState<'browser' | 'suggestions' | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [consent, setConsent] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [printers, setPrinters] = useState<DetectedPrinter[] | null>(null)
+  const [source, setSource] = useState<'browser' | 'suggestions' | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [browserEnum, setBrowserEnum] = useState(false)
+
+  useEffect(() => {
+    setBrowserEnum(supportsPrinterEnumeration())
+  }, [])
 
   const runDetect = useCallback(async () => {
     setLoading(true);
@@ -41,18 +46,18 @@ export default function PrinterDetect({ paperMm, printerName, onSelect }: Props)
   }, [onSelect]);
 
   const handleAcceptDetect = () => {
-    setConsent(true);
-    if (!supportsPrinterEnumeration()) {
-      openPrinterTestPrint(paperMm);
+    setConsent(true)
+    if (!browserEnum) {
+      openPrinterTestPrint(paperMm)
     }
-    void runDetect();
-  };
+    void runDetect()
+  }
 
   return (
     <div className="mt-3 rounded-xl border border-black/10 bg-bocado-cream/40 p-4 text-sm">
       <p className="font-semibold text-bocado-ink">Detectar impresora en este equipo</p>
       <p className="mt-1 text-bocado-mute text-xs leading-relaxed">
-        {supportsPrinterEnumeration()
+        {browserEnum
           ? 'Chrome/Edge pueden listar las impresoras conectadas si aceptas la búsqueda.'
           : 'Se abrirá una impresión de prueba para que elijas la impresora en el cuadro del sistema.'}
       </p>

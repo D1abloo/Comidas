@@ -19,14 +19,25 @@ const COMMON_THERMAL_PRINTERS = [
 ];
 
 export function supportsPrinterEnumeration(): boolean {
-  return typeof (navigator as NavigatorWithPrinters).getPrinters === 'function';
+  if (typeof navigator === 'undefined') return false
+  return typeof (navigator as NavigatorWithPrinters).getPrinters === 'function'
 }
 
 export async function detectPrinters(): Promise<{
-  printers: DetectedPrinter[];
-  source: 'browser' | 'suggestions';
+  printers: DetectedPrinter[]
+  source: 'browser' | 'suggestions'
 }> {
-  const nav = navigator as NavigatorWithPrinters;
+  if (typeof navigator === 'undefined') {
+    return {
+      printers: COMMON_THERMAL_PRINTERS.map((name) => ({
+        name,
+        isDefault: name === 'Predeterminada del sistema',
+      })),
+      source: 'suggestions',
+    }
+  }
+
+  const nav = navigator as NavigatorWithPrinters
   if (typeof nav.getPrinters === 'function') {
     try {
       const list = await nav.getPrinters();
@@ -55,7 +66,8 @@ export async function detectPrinters(): Promise<{
 }
 
 export function openPrinterTestPrint(paperMm: 58 | 80): void {
-  const w = window.open('', '_blank', 'noopener,noreferrer,width=360,height=640');
+  if (typeof window === 'undefined') return
+  const w = window.open('', '_blank', 'noopener,noreferrer,width=360,height=640')
   if (!w) return;
   const width = paperMm === 58 ? '58mm' : '80mm';
   w.document.write(`<!DOCTYPE html><html><head><title>Prueba BocadO</title>
