@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import type { AdminAlert, CourierLocation, Order } from './types.js';
 import type { Store } from './db.js';
 import { getSupabaseAdmin } from './supabase.js';
-import { isSupabaseConfigured } from './env.js';
+import { isDatabaseEnabled, isSupabaseConfigured } from './env.js';
 
 const STORE_KEY = 'bocado_operational_state';
 const FILE_PATH = join(process.cwd(), '.data', 'bocado-store.json');
@@ -54,6 +54,7 @@ function persistToFile(store: Store) {
 }
 
 async function hydrateFromSupabase(store: Store) {
+  if (isDatabaseEnabled()) return;
   const sb = getSupabaseAdmin();
   if (!sb) return;
   const { data, error } = await sb.from('app_settings').select('value').eq('key', STORE_KEY).maybeSingle();
@@ -83,7 +84,7 @@ export function hydrateOperationalStateSync(store: Store) {
 }
 
 export async function ensureOperationalStateHydrated(store: Store) {
-  if (hydratedFromRemote) return;
+  if (hydratedFromRemote || isDatabaseEnabled()) return;
   if (!hydratePromise) {
     hydratePromise = (async () => {
       hydrateFromFile(store);

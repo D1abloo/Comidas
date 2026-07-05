@@ -1,11 +1,14 @@
 /** Variables de entorno (servidor). No incluir secretos en el cliente. */
 function read(key: string): string | undefined {
+  const fromProcess = typeof process !== 'undefined' ? process.env[key] : undefined;
+  if (typeof fromProcess === 'string' && fromProcess.length > 0) return fromProcess;
   const v = import.meta.env[key];
   if (typeof v === 'string' && v.length > 0) return v;
   return undefined;
 }
 
 export function isSupabaseConfigured(): boolean {
+  if (isDatabaseEnabled()) return false;
   return Boolean(read('PUBLIC_SUPABASE_URL') && read('SUPABASE_SERVICE_ROLE_KEY'));
 }
 
