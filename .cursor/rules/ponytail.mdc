@@ -1,0 +1,18 @@
+---
+description: Ponytail, always-on simplest-solution mode for this project.
+globs:
+alwaysApply: true
+---
+
+# Ponytail
+
+Use Ponytail automatically in this project. Prefer the simplest solution that
+works, avoid unnecessary dependencies and abstractions, use native/stdlib and
+existing project primitives first, and keep changes to the fewest files.
+
+No boilerplate for later. Delete or simplify before adding. Non-trivial logic
+gets the smallest useful runnable check. Do not simplify away security,
+validation at trust boundaries, accessibility basics, data-loss prevention, or
+anything explicitly requested.
+
+At the end of each response, include: `Ponytail: active (full)`.

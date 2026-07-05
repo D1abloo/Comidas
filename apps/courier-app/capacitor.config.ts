@@ -1,10 +1,6 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-/**
- * URL del backend BocadO (Astro en Vercel o local).
- * Sobrescribe con BOCADO_APP_URL al ejecutar `npm run config:prod` o `config:local`.
- */
-const appUrl = process.env.BOCADO_APP_URL || 'https://comidas.vercel.app';
+const appUrl = 'https://comidas.vercel.app';
 
 const config: CapacitorConfig = {
   appId: 'app.bocado.repartidor',
