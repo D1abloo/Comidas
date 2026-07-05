@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
-import { getStore } from '../../../../server/db';
+import { getOrderById, saveOrder } from '../../../../server/order-service';
 import { createInvoiceForOrder } from '../../../../server/invoices';
-import { persistOperationalState } from '../../../../server/store-persistence';
+import { getStore } from '../../../../server/db';
 import { randomUUID } from 'node:crypto';
 
 export const PATCH: APIRoute = async ({ request, params, locals }) => {
@@ -9,16 +9,16 @@ export const PATCH: APIRoute = async ({ request, params, locals }) => {
     return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
   }
   const { status } = (await request.json()) as { status: string };
-  const store = getStore();
-  const order = store.orders.find((o) => o.id === params.id);
+  const order = await getOrderById(String(params.id));
   if (!order) return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
-  order.status = status as any;
+
+  order.status = status as typeof order.status;
 
   if (status === 'confirmed') {
-    createInvoiceForOrder(store, order);
+    createInvoiceForOrder(getStore(), order);
   }
 
-  // generar aviso
+  const store = getStore();
   store.notifications.unshift({
     id: randomUUID(),
     order_id: order.id,
@@ -39,6 +39,7 @@ export const PATCH: APIRoute = async ({ request, params, locals }) => {
       created_at: new Date().toISOString(),
     });
   }
-  await persistOperationalState(store);
-  return new Response(JSON.stringify({ order }), { headers: { 'content-type': 'application/json' } });
+
+  const saved = await saveOrder(order);
+  return new Response(JSON.stringify({ order: saved }), { headers: { 'content-type': 'application/json' } });
 };

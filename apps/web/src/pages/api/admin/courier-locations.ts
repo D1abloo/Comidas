@@ -1,16 +1,18 @@
 import type { APIRoute } from 'astro';
-import { getStore } from '../../../server/db';
-import { getActiveCourierLocations } from '../../../server/courier-location';
+import { listCourierLocations, listOrders } from '../../../server/order-service';
 
 export const GET: APIRoute = async ({ locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
     return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
   }
 
-  const store = getStore();
-  const locations = getActiveCourierLocations(store);
+  const all = await listOrders();
+  const cutoff = Date.now() - 10 * 60 * 1000;
+  const locations = (await listCourierLocations()).filter(
+    (l) => new Date(l.updated_at).getTime() >= cutoff,
+  );
 
-  const orders = store.orders
+  const orders = all
     .filter((o) => o.status === 'delivering' && o.courier_lat != null && o.courier_lng != null)
     .map((o) => ({
       id: o.id,

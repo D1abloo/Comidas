@@ -11,6 +11,8 @@ import {
   type OrderStatus,
 } from './order-shared';
 import CourierLivePanel, { OrderCourierLocation } from './CourierLivePanel';
+import { useOrderStream } from '../../lib/order-stream';
+import { onMobileSync } from '../../lib/mobile-sync';
 
 const STATUS = ['pending', 'confirmed', 'preparing', 'delivering', 'delivered', 'cancelled'] as const;
 
@@ -19,6 +21,18 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
   const [filter, setFilter] = useState('');
   const [selected, setSelected] = useState<any | null>(null);
   const [mobileDetail, setMobileDetail] = useState(false);
+
+  useOrderStream(true);
+
+  useEffect(() => {
+    async function reload() {
+      const r = await fetch('/api/admin/orders');
+      if (!r.ok) return;
+      const data = await r.json();
+      setOrders(data.orders ?? []);
+    }
+    return onMobileSync(() => void reload());
+  }, []);
 
   useEffect(() => {
     function onOrderUpdate(e: Event) {

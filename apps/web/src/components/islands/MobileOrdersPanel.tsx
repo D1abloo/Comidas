@@ -11,6 +11,7 @@ import {
   type OrderStatus,
 } from './order-shared';
 import { onMobileSync } from '../../lib/mobile-sync';
+import { useOrderStream } from '../../lib/order-stream';
 import { OrderCourierLocation } from './OrderCourierLocation';
 
 const STATUS = ['pending', 'confirmed', 'preparing', 'delivering', 'delivered', 'cancelled'] as const;
@@ -21,6 +22,8 @@ export default function MobileOrdersPanel() {
   const [selected, setSelected] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useOrderStream(true);
 
   const load = useCallback(async () => {
     try {

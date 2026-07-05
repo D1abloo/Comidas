@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useOrderStream } from '../../lib/order-stream';
 import { MOBILE_SYNC_MS, dispatchMobileSync, formatSyncAge } from '../../lib/mobile-sync';
 import { initMobileNotifications, notifyMobileDevice } from '../../lib/mobile-notifications';
 import { isBocadoMobileApp } from '../../lib/capacitor-app';
@@ -49,6 +50,8 @@ export default function MobileAppShell({
   const [native, setNative] = useState(false);
   const knownOrders = useRef<Set<string>>(new Set());
   const booted = useRef(false);
+
+  useOrderStream(true);
 
   useEffect(() => {
     setNative(isBocadoMobileApp());

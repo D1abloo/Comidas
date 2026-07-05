@@ -38,3 +38,11 @@ export function getEmailConfig() {
 export function getAppUrl(): string {
   return read('PUBLIC_APP_URL') ?? 'http://localhost:4321';
 }
+
+export function isDatabaseEnabled(): boolean {
+  return Boolean(read('DATABASE_URL'));
+}
+
+export function getDatabaseUrl(): string {
+  return read('DATABASE_URL') ?? '';
+}

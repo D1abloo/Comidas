@@ -1,10 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getStore } from '../../../../server/db';
+import { courierOrderLists } from '../../../../server/order-service';
 
 function requireCourier(locals: { user?: { id: string; full_name: string; role: string } | null }) {
-  if (!locals.user || locals.user.role !== 'courier') {
-    return null;
-  }
+  if (!locals.user || locals.user.role !== 'courier') return null;
   return locals.user;
 }
 
@@ -14,15 +12,9 @@ export const GET: APIRoute = async ({ locals }) => {
     return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
   }
 
-  const store = getStore();
-  const available = store.orders.filter((o) => o.status === 'delivering' && !o.courier_id);
-  const mine = store.orders.filter((o) => o.status === 'delivering' && o.courier_id === courier.id);
-  const completed = store.orders
-    .filter((o) => o.status === 'delivered' && o.courier_id === courier.id)
-    .sort((a, b) => (b.delivered_at ?? '').localeCompare(a.delivered_at ?? ''))
-    .slice(0, 20);
+  const { available, mine, completed } = await courierOrderLists(courier.id);
 
-  const mapOrder = (o: (typeof store.orders)[0]) => ({
+  const mapOrder = (o: (typeof available)[0]) => ({
     id: o.id,
     number: o.number,
     status: o.status,

@@ -23,6 +23,9 @@
     "mobile:sync": "npm run sync -w @bocado/mobile-app",
     "mobile:android": "npm run open:android -w @bocado/mobile-app",
     "mobile:apk": "npm run build:apk -w @bocado/mobile-app",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f web",
     "apps:config:prod": "npm run mobile:config:prod && npm run courier:config:prod && npm run admin:config:prod"
   },
   "engines": {

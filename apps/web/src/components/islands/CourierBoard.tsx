@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { eur, PAYMENT_LABEL, PAYMENT_STATUS_LABEL } from './order-shared';
 import { isCourierNativeApp, startCourierLocationTracking } from '../../lib/courier-geolocation';
 import { getNativeLogoutNext } from '../../lib/capacitor-app';
+import { useOrderStream } from '../../lib/order-stream';
 import { MOBILE_SYNC_MS, onMobileSync } from '../../lib/mobile-sync';
 
 interface CourierOrder {
@@ -138,6 +139,8 @@ export default function CourierBoard({ courierName, embedded = false }: { courie
     setNativeApp(isCourierNativeApp());
     setLogoutNext(getNativeLogoutNext());
   }, []);
+
+  useOrderStream(true);
 
   const load = useCallback(async () => {
     const r = await fetch('/api/courier/orders');

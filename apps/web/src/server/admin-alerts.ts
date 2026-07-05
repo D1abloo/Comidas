@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import type { Order } from './types.js';
-import type { Store } from './db.js';
+import { pushAlert } from './order-service.js';
 
-export function pushAdminNewOrderAlert(store: Store, order: Order) {
+export async function pushAdminNewOrderAlert(order: Order) {
   const item_count = order.items.reduce((s, i) => s + i.quantity, 0);
-  store.admin_alerts.unshift({
+  await pushAlert({
     id: randomUUID(),
     kind: 'new_order',
     order_id: order.id,
@@ -15,14 +15,11 @@ export function pushAdminNewOrderAlert(store: Store, order: Order) {
     seen: false,
     created_at: order.created_at,
   });
-  if (store.admin_alerts.length > 50) {
-    store.admin_alerts = store.admin_alerts.slice(0, 50);
-  }
 }
 
-export function pushAdminBizumPaidAlert(store: Store, order: Order) {
+export async function pushAdminBizumPaidAlert(order: Order) {
   const item_count = order.items.reduce((s, i) => s + i.quantity, 0);
-  store.admin_alerts.unshift({
+  await pushAlert({
     id: randomUUID(),
     kind: 'bizum_paid',
     order_id: order.id,
@@ -33,14 +30,11 @@ export function pushAdminBizumPaidAlert(store: Store, order: Order) {
     seen: false,
     created_at: new Date().toISOString(),
   });
-  if (store.admin_alerts.length > 50) {
-    store.admin_alerts = store.admin_alerts.slice(0, 50);
-  }
 }
 
-export function pushAdminOrderDeliveredAlert(store: Store, order: Order, courierName: string) {
+export async function pushAdminOrderDeliveredAlert(order: Order, courierName: string) {
   const item_count = order.items.reduce((s, i) => s + i.quantity, 0);
-  store.admin_alerts.unshift({
+  await pushAlert({
     id: randomUUID(),
     kind: 'order_delivered',
     order_id: order.id,
@@ -52,14 +46,11 @@ export function pushAdminOrderDeliveredAlert(store: Store, order: Order, courier
     courier_name: courierName,
     created_at: new Date().toISOString(),
   });
-  if (store.admin_alerts.length > 50) {
-    store.admin_alerts = store.admin_alerts.slice(0, 50);
-  }
 }
 
-export function pushAdminOrderAcceptedAlert(store: Store, order: Order, courierName: string) {
+export async function pushAdminOrderAcceptedAlert(order: Order, courierName: string) {
   const item_count = order.items.reduce((s, i) => s + i.quantity, 0);
-  store.admin_alerts.unshift({
+  await pushAlert({
     id: randomUUID(),
     kind: 'order_accepted',
     order_id: order.id,
@@ -71,7 +62,4 @@ export function pushAdminOrderAcceptedAlert(store: Store, order: Order, courierN
     courier_name: courierName,
     created_at: new Date().toISOString(),
   });
-  if (store.admin_alerts.length > 50) {
-    store.admin_alerts = store.admin_alerts.slice(0, 50);
-  }
 }

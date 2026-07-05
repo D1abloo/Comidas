@@ -3,32 +3,33 @@ import { getStore } from '../../../server/db';
 import { pushAdminNewOrderAlert } from '../../../server/admin-alerts';
 import { onOrderCreated } from '../../../server/order-emails';
 import { geocodeAddress } from '../../../server/geo';
-import { persistOperationalState } from '../../../server/store-persistence';
+import { createOrder, getOrderById, listOrders, nextOrderNumber, saveOrder } from '../../../server/order-service';
 import type { Order } from '../../../server/types';
 import { randomUUID } from 'node:crypto';
 
-async function attachDeliveryCoords(store: ReturnType<typeof getStore>, orderId: string) {
-  const order = store.orders.find((o) => o.id === orderId);
+async function attachDeliveryCoords(orderId: string) {
+  const order = await getOrderById(orderId);
   if (!order || (order.delivery_address.lat != null && order.delivery_address.lng != null)) return;
   const coords = await geocodeAddress(order.delivery_address);
   if (coords) {
     order.delivery_address.lat = coords.lat;
     order.delivery_address.lng = coords.lng;
+    await saveOrder(order);
   }
 }
 
 export const GET: APIRoute = async ({ locals, url }) => {
-  const store = getStore();
   const email = url.searchParams.get('email')?.trim().toLowerCase();
+  const allOrders = await listOrders();
 
   if (locals.user?.role === 'admin') {
-    return new Response(JSON.stringify({ orders: store.orders }), {
+    return new Response(JSON.stringify({ orders: allOrders }), {
       headers: { 'content-type': 'application/json' },
     });
   }
 
   if (locals.user) {
-    let orders = store.orders.filter(
+    let orders = allOrders.filter(
       (o) =>
         o.customer.user_id === locals.user!.id ||
         o.customer.email.toLowerCase() === locals.user!.email.toLowerCase(),
@@ -42,7 +43,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
   }
 
   if (email) {
-    const orders = store.orders.filter((o) => o.customer.email.toLowerCase() === email);
+    const orders = allOrders.filter((o) => o.customer.email.toLowerCase() === email);
     return new Response(JSON.stringify({ orders }), {
       headers: { 'content-type': 'application/json' },
     });
@@ -75,8 +76,8 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const vat = Math.round(subtotal * 0.1);
   const fee = subtotal >= store.settings.free_delivery_from_cents ? 0 : store.settings.delivery_fee_cents;
   const total = subtotal + fee;
+  const number = await nextOrderNumber();
 
-  const number = `BOC-${new Date().getFullYear()}-${String(store.counters.order++).padStart(6, '0')}`;
   const order: Order = {
     id: randomUUID(),
     number,
@@ -99,12 +100,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
     notes: body.notes ?? null,
     created_at: new Date().toISOString(),
   };
-  store.orders.unshift(order);
-  pushAdminNewOrderAlert(store, order);
 
-  void attachDeliveryCoords(store, order.id);
+  await createOrder(order);
+  await pushAdminNewOrderAlert(order);
+  void attachDeliveryCoords(order.id);
   void onOrderCreated(store, order).catch((err) => console.error('[order] post-create:', err));
-  await persistOperationalState(store);
 
   if (store.settings.whatsapp_notifications_enabled) {
     store.notifications.unshift({

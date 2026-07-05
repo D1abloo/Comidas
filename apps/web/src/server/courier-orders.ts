@@ -1,10 +1,10 @@
-import { randomUUID } from 'node:crypto';
 import type { Order } from './types.js';
-import type { Store } from './db.js';
 import type { SessionUser } from './auth.js';
 import { pushAdminOrderAcceptedAlert, pushAdminOrderDeliveredAlert } from './admin-alerts.js';
+import { randomUUID } from 'node:crypto';
+import { getStore } from './db.js';
 
-export function acceptOrderForCourier(store: Store, order: Order, courier: SessionUser) {
+export function acceptOrderForCourier(order: Order, courier: SessionUser) {
   if (order.status !== 'delivering') {
     throw new Error('Solo se pueden aceptar pedidos en reparto.');
   }
@@ -16,11 +16,11 @@ export function acceptOrderForCourier(store: Store, order: Order, courier: Sessi
   order.courier_name = courier.full_name;
   order.courier_accepted_at = new Date().toISOString();
   if (firstAccept) {
-    pushAdminOrderAcceptedAlert(store, order, courier.full_name);
+    void pushAdminOrderAcceptedAlert(order, courier.full_name);
   }
 }
 
-export function completeOrderDelivery(store: Store, order: Order, courier: SessionUser) {
+export function completeOrderDelivery(order: Order, courier: SessionUser) {
   if (order.status !== 'delivering') {
     throw new Error('El pedido no está en reparto.');
   }
@@ -33,8 +33,9 @@ export function completeOrderDelivery(store: Store, order: Order, courier: Sessi
   order.status = 'delivered';
   order.delivered_at = new Date().toISOString();
 
-  pushAdminOrderDeliveredAlert(store, order, courier.full_name);
+  void pushAdminOrderDeliveredAlert(order, courier.full_name);
 
+  const store = getStore();
   store.notifications.unshift({
     id: randomUUID(),
     order_id: order.id,

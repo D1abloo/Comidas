@@ -2,6 +2,8 @@ import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
 import type { AstroCookies } from 'astro';
 import { getStore } from './db.js';
+import { isDatabaseEnabled } from './env.js';
+import { pgFindUserByEmail } from './orders-db.js';
 import type { Role, User } from './types.js';
 
 const SECRET = new TextEncoder().encode(
@@ -100,6 +102,22 @@ export async function registerUser(input: {
 }
 
 export async function loginUser(email: string, password: string): Promise<User> {
+  if (isDatabaseEnabled()) {
+    const row = await pgFindUserByEmail(email);
+    if (!row || !bcrypt.compareSync(password, row.password_hash)) {
+      throw new Error('Email o contraseña incorrectos.');
+    }
+    return {
+      id: row.id,
+      email: row.email,
+      full_name: row.full_name,
+      role: row.role as Role,
+      phone: row.phone ?? undefined,
+      tax_id: row.tax_id,
+      password_hash: row.password_hash,
+      created_at: row.created_at,
+    };
+  }
   const store = getStore();
   const user = store.users.find((u) => u.email === email.toLowerCase().trim());
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
