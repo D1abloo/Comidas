@@ -186,7 +186,7 @@ Checklist ordenada:
 Mismo backend en Vercel: ordenador y móvil ven los mismos pedidos y repartidores en tiempo real.
 
 ```bash
-BOCADO_APP_URL=https://tu-dominio.vercel.app npm run mobile:config:prod
+BOCADO_APP_URL=https://comidas-web.vercel.app npm run mobile:config:prod
 cd apps/mobile-app && npm install && npm run icons && npm run sync
 npm run mobile:apk
 ```

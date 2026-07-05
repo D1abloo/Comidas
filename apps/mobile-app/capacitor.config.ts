@@ -1,6 +1,6 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-const appUrl = 'https://comidas.vercel.app';
+const appUrl = 'https://comidas-web.vercel.app';
 
 const config: CapacitorConfig = {
   appId: 'app.bocado.mobile',

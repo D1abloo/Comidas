@@ -6,7 +6,7 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const mode = process.argv[2] || 'prod';
 
 const urls = {
-  prod: process.env.BOCADO_APP_URL || 'https://comidas.vercel.app',
+  prod: process.env.BOCADO_APP_URL || 'https://comidas-web.vercel.app',
   local: process.env.BOCADO_APP_URL || 'http://10.0.2.2:4321',
 };
 
