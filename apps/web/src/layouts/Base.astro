@@ -7,8 +7,8 @@ import OrderTrackerBar from '../components/islands/OrderTrackerBar.tsx';
 import InstallPrompt from '../components/islands/InstallPrompt.tsx';
 import CookieConsent from '../components/islands/CookieConsent.tsx';
 import FloatingCartFab from '../components/islands/FloatingCartFab.tsx';
-interface Props { title?: string; description?: string; hideChrome?: boolean }
-const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda online de comida a domicilio con fotos reales, tiempos verificados y entrega rápida.', hideChrome = false } = Astro.props as Props;
+interface Props { title?: string; description?: string; hideChrome?: boolean; manifestHref?: string }
+const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda online de comida a domicilio con fotos reales, tiempos verificados y entrega rápida.', hideChrome = false, manifestHref = '/manifest.webmanifest' } = Astro.props as Props;
 ---
 <!doctype html>
 <html lang="es">
@@ -21,7 +21,7 @@ const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="BocadO" />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="manifest" href={manifestHref} />
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <title>{title}</title>

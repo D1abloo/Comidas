@@ -168,19 +168,29 @@ Checklist ordenada:
 | `npm run courier:config:prod` | URL de producción en app Android repartidor |
 | `npm run courier:sync` | Sincronizar Capacitor → Android |
 | `npm run courier:android` | Abrir proyecto en Android Studio |
-| `npm run courier:apk` | Compilar APK debug |
+| `npm run courier:apk` | Compilar APK debug repartidor |
+| `npm run admin:config:prod` | URL de producción en app Android admin |
+| `npm run admin:sync` | Sincronizar Capacitor admin → Android |
+| `npm run admin:android` | Abrir app admin en Android Studio |
+| `npm run admin:apk` | Compilar APK debug admin |
+| `npm run apps:config:prod` | Configurar URL en ambas apps Android |
 
-### App Android repartidor
+### Apps Android (admin + repartidor)
 
-Proyecto en `apps/courier-app` (Capacitor). Carga `/repartidor` y envía GPS al panel admin.
+| App | Carpeta | Ruta web | Uso |
+|-----|---------|----------|-----|
+| **BocadO Admin** | `apps/admin-app` | `/admin` | Panel completo en móvil o tablet |
+| **BocadO Repartidor** | `apps/courier-app` | `/repartidor` | Entregas + GPS al mapa admin |
+
+Mismo backend en Vercel: ordenador y móvil ven los mismos pedidos y repartidores en tiempo real.
 
 ```bash
-BOCADO_APP_URL=https://tu-dominio.vercel.app npm run courier:config:prod
-cd apps/courier-app && npm install && npx cap sync android
-npm run courier:android
+BOCADO_APP_URL=https://tu-dominio.vercel.app npm run apps:config:prod
+cd apps/admin-app && npm install && npm run sync
+npm run admin:android
 ```
 
-Cuenta demo: `repartidor@bocado.app` / `repartidor1234`. Ver `apps/courier-app/README.md`.
+Cuentas demo: admin `admin@bocado.app` / `admin1234` · repartidor `repartidor@bocado.app` / `repartidor1234`.
 
 ---
 

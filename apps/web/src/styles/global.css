@@ -189,6 +189,12 @@
   .admin-store-link {
     @apply text-xs sm:text-sm font-semibold px-4 py-2 rounded-full bg-bocado-ink text-white hover:opacity-90 active:scale-[0.97] transition-all;
   }
+  .admin-topbar-native {
+    @apply text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-md bg-bocado-lime/30 text-bocado-ink border border-bocado-lime/40;
+  }
+  .admin-native-banner {
+    @apply text-center text-[11px] font-semibold py-1.5 px-3 bg-bocado-lime/25 text-bocado-ink border-b border-bocado-lime/30;
+  }
   .admin-toast-stack {
     @apply fixed bottom-4 right-4 z-[200] flex flex-col gap-3 max-w-[min(100vw-2rem,380px)];
   }

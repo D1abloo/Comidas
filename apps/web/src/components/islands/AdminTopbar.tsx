@@ -1,4 +1,6 @@
 import AdminMenu from './AdminMenu';
+import { isAdminNativeApp } from '../../lib/capacitor-app';
+import { useEffect, useState } from 'react';
 
 function parseCrumb(crumb: string) {
   return crumb.split('/').map((s) => s.trim()).filter(Boolean);
@@ -12,6 +14,11 @@ export default function AdminTopbar({
   crumb: string;
 }) {
   const parts = parseCrumb(crumb);
+  const [nativeApp, setNativeApp] = useState(false);
+
+  useEffect(() => {
+    setNativeApp(isAdminNativeApp());
+  }, []);
 
   return (
     <header className="admin-topbar">
@@ -45,7 +52,13 @@ export default function AdminTopbar({
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <a href="/admin/pedidos" className="admin-topbar-chip hidden md:inline-flex">
+        {nativeApp && (
+          <span className="admin-topbar-native inline-flex md:hidden">App</span>
+        )}
+        <a
+          href="/admin/pedidos"
+          className={`admin-topbar-chip ${nativeApp ? 'inline-flex' : 'hidden md:inline-flex'}`}
+        >
           <span className="admin-topbar-chip-dot" aria-hidden />
           Pedidos en vivo
         </a>

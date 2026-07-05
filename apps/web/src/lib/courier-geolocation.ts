@@ -1,6 +1,8 @@
 /**
  * Seguimiento GPS unificado: navegador web y app Android (Capacitor).
  */
+import { isCapacitorNative, isCourierNativeApp } from './capacitor-app';
+
 export type LocationPayload = {
   lat: number;
   lng: number;
@@ -8,12 +10,6 @@ export type LocationPayload = {
 };
 
 export type LocationSendFn = (coords: LocationPayload) => void | Promise<void>;
-
-function isCapacitorNative(): boolean {
-  if (typeof window === 'undefined') return false;
-  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
-  return Boolean(cap?.isNativePlatform?.());
-}
 
 export async function startCourierLocationTracking(
   onSend: LocationSendFn,
@@ -80,6 +76,4 @@ export async function startCourierLocationTracking(
   return () => navigator.geolocation.clearWatch(watchId);
 }
 
-export function isCourierNativeApp(): boolean {
-  return isCapacitorNative();
-}
+export { isCourierNativeApp };

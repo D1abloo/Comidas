@@ -11,7 +11,13 @@
     "courier:config:prod": "npm run config:prod -w @bocado/courier-app",
     "courier:sync": "npm run sync -w @bocado/courier-app",
     "courier:android": "npm run open:android -w @bocado/courier-app",
-    "courier:apk": "npm run build:apk -w @bocado/courier-app"
+    "courier:apk": "npm run build:apk -w @bocado/courier-app",
+    "admin:config:prod": "npm run config:prod -w @bocado/admin-app",
+    "admin:config:local": "npm run config:local -w @bocado/admin-app",
+    "admin:sync": "npm run sync -w @bocado/admin-app",
+    "admin:android": "npm run open:android -w @bocado/admin-app",
+    "admin:apk": "npm run build:apk -w @bocado/admin-app",
+    "apps:config:prod": "npm run courier:config:prod && npm run admin:config:prod"
   },
   "engines": {
     "node": ">=20"
