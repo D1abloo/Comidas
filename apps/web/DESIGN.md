@@ -42,8 +42,10 @@ Dirección visual inspirada en **Uber** (delivery: jerarquía clara, pills, blan
 3. Secciones blancas / cream alternadas  
 4. Footer house green  
 
-## No hacer
+## Admin panel
 
-- No usar Inter/Roboto como fuente principal.
-- No gradientes morados genéricos.
-- No mezclar más de 2 familias tipográficas en storefront.
+- **Shell**: sidebar blanco + canvas `#f4f2ec`, topbar sticky con breadcrumbs.
+- **Nav agrupada**: Resumen · Operaciones · Catálogo · Finanzas · Sistema.
+- **Items activos**: fondo lime/20 + borde izquierdo lime.
+- **Frames**: `admin-frame` con cabecera `admin-frame-header` unificada.
+- **Dashboard**: KPIs compactos + acceso rápido a las 11 secciones.

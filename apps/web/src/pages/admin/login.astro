@@ -18,22 +18,29 @@ if (Astro.request.method === 'POST') {
 }
 ---
 <Base title="Admin · Acceder" hideChrome>
-  <section class="min-h-[calc(100vh-28px)] grid place-items-center px-6 bg-bocado-paper2">
-    <div class="card w-full max-w-md p-10">
-      <div class="text-[11px] uppercase tracking-wider text-bocado-mute">BocadO · Admin</div>
-      <h1 class="mt-2 text-2xl font-semibold tracking-tight">Acceso del equipo</h1>
-      <form method="POST" class="mt-6 space-y-3">
-        <label class="block"><span class="label">Email</span>
-          <input class="input mt-1" name="email" type="email" required defaultValue="admin@bocado.app" />
+  <section class="admin-login-wrap bg-bocado-paper2">
+    <div class="admin-login-card">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="w-11 h-11 rounded-xl bg-bocado-house text-white font-bold text-lg grid place-items-center">B</span>
+        <div>
+          <p class="admin-login-kicker">BocadO · Admin</p>
+          <h1 class="admin-login-title">Acceso del equipo</h1>
+        </div>
+      </div>
+      <form method="POST" class="space-y-4">
+        <label class="block">
+          <span class="label">Email</span>
+          <input class="input mt-1.5" name="email" type="email" required defaultValue="admin@bocado.app" />
         </label>
-        <label class="block"><span class="label">Contraseña</span>
-          <input class="input mt-1" name="password" type="password" required defaultValue="admin1234" />
+        <label class="block">
+          <span class="label">Contraseña</span>
+          <input class="input mt-1.5" name="password" type="password" required defaultValue="admin1234" />
         </label>
-        {error && <p class="text-sm text-red-600">{error}</p>}
+        {error && <p class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">{error}</p>}
         <button class="btn-primary w-full mt-2">Entrar al panel</button>
       </form>
       <p class="mt-6 text-xs text-bocado-mute text-center">
-        ¿Sin cuenta admin? <a href="/admin/registro" class="underline">Crear cuenta de equipo</a>
+        ¿Sin cuenta admin? <a href="/admin/registro" class="underline font-medium text-bocado-ink">Crear cuenta de equipo</a>
       </p>
     </div>
   </section>

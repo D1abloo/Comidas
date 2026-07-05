@@ -60,47 +60,134 @@
   .font-admin {
     font-family: theme('fontFamily.admin');
   }
-  .admin-content {
-    @apply w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8;
+  .admin-app {
+    @apply min-h-screen bg-[#f4f2ec];
+    background-image:
+      radial-gradient(ellipse 80% 50% at 0% 0%, rgba(214, 255, 61, 0.08), transparent 50%),
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
   }
-  .admin-frame {
-    @apply rounded-2xl bg-white border border-bocado-line shadow-[0_8px_32px_-12px_rgba(10,10,10,.12)] overflow-hidden;
+  .admin-shell {
+    @apply min-h-[calc(100vh-28px)] flex relative;
   }
   .admin-sidebar {
-    @apply w-[272px] bg-gradient-to-b from-[#0f0f12] via-[#14141a] to-[#1a1028] text-white border-r border-white/5;
+    @apply w-[288px] shrink-0 flex flex-col fixed lg:sticky top-0 left-0 z-50 h-full min-h-[calc(100vh-28px)] -translate-x-full lg:translate-x-0 transition-transform duration-300 bg-white border-r border-bocado-line shadow-[4px_0_24px_-12px_rgba(10,10,10,.08)];
+  }
+  .admin-main {
+    @apply flex-1 min-w-0 flex flex-col w-full;
+  }
+  .admin-content {
+    @apply w-full max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7;
+  }
+  .admin-frame {
+    @apply rounded-2xl bg-white border border-bocado-line/90 shadow-card overflow-hidden;
+  }
+  .admin-frame-header {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-4 border-b border-bocado-line/80 bg-bocado-paper/40;
+  }
+  .admin-frame-title {
+    @apply font-semibold text-base text-bocado-ink;
+  }
+  .admin-frame-sub {
+    @apply text-xs text-bocado-mute mt-0.5;
   }
   .admin-brand {
-    @apply h-[76px] flex items-center gap-3 px-5 border-b border-white/10;
+    @apply px-4 pt-4 pb-3 border-b border-bocado-line/80;
   }
-  .admin-brand-icon {
-    @apply w-11 h-11 rounded-2xl bg-gradient-to-br from-bocado-lime to-emerald-400 grid place-items-center text-xl shadow-lg shadow-lime-500/20 animate-pulse-soft;
+  .admin-brand-link {
+    @apply flex items-center gap-3 rounded-xl p-2 -mx-1 hover:bg-bocado-paper2 transition-colors;
   }
-  .admin-nav-card {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/75 border border-transparent transition-all duration-300 animate-fade-up hover:text-white hover:bg-white/10 hover:translate-x-1 hover:border-white/10;
+  .admin-brand-mark {
+    @apply w-10 h-10 rounded-xl bg-bocado-house text-white font-bold text-lg grid place-items-center shadow-sm;
   }
-  .admin-nav-card--active {
-    @apply !text-white bg-white/10 border-bocado-lime/40 shadow-[inset_3px_0_0_#D6FF3D] translate-x-0;
+  .admin-brand-title {
+    @apply text-[15px] font-bold tracking-tight leading-none text-bocado-ink;
   }
-  .admin-nav-card-icon {
-    @apply w-9 h-9 rounded-xl grid place-items-center text-base shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3;
+  .admin-brand-sub {
+    @apply text-[10px] uppercase tracking-[0.16em] text-bocado-mute mt-1;
   }
-  .admin-nav-card-dot {
-    @apply ml-auto w-2 h-2 rounded-full bg-bocado-lime shadow-[0_0_8px_#D6FF3D];
+  .admin-nav {
+    @apply px-3 py-4;
   }
-  .admin-logout-btn {
-    @apply px-3 py-1.5 rounded-lg border border-white/20 text-white/70 hover:bg-white/10 hover:text-white text-[11px] font-medium transition-colors;
+  .admin-nav-group {
+    @apply mb-5 last:mb-2;
+  }
+  .admin-nav-group-label {
+    @apply px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-bocado-mute;
+  }
+  .admin-nav-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-bocado-body border border-transparent transition-all duration-200 hover:bg-bocado-paper2 hover:text-bocado-ink;
+  }
+  .admin-nav-link--active {
+    @apply bg-bocado-lime/20 text-bocado-ink border-bocado-lime/50 shadow-[inset_3px_0_0_#D6FF3D];
+  }
+  .admin-nav-icon {
+    @apply w-9 h-9 shrink-0 rounded-lg bg-bocado-paper2 border border-bocado-line/80 grid place-items-center text-base;
+  }
+  .admin-nav-link--active .admin-nav-icon {
+    @apply bg-white border-bocado-lime/40;
+  }
+  .admin-nav-text {
+    @apply min-w-0 flex flex-col;
+  }
+  .admin-nav-label {
+    @apply text-sm font-semibold leading-tight;
+  }
+  .admin-nav-desc {
+    @apply text-[10px] text-bocado-mute truncate mt-0.5 hidden xl:block;
+  }
+  .admin-sidebar-foot {
+    @apply border-t border-bocado-line p-4 space-y-3 bg-bocado-paper/50;
+  }
+  .admin-user-card {
+    @apply flex items-center gap-3;
+  }
+  .admin-user-avatar {
+    @apply w-9 h-9 rounded-full bg-bocado-house text-white text-xs font-bold grid place-items-center shrink-0;
+  }
+  .admin-user-name {
+    @apply text-sm font-semibold text-bocado-ink;
+  }
+  .admin-user-email {
+    @apply text-[10px] text-bocado-mute;
+  }
+  .admin-sidebar-actions {
+    @apply flex items-center gap-2;
+  }
+  .admin-foot-link {
+    @apply flex-1 text-center text-xs font-semibold py-2 rounded-lg border border-bocado-line text-bocado-ink hover:bg-white transition-colors;
+  }
+  .admin-foot-btn {
+    @apply px-3 py-2 rounded-lg border border-bocado-line text-xs font-semibold text-bocado-mute hover:bg-white hover:text-bocado-ink transition-colors;
   }
   .admin-topbar {
-    @apply h-[64px] sm:h-[72px] border-b border-bocado-line bg-gradient-to-r from-white via-white to-bocado-lime/10 backdrop-blur flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 sticky top-0 z-30;
+    @apply min-h-[64px] sm:min-h-[72px] border-b border-bocado-line bg-white/90 backdrop-blur-md flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-8 sticky top-0 lg:top-0 z-20;
   }
-  .admin-crumb {
-    @apply text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-bocado-mute font-semibold;
+  .admin-breadcrumb {
+    @apply text-[11px] text-bocado-mute flex flex-wrap items-center gap-1;
+  }
+  .admin-breadcrumb-sep {
+    @apply text-bocado-line;
+  }
+  .admin-breadcrumb-link {
+    @apply hover:text-bocado-ink transition-colors;
+  }
+  .admin-breadcrumb-muted {
+    @apply text-bocado-mute;
+  }
+  .admin-breadcrumb-current {
+    @apply text-bocado-mute font-medium;
   }
   .admin-page-title {
-    @apply text-lg sm:text-2xl font-bold tracking-tight text-bocado-ink;
+    @apply text-xl sm:text-2xl font-bold tracking-tight text-bocado-ink mt-0.5 font-display;
+  }
+  .admin-topbar-chip {
+    @apply items-center gap-2 text-xs font-semibold px-3 py-2 rounded-full border border-bocado-line bg-bocado-paper2 text-bocado-ink hover:bg-bocado-lime/20 hover:border-bocado-lime/50 transition-colors;
+  }
+  .admin-topbar-chip-dot {
+    @apply w-2 h-2 rounded-full bg-emerald-500 animate-pulse-soft;
   }
   .admin-store-link {
-    @apply text-xs sm:text-sm font-semibold px-4 py-2 rounded-full bg-bocado-ink text-white hover:bg-bocado-violet transition-colors;
+    @apply text-xs sm:text-sm font-semibold px-4 py-2 rounded-full bg-bocado-ink text-white hover:opacity-90 active:scale-[0.97] transition-all;
   }
   .admin-toast-stack {
     @apply fixed bottom-4 right-4 z-[200] flex flex-col gap-3 max-w-[min(100vw-2rem,380px)];
@@ -121,11 +208,14 @@
     @apply text-xs text-white/60 hover:text-white px-2 py-1;
   }
   .admin-stat-card {
-    @apply card p-5 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1;
+    @apply rounded-2xl border border-bocado-line/80 bg-white p-4 sm:p-5 relative overflow-hidden transition-all duration-200 hover:shadow-card-lift hover:-translate-y-0.5;
   }
   .admin-stat-card::before {
     content: '';
-    @apply absolute top-0 right-0 w-24 h-24 rounded-full opacity-20 blur-2xl;
+    @apply absolute top-0 right-0 w-20 h-20 rounded-full opacity-30 blur-2xl pointer-events-none;
+  }
+  .admin-stat-icon {
+    @apply w-9 h-9 rounded-xl grid place-items-center text-lg bg-bocado-paper2 border border-bocado-line/70;
   }
   .admin-filter-chip {
     @apply chip font-semibold text-xs sm:text-sm;
@@ -137,7 +227,7 @@
     animation: admin-stat-pop 0.55s cubic-bezier(0.34, 1.2, 0.64, 1) both;
   }
   .admin-stat-emoji {
-    @apply text-2xl inline-block animate-float-soft;
+    @apply text-xl;
   }
   .admin-alert-banner {
     @apply flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-r from-amber-100 via-orange-50 to-bocado-lime/30 border border-amber-300/50;
@@ -161,7 +251,35 @@
     animation: fade-up 0.45s ease-out both;
   }
   .admin-quick-action {
-    @apply flex flex-col items-center justify-center p-5 rounded-2xl border border-bocado-line bg-white hover:border-bocado-lime hover:bg-bocado-lime/10 hover:-translate-y-1 hover:shadow-premium transition-all duration-300;
+    @apply flex items-start gap-3 p-4 rounded-2xl border border-bocado-line bg-white hover:border-bocado-lime/60 hover:bg-bocado-lime/5 hover:shadow-card transition-all duration-200 text-left;
+  }
+  .admin-quick-action-icon {
+    @apply w-10 h-10 shrink-0 rounded-xl bg-bocado-paper2 border border-bocado-line grid place-items-center text-lg;
+  }
+  .admin-quick-action-label {
+    @apply font-semibold text-sm text-bocado-ink;
+  }
+  .admin-quick-action-desc {
+    @apply text-[11px] text-bocado-mute mt-0.5 line-clamp-2;
+  }
+  .admin-section-title {
+    @apply text-sm font-bold uppercase tracking-[0.12em] text-bocado-mute;
+  }
+  .admin-login-wrap {
+    @apply min-h-[calc(100vh-28px)] grid place-items-center px-6 py-12;
+  }
+  .admin-login-card {
+    @apply w-full max-w-md rounded-3xl border border-bocado-line bg-white shadow-premium p-8 sm:p-10;
+  }
+  .admin-login-kicker {
+    @apply text-[10px] font-bold uppercase tracking-[0.18em] text-bocado-mute;
+  }
+  .admin-login-title {
+    @apply mt-2 text-2xl font-display font-semibold tracking-tight;
+  }
+  .admin-nav-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.bocado.line') transparent;
   }
   .admin-table {
     @apply text-[15px] leading-snug table-fixed w-full;
@@ -634,7 +752,7 @@
   transform-origin: bottom;
 }
 .admin-nav-card-icon {
-  animation: nav-float 4s ease-in-out infinite;
+  animation: none;
 }
 .animate-slide-up {
   animation: slide-up 0.45s ease-out both;

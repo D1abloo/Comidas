@@ -1,8 +1,8 @@
 ---
 import '../styles/global.css';
 import DemoBanner from '../components/DemoBanner.astro';
-import AdminMenu from '../components/islands/AdminMenu.tsx';
 import AdminSidebar from '../components/islands/AdminSidebar.tsx';
+import AdminTopbar from '../components/islands/AdminTopbar.tsx';
 import AdminAlerts from '../components/islands/AdminAlerts.tsx';
 interface Props { title: string; crumb?: string }
 const { title, crumb = 'Inicio' } = Astro.props as Props;
@@ -14,36 +14,25 @@ const path = Astro.url.pathname;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f4f2ec" />
     <title>{title} · BocadO Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-bocado-paper text-bocado-ink admin-app font-admin">
+  <body class="admin-app text-bocado-ink font-admin">
     <DemoBanner />
     <AdminAlerts client:load />
-    <div class="min-h-[calc(100vh-28px)] flex relative">
-      <div class="admin-nav-backdrop fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm" aria-hidden="true"></div>
+    <div class="admin-shell">
+      <div class="admin-nav-backdrop" aria-hidden="true"></div>
 
-      <aside class="admin-sidebar flex flex-col fixed lg:sticky top-0 left-0 z-50 h-full min-h-[calc(100vh-28px)] -translate-x-full lg:translate-x-0 transition-transform duration-300">
+      <aside class="admin-sidebar">
         <AdminSidebar client:load currentPath={path} userName={user.full_name} userEmail={user.email} />
       </aside>
 
-      <div class="flex-1 min-w-0 flex flex-col lg:ml-0 w-full">
-        <header class="admin-topbar">
-          <div class="flex items-center gap-3 min-w-0">
-            <AdminMenu client:load />
-            <div class="min-w-0">
-              <div class="admin-crumb truncate">{crumb}</div>
-              <h1 class="admin-page-title truncate">{title}</h1>
-            </div>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <slot name="actions" />
-            <a href="/" class="admin-store-link hidden sm:inline-flex">Ver tienda ↗</a>
-          </div>
-        </header>
-        <main class="flex-1 admin-content">
+      <div class="admin-main">
+        <AdminTopbar client:load title={title} crumb={crumb} />
+        <main class="admin-content">
           <slot />
         </main>
       </div>
@@ -53,6 +42,11 @@ const path = Astro.url.pathname;
 
 <style is:global>
   .admin-nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(10, 10, 10, 0.45);
+    backdrop-filter: blur(4px);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
