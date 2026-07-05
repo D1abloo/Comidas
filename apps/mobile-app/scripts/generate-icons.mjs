@@ -4,11 +4,13 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const source = path.join(root, '..', 'web', 'public', 'icons', 'icon-512.png');
+const source = path.join(root, '..', 'web', 'public', 'logo-bocado-mark.svg');
+const fallback = path.join(root, '..', 'web', 'public', 'icons', 'icon-512.png');
+const iconSource = existsSync(source) ? source : fallback;
 const res = path.join(root, 'android', 'app', 'src', 'main', 'res');
 
-if (!existsSync(source)) {
-  console.error('No se encontró el logo:', source);
+if (!existsSync(iconSource)) {
+  console.error('No se encontró el logo:', iconSource);
   process.exit(1);
 }
 
@@ -32,7 +34,7 @@ async function writePng(folder, name, size, fit = 'cover') {
   const dir = path.join(res, folder);
   mkdirSync(dir, { recursive: true });
   const out = path.join(dir, name);
-  await sharp(source)
+  await sharp(iconSource)
     .resize(size, size, { fit, background: '#1a2421' })
     .png()
     .toFile(out);
@@ -52,7 +54,7 @@ for (const [folder, width] of Object.entries(splashSizes)) {
   mkdirSync(dir, { recursive: true });
   const out = path.join(dir, 'splash.png');
   const height = Math.round(width * 1.8);
-  await sharp(source)
+  await sharp(iconSource)
     .resize(Math.round(width * 0.45), Math.round(width * 0.45), {
       fit: 'contain',
       background: { r: 26, g: 36, b: 33, alpha: 1 },

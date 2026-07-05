@@ -23,6 +23,7 @@ interface CourierOrder {
   payment_status: string;
   notes?: string | null;
   courier_id?: string | null;
+  courier_accepted_at?: string | null;
   delivered_at?: string | null;
 }
 
@@ -57,6 +58,9 @@ function OrderCard({
         <div>
           <p className="courier-card-number">{order.number}</p>
           <p className="courier-card-customer">{order.customer_name}</p>
+          {mode === 'mine' && (
+            <span className="courier-en-reparto">En reparto</span>
+          )}
         </div>
         <span className="courier-card-total">{eur(order.total_cents)}</span>
       </div>
@@ -124,7 +128,6 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
   const [completed, setCompleted] = useState<CourierOrder[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [tab, setTab] = useState<'available' | 'mine' | 'completed'>('mine');
-  const [gpsOk, setGpsOk] = useState<boolean | null>(null);
   const [nativeApp, setNativeApp] = useState(false);
   const [logoutNext, setLogoutNext] = useState('/');
   const activeOrderRef = useRef<string | null>(null);
@@ -168,9 +171,9 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
             active_order_id: activeOrderRef.current,
           }),
         });
-        setGpsOk(r.ok);
+        void r;
       } catch {
-        setGpsOk(false);
+        /* ignore */
       }
     }).then((cleanup) => {
       stop = cleanup;
@@ -231,15 +234,6 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
           </button>
         </form>
       </header>
-
-      {gpsOk === false && (
-        <p className="courier-gps-warn">
-          Activa la ubicación GPS para que el admin pueda seguir tu ruta en tiempo real.
-        </p>
-      )}
-      {gpsOk === true && (
-        <p className="courier-gps-ok">📍 GPS activo · el panel admin ve tu ubicación</p>
-      )}
 
       <div className="courier-tabs">
         {tabs.map((t) => (

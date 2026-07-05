@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { STATUS_LABEL, STATUS_STEPS, type OrderStatus } from './order-shared';
+import { STATUS_LABEL, STATUS_STEPS, customerOrderLabel, type OrderStatus } from './order-shared';
+import CustomerLiveDelivery from './CustomerLiveDelivery';
 import {
   TRACK_ORDER_KEY,
   clearOrderTracking,
@@ -11,6 +12,7 @@ interface Order {
   id: string;
   number: string;
   status: OrderStatus;
+  courier_accepted_at?: string | null;
 }
 
 type Phase = 'hidden' | 'active' | 'done';
@@ -166,12 +168,18 @@ export default function OrderTrackerBar() {
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] uppercase tracking-wider text-bocado-mute">Tu pedido en curso</p>
                   <p className="font-semibold truncate">{order.number}</p>
-                  <p className="text-xs text-bocado-mute">{STATUS_LABEL[order.status]}</p>
+                  <p className="text-xs text-bocado-mute">{customerOrderLabel(order)}</p>
                 </div>
                 <span className="text-bocado-mute text-sm">{open ? '▼' : '▲'}</span>
               </button>
               {open && (
                 <div className="px-4 pb-4 border-t border-bocado-line animate-fade-in">
+                  <CustomerLiveDelivery
+                    orderId={order.id}
+                    orderStatus={order.status}
+                    courierAcceptedAt={order.courier_accepted_at}
+                    compact
+                  />
                   <div className="flex gap-1 mt-3">
                     {STATUS_STEPS.map((s, i) => (
                       <div

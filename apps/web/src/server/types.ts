@@ -180,6 +180,8 @@ export interface Address {
   postal_code: string;
   country: string;
   notes?: string | null;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 export interface OrderCustomer {

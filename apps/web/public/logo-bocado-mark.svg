@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" role="img" aria-label="BocadO">
+  <circle cx="60" cy="60" r="54" stroke="#D6FF3D" stroke-width="2" opacity="0.35"/>
+  <path d="M28 42c0-10 8-18 32-18s32 8 32 18" stroke="#FAF8F3" stroke-width="4" stroke-linecap="round"/>
+  <path d="M32 52c6-4 14-6 28-6s22 2 28 6" stroke="#D6FF3D" stroke-width="3.5" stroke-linecap="round"/>
+  <rect x="32" y="58" width="56" height="12" rx="6" fill="#D6FF3D"/>
+  <path d="M28 78c0 8 8 14 32 14s32-6 32-14" stroke="#FAF8F3" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="88" cy="36" r="8" fill="#FF6B4A" stroke="#FAF8F3" stroke-width="2"/>
+  <path d="M88 44v8" stroke="#FAF8F3" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

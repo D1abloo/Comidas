@@ -1,6 +1,5 @@
 ---
 import Mobile from '../../layouts/Mobile.astro';
-import Logo from '../../components/Logo.astro';
 import { loginUser, setSession } from '../../server/auth';
 
 const user = Astro.locals.user;
@@ -28,120 +27,272 @@ if (Astro.request.method === 'POST') {
 }
 ---
 <Mobile title="BocadO · Acceder">
-  <section class="mobile-login-wrap">
-    <div class="mobile-login-card">
-      <div class="mobile-login-brand">
-        <Logo size={48} variant="light" showWordmark className="justify-center" animated={false} />
-        <p class="mobile-login-kicker">App BocadO</p>
-        <h1 class="mobile-login-title">Inicia sesión</h1>
-        <p class="mobile-login-sub">
-          Detectamos tu rol automáticamente: <strong>admin</strong> → panel de gestión · <strong>repartidor</strong> → entregas y GPS.
-        </p>
-      </div>
+  <section class="mobile-app-screen">
+    <div class="mobile-app-glow mobile-app-glow--lime" aria-hidden="true"></div>
+    <div class="mobile-app-glow mobile-app-glow--coral" aria-hidden="true"></div>
+    <div class="mobile-app-grid" aria-hidden="true"></div>
 
-      <form method="POST" class="mobile-login-form">
-        <label class="block">
-          <span class="label">Email</span>
-          <input class="input mt-1.5" name="email" type="email" required autocomplete="username" placeholder="admin@bocado.app" />
+    <div class="mobile-app-hero">
+      <div class="mobile-app-logo-wrap">
+        <img src="/logo-bocado-mark.svg" alt="" class="mobile-app-logo" width="112" height="112" />
+      </div>
+      <p class="mobile-app-brand">Bocad<span>O</span></p>
+      <p class="mobile-app-tagline">Admin · Repartidor · Conectado en vivo</p>
+    </div>
+
+    <div class="mobile-app-card">
+      <h1 class="mobile-app-title">Entra con tu cuenta</h1>
+      <p class="mobile-app-sub">Detectamos tu rol y abrimos el panel correcto al instante.</p>
+
+      <form method="POST" class="mobile-app-form">
+        <label class="mobile-app-field">
+          <span>Email</span>
+          <input name="email" type="email" required autocomplete="username" placeholder="admin@bocado.app" />
         </label>
-        <label class="block">
-          <span class="label">Contraseña</span>
-          <input class="input mt-1.5" name="password" type="password" required autocomplete="current-password" />
+        <label class="mobile-app-field">
+          <span>Contraseña</span>
+          <input name="password" type="password" required autocomplete="current-password" />
         </label>
-        {error && <p class="mobile-login-error" role="alert">{error}</p>}
-        <button type="submit" class="mobile-login-btn">Entrar</button>
+        {error && <p class="mobile-app-error" role="alert">{error}</p>}
+        <button type="submit" class="mobile-app-submit">Entrar</button>
       </form>
 
-      <div class="mobile-login-hints">
-        <p><span class="mobile-hint-label">Admin</span> admin@bocado.app / admin1234</p>
-        <p><span class="mobile-hint-label">Repartidor</span> repartidor@bocado.app / repartidor1234</p>
+      <div class="mobile-app-roles">
+        <div class="mobile-app-role mobile-app-role--admin">
+          <span>Admin</span>
+          <small>admin@bocado.app</small>
+        </div>
+        <div class="mobile-app-role mobile-app-role--courier">
+          <span>Repartidor</span>
+          <small>repartidor@bocado.app</small>
+        </div>
       </div>
     </div>
   </section>
 </Mobile>
 
 <style>
-  .mobile-login-wrap {
+  .mobile-app-screen {
+    position: relative;
     min-height: 100vh;
     min-height: 100dvh;
-    display: grid;
-    place-items: center;
-    padding: 1.5rem;
-    background: linear-gradient(165deg, #1a2421 0%, #243029 45%, #f4f2ec 45%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1.25rem 1.25rem 2rem;
+    background:
+      radial-gradient(ellipse 120% 80% at 50% -10%, rgba(214, 255, 61, 0.22), transparent 55%),
+      linear-gradient(165deg, #0a1210 0%, #1a2421 38%, #243029 100%);
   }
-  .mobile-login-card {
-    width: 100%;
-    max-width: 24rem;
-    background: #fff;
-    border-radius: 1.5rem;
-    padding: 2rem 1.5rem;
-    box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.35);
+
+  .mobile-app-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
   }
-  .mobile-login-brand {
+  .mobile-app-glow--lime {
+    width: 14rem;
+    height: 14rem;
+    top: 8%;
+    left: -2rem;
+    background: rgba(214, 255, 61, 0.35);
+  }
+  .mobile-app-glow--coral {
+    width: 10rem;
+    height: 10rem;
+    top: 18%;
+    right: -1rem;
+    background: rgba(255, 107, 74, 0.28);
+  }
+
+  .mobile-app-grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    background-image:
+      linear-gradient(rgba(214, 255, 61, 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(214, 255, 61, 0.5) 1px, transparent 1px);
+    background-size: 28px 28px;
+    mask-image: linear-gradient(to bottom, black 20%, transparent 70%);
+  }
+
+  .mobile-app-hero {
+    position: relative;
+    z-index: 1;
     text-align: center;
-    margin-bottom: 1.5rem;
+    padding: 2rem 0 1.5rem;
+    animation: mobileFadeUp 0.7s ease both;
   }
-  .mobile-login-kicker {
-    margin-top: 1rem;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #6b7280;
+
+  .mobile-app-logo-wrap {
+    display: inline-flex;
+    padding: 0.5rem;
+    margin-bottom: 0.75rem;
+    filter: drop-shadow(0 12px 40px rgba(214, 255, 61, 0.35));
+    animation: mobileFloat 4s ease-in-out infinite;
   }
-  .mobile-login-title {
-    margin-top: 0.35rem;
+
+  .mobile-app-logo {
+    display: block;
+    width: 7rem;
+    height: 7rem;
+  }
+
+  .mobile-app-brand {
     font-family: Fraunces, serif;
-    font-size: 1.75rem;
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: #faf8f3;
+    line-height: 1;
+  }
+  .mobile-app-brand span {
+    color: #d6ff3d;
+  }
+
+  .mobile-app-tagline {
+    margin-top: 0.5rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(214, 255, 61, 0.85);
+  }
+
+  .mobile-app-card {
+    position: relative;
+    z-index: 1;
+    background: rgba(250, 248, 243, 0.96);
+    border: 1px solid rgba(214, 255, 61, 0.45);
+    border-radius: 1.75rem;
+    padding: 1.5rem 1.35rem 1.35rem;
+    box-shadow:
+      0 24px 80px -20px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    animation: mobileFadeUp 0.7s ease 0.12s both;
+  }
+
+  .mobile-app-title {
+    font-family: Fraunces, serif;
+    font-size: 1.5rem;
     font-weight: 700;
     color: #0a0a0a;
   }
-  .mobile-login-sub {
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
+
+  .mobile-app-sub {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
     line-height: 1.45;
-    color: #6b7280;
+    color: #5c5c5c;
   }
-  .mobile-login-form {
+
+  .mobile-app-form {
+    margin-top: 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 0.85rem;
   }
-  .mobile-login-error {
+
+  .mobile-app-field span {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #6b7280;
+    margin-bottom: 0.35rem;
+  }
+
+  .mobile-app-field input {
+    width: 100%;
+    border-radius: 1rem;
+    border: 2px solid #e8e4da;
+    background: #fff;
+    padding: 0.8rem 1rem;
+    font-size: 0.95rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .mobile-app-field input:focus {
+    outline: none;
+    border-color: #d6ff3d;
+    box-shadow: 0 0 0 3px rgba(214, 255, 61, 0.35);
+  }
+
+  .mobile-app-error {
     font-size: 0.85rem;
     color: #b91c1c;
     background: #fef2f2;
-    border: 1px solid #fecaca;
     border-radius: 0.75rem;
     padding: 0.65rem 0.85rem;
   }
-  .mobile-login-btn {
-    margin-top: 0.25rem;
+
+  .mobile-app-submit {
+    margin-top: 0.15rem;
     width: 100%;
-    padding: 0.9rem 1rem;
+    padding: 0.95rem 1rem;
     border-radius: 9999px;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 0.95rem;
-    background: #0a0a0a;
+    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a2421 100%);
     color: #d6ff3d;
-    transition: opacity 0.15s ease;
+    box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.45);
+    transition: transform 0.12s ease, opacity 0.12s ease;
   }
-  .mobile-login-btn:active {
-    opacity: 0.9;
+  .mobile-app-submit:active {
+    transform: scale(0.98);
+    opacity: 0.92;
   }
-  .mobile-login-hints {
-    margin-top: 1.25rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e8e4da;
-    font-size: 0.72rem;
-    color: #6b7280;
+
+  .mobile-app-roles {
+    margin-top: 1.1rem;
     display: grid;
-    gap: 0.35rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
   }
-  .mobile-hint-label {
-    display: inline-block;
-    min-width: 4.5rem;
-    font-weight: 700;
-    color: #374151;
+
+  .mobile-app-role {
+    border-radius: 1rem;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.72rem;
+  }
+  .mobile-app-role span {
+    display: block;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.62rem;
+  }
+  .mobile-app-role small {
+    display: block;
+    margin-top: 0.2rem;
+    color: #4b5563;
+    font-size: 0.68rem;
+  }
+  .mobile-app-role--admin {
+    background: linear-gradient(135deg, rgba(214, 255, 61, 0.35), rgba(214, 255, 61, 0.12));
+    border: 1px solid rgba(214, 255, 61, 0.5);
+  }
+  .mobile-app-role--courier {
+    background: linear-gradient(135deg, rgba(255, 107, 74, 0.2), rgba(255, 107, 74, 0.08));
+    border: 1px solid rgba(255, 107, 74, 0.35);
+  }
+
+  @keyframes mobileFadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes mobileFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
   }
 </style>

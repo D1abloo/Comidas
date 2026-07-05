@@ -599,6 +599,8 @@ function sampleOrder(
       city: 'Madrid',
       postal_code: '28013',
       country: 'España',
+      lat: 40.4168,
+      lng: -3.7038,
     },
     items,
     subtotal_cents: subtotal,

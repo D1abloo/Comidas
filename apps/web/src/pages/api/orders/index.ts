@@ -2,8 +2,19 @@ import type { APIRoute } from 'astro';
 import { getStore } from '../../../server/db';
 import { pushAdminNewOrderAlert } from '../../../server/admin-alerts';
 import { onOrderCreated } from '../../../server/order-emails';
+import { geocodeAddress } from '../../../server/geo';
 import type { Order } from '../../../server/types';
 import { randomUUID } from 'node:crypto';
+
+async function attachDeliveryCoords(store: ReturnType<typeof getStore>, orderId: string) {
+  const order = store.orders.find((o) => o.id === orderId);
+  if (!order || (order.delivery_address.lat != null && order.delivery_address.lng != null)) return;
+  const coords = await geocodeAddress(order.delivery_address);
+  if (coords) {
+    order.delivery_address.lat = coords.lat;
+    order.delivery_address.lng = coords.lng;
+  }
+}
 
 export const GET: APIRoute = async ({ locals, url }) => {
   const store = getStore();
@@ -90,6 +101,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   store.orders.unshift(order);
   pushAdminNewOrderAlert(store, order);
 
+  void attachDeliveryCoords(store, order.id);
   void onOrderCreated(store, order).catch((err) => console.error('[order] post-create:', err));
 
   if (store.settings.whatsapp_notifications_enabled) {

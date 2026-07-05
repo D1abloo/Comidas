@@ -4,11 +4,13 @@ import {
   STATUS_LABEL,
   PAYMENT_LABEL,
   PAYMENT_STATUS_LABEL,
+  customerOrderLabel,
   eur,
   fmtDateTime,
   statusChipClass,
   type OrderStatus,
 } from './order-shared';
+import CustomerLiveDelivery from './CustomerLiveDelivery';
 
 interface Order {
   id: string;
@@ -24,6 +26,7 @@ interface Order {
   items: { dish_name: string; quantity: number; unit_price_cents: number }[];
   delivery_address: { street: string; number: string; city: string; postal_code: string };
   notes?: string | null;
+  courier_accepted_at?: string | null;
 }
 
 export default function ProfileOrders({ orders }: { orders: Order[] }) {
@@ -66,7 +69,7 @@ export default function ProfileOrders({ orders }: { orders: Order[] }) {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-xl font-semibold">{eur(o.total_cents)}</span>
-                <span className={`chip ${statusChipClass(o.status)}`}>{STATUS_LABEL[o.status]}</span>
+                <span className={`chip ${statusChipClass(o.status)}`}>{customerOrderLabel(o)}</span>
                 <span className="text-bocado-mute text-lg w-6 text-center" aria-hidden>
                   {open ? '−' : '+'}
                 </span>
@@ -79,6 +82,12 @@ export default function ProfileOrders({ orders }: { orders: Order[] }) {
                   <p className="label mb-3">Estado del pedido</p>
                   <OrderTimeline status={o.status} />
                 </div>
+
+                <CustomerLiveDelivery
+                  orderId={o.id}
+                  orderStatus={o.status}
+                  courierAcceptedAt={o.courier_accepted_at}
+                />
 
                 <div className="grid sm:grid-cols-2 gap-4 text-sm">
                   <div className="card-static p-4">

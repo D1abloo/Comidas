@@ -10,7 +10,7 @@ export const STATUS_STEPS: { key: OrderStatus; label: string }[] = [
   { key: 'pending', label: 'Recibido' },
   { key: 'confirmed', label: 'Confirmado' },
   { key: 'preparing', label: 'Cocinando' },
-  { key: 'delivering', label: 'En camino' },
+  { key: 'delivering', label: 'En reparto' },
   { key: 'delivered', label: 'Completado' },
 ];
 
@@ -101,6 +101,14 @@ export function OrderTimeline({ status }: { status: OrderStatus }) {
       </ol>
     </div>
   );
+}
+
+export function customerOrderLabel(order: {
+  status: OrderStatus;
+  courier_accepted_at?: string | null;
+}): string {
+  if (order.status === 'delivering' && order.courier_accepted_at) return 'En reparto';
+  return STATUS_LABEL[order.status] ?? order.status;
 }
 
 export function statusChipClass(status: string) {

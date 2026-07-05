@@ -3,11 +3,13 @@ import {
   OrderTimeline,
   STATUS_LABEL,
   PAYMENT_LABEL,
+  customerOrderLabel,
   eur,
   fmtDateTime,
   statusChipClass,
   type OrderStatus,
 } from './order-shared';
+import CustomerLiveDelivery from './CustomerLiveDelivery';
 
 interface Order {
   id: string;
@@ -16,6 +18,7 @@ interface Order {
   payment_method: string;
   total_cents: number;
   created_at: string;
+  courier_accepted_at?: string | null;
   items: { dish_name: string; quantity: number }[];
 }
 
@@ -107,7 +110,7 @@ export default function OrdersTracker({ userEmail, initialOrders = [] }: Props) 
                   >
                     <div className="font-medium text-sm mt-0.5">{o.number}</div>
                     <div className={`text-xs mt-1 ${selected?.id === o.id ? 'text-white/70' : 'text-bocado-mute'}`}>
-                      {eur(o.total_cents)} · {STATUS_LABEL[o.status]}
+                      {eur(o.total_cents)} · {customerOrderLabel(o)}
                     </div>
                   </button>
                 </li>
@@ -125,8 +128,16 @@ export default function OrdersTracker({ userEmail, initialOrders = [] }: Props) 
                     {PAYMENT_LABEL[selected.payment_method]} · {selected.items.length} platos
                   </p>
                 </div>
-                <span className={`chip ${statusChipClass(selected.status)}`}>{STATUS_LABEL[selected.status]}</span>
+                <span className={`chip ${statusChipClass(selected.status)}`}>
+                  {customerOrderLabel(selected)}
+                </span>
               </div>
+
+              <CustomerLiveDelivery
+                orderId={selected.id}
+                orderStatus={selected.status}
+                courierAcceptedAt={selected.courier_accepted_at}
+              />
 
               <div>
                 <p className="label mb-3">Seguimiento</p>
