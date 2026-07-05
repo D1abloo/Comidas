@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { eur, PAYMENT_LABEL, PAYMENT_STATUS_LABEL } from './order-shared';
 import { isCourierNativeApp, startCourierLocationTracking } from '../../lib/courier-geolocation';
+import { getNativeLogoutNext } from '../../lib/capacitor-app';
 
 interface CourierOrder {
   id: string;
@@ -124,8 +125,14 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [tab, setTab] = useState<'available' | 'mine' | 'completed'>('mine');
   const [gpsOk, setGpsOk] = useState<boolean | null>(null);
+  const [nativeApp, setNativeApp] = useState(false);
+  const [logoutNext, setLogoutNext] = useState('/');
   const activeOrderRef = useRef<string | null>(null);
-  const nativeApp = typeof window !== 'undefined' && isCourierNativeApp();
+
+  useEffect(() => {
+    setNativeApp(isCourierNativeApp());
+    setLogoutNext(getNativeLogoutNext());
+  }, []);
 
   const load = useCallback(async () => {
     const r = await fetch('/api/courier/orders');
@@ -214,10 +221,11 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
     <div className="courier-app">
       <header className="courier-header">
         <div>
-          <p className="courier-kicker">{nativeApp ? 'App Android' : 'App repartidor'}</p>
+          <p className="courier-kicker">{nativeApp ? 'App BocadO' : 'App repartidor'}</p>
           <h1 className="courier-title">Hola, {courierName.split(' ')[0]}</h1>
         </div>
         <form action="/api/auth/logout" method="POST">
+          <input type="hidden" name="next" value={logoutNext} />
           <button type="submit" className="courier-btn-ghost text-xs">
             Salir
           </button>

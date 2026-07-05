@@ -1,0 +1,33 @@
+{
+  "name": "@bocado/mobile-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "App Android unificada BocadO (admin + repartidor)",
+  "scripts": {
+    "config:local": "node scripts/write-config.mjs local",
+    "config:prod": "node scripts/write-config.mjs prod",
+    "icons": "node scripts/generate-icons.mjs",
+    "sync": "npx cap sync android",
+    "open:android": "npx cap open android",
+    "build:apk": "cd android && ./gradlew assembleDebug",
+    "build:apk:release": "cd android && ./gradlew assembleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/app": "^6.0.2",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/geolocation": "^6.1.0",
+    "@capacitor/splash-screen": "^6.0.3",
+    "@capacitor/status-bar": "^6.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0",
+    "sharp": "^0.33.5",
+    "typescript": "^5.5.4"
+  },
+  "capacitor": {
+    "platforms": [
+      "android"
+    ]
+  }
+}

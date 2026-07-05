@@ -1,0 +1,147 @@
+---
+import Mobile from '../../layouts/Mobile.astro';
+import Logo from '../../components/Logo.astro';
+import { loginUser, setSession } from '../../server/auth';
+
+const user = Astro.locals.user;
+if (user?.role === 'admin') return Astro.redirect('/admin');
+if (user?.role === 'courier') return Astro.redirect('/repartidor');
+
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const fd = await Astro.request.formData();
+    const logged = await loginUser(String(fd.get('email')), String(fd.get('password')));
+    await setSession(Astro.cookies, {
+      id: logged.id,
+      email: logged.email,
+      full_name: logged.full_name,
+      role: logged.role,
+    });
+    if (logged.role === 'admin') return Astro.redirect('/admin');
+    if (logged.role === 'courier') return Astro.redirect('/repartidor');
+    error = 'Esta app es solo para administradores y repartidores. Usa la web para clientes.';
+  } catch (e: unknown) {
+    error = e instanceof Error ? e.message : 'Error al iniciar sesión';
+  }
+}
+---
+<Mobile title="BocadO · Acceder">
+  <section class="mobile-login-wrap">
+    <div class="mobile-login-card">
+      <div class="mobile-login-brand">
+        <Logo size={48} variant="light" showWordmark className="justify-center" animated={false} />
+        <p class="mobile-login-kicker">App BocadO</p>
+        <h1 class="mobile-login-title">Inicia sesión</h1>
+        <p class="mobile-login-sub">
+          Detectamos tu rol automáticamente: <strong>admin</strong> → panel de gestión · <strong>repartidor</strong> → entregas y GPS.
+        </p>
+      </div>
+
+      <form method="POST" class="mobile-login-form">
+        <label class="block">
+          <span class="label">Email</span>
+          <input class="input mt-1.5" name="email" type="email" required autocomplete="username" placeholder="admin@bocado.app" />
+        </label>
+        <label class="block">
+          <span class="label">Contraseña</span>
+          <input class="input mt-1.5" name="password" type="password" required autocomplete="current-password" />
+        </label>
+        {error && <p class="mobile-login-error" role="alert">{error}</p>}
+        <button type="submit" class="mobile-login-btn">Entrar</button>
+      </form>
+
+      <div class="mobile-login-hints">
+        <p><span class="mobile-hint-label">Admin</span> admin@bocado.app / admin1234</p>
+        <p><span class="mobile-hint-label">Repartidor</span> repartidor@bocado.app / repartidor1234</p>
+      </div>
+    </div>
+  </section>
+</Mobile>
+
+<style>
+  .mobile-login-wrap {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background: linear-gradient(165deg, #1a2421 0%, #243029 45%, #f4f2ec 45%);
+  }
+  .mobile-login-card {
+    width: 100%;
+    max-width: 24rem;
+    background: #fff;
+    border-radius: 1.5rem;
+    padding: 2rem 1.5rem;
+    box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.35);
+  }
+  .mobile-login-brand {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  .mobile-login-kicker {
+    margin-top: 1rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6b7280;
+  }
+  .mobile-login-title {
+    margin-top: 0.35rem;
+    font-family: Fraunces, serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #0a0a0a;
+  }
+  .mobile-login-sub {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: #6b7280;
+  }
+  .mobile-login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .mobile-login-error {
+    font-size: 0.85rem;
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 0.75rem;
+    padding: 0.65rem 0.85rem;
+  }
+  .mobile-login-btn {
+    margin-top: 0.25rem;
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    background: #0a0a0a;
+    color: #d6ff3d;
+    transition: opacity 0.15s ease;
+  }
+  .mobile-login-btn:active {
+    opacity: 0.9;
+  }
+  .mobile-login-hints {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e8e4da;
+    font-size: 0.72rem;
+    color: #6b7280;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .mobile-hint-label {
+    display: inline-block;
+    min-width: 4.5rem;
+    font-weight: 700;
+    color: #374151;
+  }
+</style>

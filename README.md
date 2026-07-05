@@ -179,16 +179,19 @@ Checklist ordenada:
 
 | App | Carpeta | Ruta web | Uso |
 |-----|---------|----------|-----|
-| **BocadO Admin** | `apps/admin-app` | `/admin` | Panel completo en móvil o tablet |
-| **BocadO Repartidor** | `apps/courier-app` | `/repartidor` | Entregas + GPS al mapa admin |
+| **BocadO** (unificada) | `apps/mobile-app` | `/movil` | **Un APK** — login detecta admin o repartidor |
+| **BocadO Admin** | `apps/admin-app` | `/admin` | Solo panel admin (legacy) |
+| **BocadO Repartidor** | `apps/courier-app` | `/repartidor` | Solo repartidor (legacy) |
 
 Mismo backend en Vercel: ordenador y móvil ven los mismos pedidos y repartidores en tiempo real.
 
 ```bash
-BOCADO_APP_URL=https://tu-dominio.vercel.app npm run apps:config:prod
-cd apps/admin-app && npm install && npm run sync
-npm run admin:android
+BOCADO_APP_URL=https://tu-dominio.vercel.app npm run mobile:config:prod
+cd apps/mobile-app && npm install && npm run icons && npm run sync
+npm run mobile:apk
 ```
+
+APK listo: `apks/BocadO-debug.apk` (o `apps/mobile-app/android/.../app-debug.apk`).
 
 Cuentas demo: admin `admin@bocado.app` / `admin1234` · repartidor `repartidor@bocado.app` / `repartidor1234`.
 

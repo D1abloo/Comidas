@@ -1,4 +1,6 @@
 import { ADMIN_NAV_GROUPS, isAdminNavActive } from '../../config/admin-nav';
+import { useEffect, useState } from 'react';
+import { getNativeLogoutNext } from '../../lib/capacitor-app';
 
 function closeMobileNav() {
   document.body.classList.remove('admin-nav-open');
@@ -21,6 +23,12 @@ export default function AdminSidebar({
   userName: string;
   userEmail: string;
 }) {
+  const [logoutNext, setLogoutNext] = useState('/');
+
+  useEffect(() => {
+    setLogoutNext(getNativeLogoutNext());
+  }, []);
+
   return (
     <>
       <div className="admin-brand shrink-0">
@@ -86,6 +94,7 @@ export default function AdminSidebar({
             Ver tienda ↗
           </a>
           <form action="/api/auth/logout" method="POST">
+            <input type="hidden" name="next" value={logoutNext} />
             <button type="submit" className="admin-foot-btn">
               Salir
             </button>

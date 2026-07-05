@@ -1,5 +1,5 @@
 /**
- * Detección de apps nativas Capacitor (repartidor vs admin).
+ * Detección de apps nativas Capacitor (unificada, admin y repartidor).
  */
 export function isCapacitorNative(): boolean {
   if (typeof window === 'undefined') return false;
@@ -15,10 +15,31 @@ export function getCapacitorAppId(): string | undefined {
   return cap?.getConfig?.()?.appId;
 }
 
+const MOBILE_APP_IDS = new Set([
+  'app.bocado.mobile',
+  'app.bocado.admin',
+  'app.bocado.repartidor',
+]);
+
+export function isBocadoMobileApp(): boolean {
+  const id = getCapacitorAppId();
+  return isCapacitorNative() && Boolean(id && MOBILE_APP_IDS.has(id));
+}
+
+export function isMobileNativeApp(): boolean {
+  return isCapacitorNative() && getCapacitorAppId() === 'app.bocado.mobile';
+}
+
 export function isAdminNativeApp(): boolean {
-  return isCapacitorNative() && getCapacitorAppId() === 'app.bocado.admin';
+  const id = getCapacitorAppId();
+  return isCapacitorNative() && (id === 'app.bocado.admin' || id === 'app.bocado.mobile');
 }
 
 export function isCourierNativeApp(): boolean {
-  return isCapacitorNative() && getCapacitorAppId() === 'app.bocado.repartidor';
+  const id = getCapacitorAppId();
+  return isCapacitorNative() && (id === 'app.bocado.repartidor' || id === 'app.bocado.mobile');
+}
+
+export function getNativeLogoutNext(): string {
+  return isBocadoMobileApp() ? '/movil' : '/';
 }

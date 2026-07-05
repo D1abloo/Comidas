@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { isAdminNativeApp } from '../../lib/capacitor-app';
+import { isAdminNativeApp, isMobileNativeApp } from '../../lib/capacitor-app';
 
 export default function AdminNativeInit() {
   const [native, setNative] = useState(false);
+  const [label, setLabel] = useState('App Android · conectada al panel');
 
   useEffect(() => {
     const isNative = isAdminNativeApp();
     setNative(isNative);
+    if (isMobileNativeApp()) setLabel('App BocadO · panel admin');
     if (!isNative) return;
 
     void (async () => {
@@ -29,7 +31,7 @@ export default function AdminNativeInit() {
 
   return (
     <div className="admin-native-banner" role="status">
-      App Android · conectada al panel
+      {label}
     </div>
   );
 }
