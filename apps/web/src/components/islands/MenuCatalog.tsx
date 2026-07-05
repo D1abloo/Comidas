@@ -39,7 +39,8 @@ export default function MenuCatalog({ sections, dishes, restaurants, previewLimi
 
   return (
     <div className="space-y-16 md:space-y-20">
-      <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide -mx-1 px-1 snap-x">
+      <div className="catalog-sticky-bar">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide snap-x">
         <button
           type="button"
           onClick={() => setActiveSection('all')}
@@ -60,6 +61,7 @@ export default function MenuCatalog({ sections, dishes, restaurants, previewLimi
             {s.emoji} {s.title}
           </button>
         ))}
+        </div>
       </div>
 
       {sections.map((sec, si) => {

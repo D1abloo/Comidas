@@ -5,73 +5,76 @@ const stats = [
   { value: '30+', label: 'Platos en carta' },
 ];
 ---
-<section class="container-bocado pt-8 md:pt-12 pb-4">
-  <div class="food-hero p-8 md:p-14 lg:p-16 grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center animate-fade-up">
+<section class="container-bocado pt-8 md:pt-12 pb-2">
+  <div class="food-hero p-7 sm:p-10 md:p-14 lg:p-16 grid lg:grid-cols-[1.08fr_0.92fr] gap-10 lg:gap-12 items-center animate-fade-up">
     <div class="relative z-10">
-      <p class="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.24em] text-bocado-lime/90 mb-5">
-        <span class="w-2 h-2 rounded-full bg-bocado-lime animate-pulse-soft"></span>
+      <p class="hero-kicker">
+        <span class="hero-kicker-dot" aria-hidden="true"></span>
         Delivery premium · Madrid
       </p>
-      <h1 class="font-display text-[2.75rem] sm:text-[3.5rem] lg:text-[4.25rem] leading-[1.02] tracking-[-0.03em]">
+      <h1 class="hero-title">
         Comida de verdad,<br />
-        <span class="text-bocado-lime italic">en tu puerta.</span>
+        <em class="text-bocado-lime not-italic">en tu puerta.</em>
       </h1>
-      <p class="mt-6 text-white/75 text-lg md:text-xl max-w-lg leading-relaxed font-light">
-        Pizzas al horno, cazuelas caseras y bowls frescos — con fotos reales, seguimiento en vivo y factura al instante.
+      <p class="mt-5 text-white/72 text-base sm:text-lg max-w-lg leading-relaxed">
+        Pizzas al horno, cazuelas caseras y bowls frescos — fotos reales, seguimiento en vivo y factura al instante.
       </p>
-      <div class="mt-9 flex flex-wrap gap-3">
-        <a href="/api/carta.pdf" target="_blank" rel="noopener noreferrer" class="btn-lime text-base px-7 py-3.5">Ver carta completa →</a>
-        <a href="#mas-vendido" class="btn border-2 border-white/20 text-white hover:bg-white/10 px-7 py-3.5 rounded-full font-medium transition-all">
-          Lo más vendido
-        </a>
+
+      <form action="/buscar" method="get" class="hero-search mt-8" role="search">
+        <label for="hero-q" class="sr-only">Buscar platos</label>
+        <span class="hero-search-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m16 16 5 5"></path>
+          </svg>
+        </span>
+        <input id="hero-q" name="q" type="search" placeholder="¿Qué te apetece hoy? Pizza, ramen, postre…" autocomplete="off" />
+        <button type="submit" class="hero-search-btn">Buscar</button>
+      </form>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a href="/api/carta.pdf" target="_blank" rel="noopener noreferrer" class="btn-lime text-sm sm:text-base px-6 py-3.5">Ver carta PDF</a>
+        <a href="#catalogo" class="btn-hero-ghost">Explorar carta</a>
       </div>
-      <ul class="mt-10 flex flex-wrap gap-3 text-sm">
+
+      <ul class="mt-9 flex flex-wrap gap-2.5 text-sm">
         <li class="premium-stat">
-          <span class="text-bocado-lime font-bold text-lg">20–40 min</span>
-          <span class="text-white/55 text-xs">entrega</span>
+          <span class="text-bocado-lime font-bold text-base sm:text-lg">20–40 min</span>
+          <span class="text-white/50 text-[11px] uppercase tracking-wider">entrega</span>
         </li>
         <li class="premium-stat">
-          <span class="text-white font-semibold">Bizum · TPV</span>
-          <span class="text-white/55 text-xs">y efectivo</span>
+          <span class="text-white font-semibold text-sm">Bizum · TPV</span>
+          <span class="text-white/50 text-[11px] uppercase tracking-wider">y efectivo</span>
         </li>
         <li class="premium-stat">
-          <span class="text-white font-semibold">PDF</span>
-          <span class="text-white/55 text-xs">factura auto</span>
+          <span class="text-white font-semibold text-sm">Factura</span>
+          <span class="text-white/50 text-[11px] uppercase tracking-wider">automática</span>
         </li>
       </ul>
     </div>
 
     <div class="relative hidden lg:block z-10">
-      <div class="grid grid-cols-12 gap-3">
-        <div class="col-span-7 row-span-2">
+      <div class="hero-collage">
+        <div class="hero-collage-main">
           <img
-            src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=800&q=85"
-            alt="Pizza artesanal"
-            class="w-full h-[280px] object-cover rounded-3xl shadow-2xl ring-1 ring-white/10 animate-float-soft"
+            src="/carta/pizza-margherita-bufala.jpg"
+            alt="Pizza margherita artesanal"
+            width="800"
+            height="560"
+            class="w-full h-full object-cover"
+            loading="eager"
           />
         </div>
-        <div class="col-span-5">
-          <img
-            src="https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=500&q=85"
-            alt="Ramen"
-            class="w-full h-[130px] object-cover rounded-2xl shadow-xl ring-1 ring-white/10 mt-4"
-          />
-        </div>
-        <div class="col-span-5">
-          <img
-            src="https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=500&q=85"
-            alt="Cazuela"
-            class="w-full h-[130px] object-cover rounded-2xl shadow-xl ring-1 ring-white/10"
-          />
+        <div class="hero-collage-side">
+          <img src="/carta/ramen-tonkotsu.jpg" alt="Ramen tonkotsu" width="400" height="260" class="w-full h-[48%] object-cover rounded-2xl shadow-xl ring-1 ring-white/10" loading="lazy" />
+          <img src="/carta/cocido-madrileno.jpg" alt="Cocido madrileño" width="400" height="260" class="w-full h-[48%] object-cover rounded-2xl shadow-xl ring-1 ring-white/10" loading="lazy" />
         </div>
       </div>
-      <div class="absolute -bottom-4 left-6 right-6 flex justify-between items-end gap-3">
-        <div class="bg-bocado-lime text-bocado-ink px-5 py-3 rounded-2xl text-sm font-bold shadow-glow animate-slide-up">
-          ★ 4.9 · Miles de pedidos
-        </div>
-        <div class="grid grid-cols-3 gap-2 bg-black/40 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+      <div class="absolute -bottom-5 left-4 right-4 flex justify-between items-end gap-3">
+        <div class="hero-badge-lime">★ 4.9 · Miles de pedidos</div>
+        <div class="hero-stats-float">
           {stats.map((s) => (
-            <div class="text-center px-2">
+            <div class="text-center px-2 min-w-[4.5rem]">
               <div class="text-bocado-lime font-display text-lg leading-none">{s.value}</div>
               <div class="text-[9px] uppercase tracking-wider text-white/50 mt-1">{s.label}</div>
             </div>

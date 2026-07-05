@@ -6,6 +6,7 @@ import DemoBanner from '../components/DemoBanner.astro';
 import OrderTrackerBar from '../components/islands/OrderTrackerBar.tsx';
 import InstallPrompt from '../components/islands/InstallPrompt.tsx';
 import CookieConsent from '../components/islands/CookieConsent.tsx';
+import FloatingCartFab from '../components/islands/FloatingCartFab.tsx';
 interface Props { title?: string; description?: string; hideChrome?: boolean }
 const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda online de comida a domicilio con fotos reales, tiempos verificados y entrega rápida.', hideChrome = false } = Astro.props as Props;
 ---
@@ -14,7 +15,7 @@ const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="theme-color" content="#FAF8F3" />
     <meta name="description" content={description} />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -26,7 +27,7 @@ const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda
     <title>{title}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..700&family=Plus+Jakarta+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet" />
   </head>
   <body class="store-front bg-bocado-paper text-bocado-ink min-h-screen flex flex-col">
     <DemoBanner />
@@ -35,6 +36,7 @@ const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda
       <slot />
     </main>
     {!hideChrome && <Footer />}
+    {!hideChrome && <FloatingCartFab client:load />}
     {!hideChrome && <OrderTrackerBar client:load />}
     <CookieConsent client:load />
     <InstallPrompt client:load />
