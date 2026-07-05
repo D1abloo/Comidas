@@ -116,6 +116,7 @@ CREATE INDEX IF NOT EXISTS orders_status_idx ON orders(status);
 CREATE INDEX IF NOT EXISTS orders_courier_id_idx ON orders(courier_id);
 CREATE INDEX IF NOT EXISTS orders_created_at_idx ON orders(created_at DESC);
 CREATE INDEX IF NOT EXISTS order_items_order_id_idx ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS order_items_dish_id_idx ON order_items(dish_id);
 CREATE INDEX IF NOT EXISTS admin_alerts_seen_idx ON admin_alerts(seen, created_at DESC);
 
 -- Demo users (passwords: admin1234, repartidor1234, cliente1234)

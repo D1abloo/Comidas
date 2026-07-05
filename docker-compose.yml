@@ -4,13 +4,12 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: bocado
-      POSTGRES_PASSWORD: bocado
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bocado}
       POSTGRES_DB: bocado
     volumes:
       - bocado_pg:/var/lib/postgresql/data
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
-    ports:
-      - "5432:5432"
+    # ponytail: PG solo en red interna Docker — no exponer 5432 al host
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U bocado -d bocado"]
       interval: 5s
@@ -29,12 +28,12 @@ services:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: 4321
-      DATABASE_URL: postgres://bocado:bocado@postgres:5432/bocado
+      DATABASE_URL: postgres://bocado:${POSTGRES_PASSWORD:-bocado}@postgres:5432/bocado
       SESSION_SECRET: ${SESSION_SECRET:-cambia-este-secreto-en-produccion}
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:4321}
       BIZUM_COMPANY_PHONE: ${BIZUM_COMPANY_PHONE:-+34600123456}
     ports:
-      - "4321:4321"
+      - "127.0.0.1:4321:4321"
 
 volumes:
   bocado_pg:

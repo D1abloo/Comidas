@@ -1,24 +1,48 @@
 # BocadO en VPS con Docker + PostgreSQL
 
-## Arranque rápido
+## Despliegue automático (recomendado)
 
 ```bash
-# 1. Clonar y configurar
-cp apps/web/.env.example apps/web/.env.local
-# Edita SESSION_SECRET y PUBLIC_APP_URL (IP o dominio de tu VPS)
-
-# 2. Levantar PostgreSQL + API web
-docker compose up -d --build
-
-# 3. La API queda en http://TU_VPS:4321
-# Login: admin@bocado.app / admin1234
-# Repartidor: repartidor@bocado.app / repartidor1234
+chmod +x scripts/deploy-vps.sh scripts/vps-nginx-ssl.sh scripts/smoke-orders.sh
+./scripts/deploy-vps.sh
+./scripts/smoke-orders.sh
 ```
 
-## APK apuntando a tu VPS
+Variables opcionales:
+
+| Variable | Default |
+|----------|---------|
+| `VPS` | `root@31.70.114.94` |
+| `DOMAIN` | `bocado.31-70-114-94.sslip.io` |
+
+## URL y SSL
+
+- **Dominio temporal:** https://bocado.31-70-114-94.sslip.io (sslip.io → IP VPS)
+- **Certificado:** Let's Encrypt vía certbot + nginx
+- Puerto **5432** de PostgreSQL **no** expuesto al exterior (solo red Docker)
+
+## Arranque manual
 
 ```bash
-BOCADO_APP_URL=http://TU_VPS:4321 npm run mobile:config:prod
+cp apps/web/.env.example apps/web/.env.local
+# Edita SESSION_SECRET y PUBLIC_APP_URL (https://tu-dominio)
+
+docker compose up -d --build
+bash scripts/vps-nginx-ssl.sh
+```
+
+## Credenciales demo
+
+| Rol | Email | Password |
+|-----|-------|----------|
+| Admin | admin@bocado.app | admin1234 |
+| Repartidor | repartidor@bocado.app | repartidor1234 |
+| Cliente | cliente@bocado.app | cliente1234 |
+
+## APK apuntando a la VPS
+
+```bash
+BOCADO_APP_URL=https://bocado.31-70-114-94.sslip.io npm run mobile:config:prod
 npm run mobile:sync && npm run mobile:apk
 ```
 
@@ -26,20 +50,15 @@ npm run mobile:sync && npm run mobile:apk
 
 - **PostgreSQL** guarda pedidos, asignaciones y estados.
 - **SSE** en `GET /api/events/orders` notifica cambios al instante.
-- Cuando el admin cambia un pedido a **En reparto**, el repartidor lo ve en **Disponibles** sin recargar.
 
-## Tablas creadas
+## Seguridad
+
+- Cambia `POSTGRES_PASSWORD` y `SESSION_SECRET` en `.env.deploy` en producción real.
+- `npm audit` periódico en `apps/web`.
+- Web escucha solo en `127.0.0.1:4321`; nginx termina TLS en :443.
+
+## Tablas PostgreSQL
 
 `users`, `orders`, `order_items`, `courier_locations`, `admin_alerts`, `notification_events`, `invoices`, `company_settings`, `order_counters`
 
 Script: `docker/postgres/init.sql`
-
-## Variables de entorno (servicio web)
-
-| Variable | Ejemplo |
-|----------|---------|
-| `DATABASE_URL` | `postgres://bocado:bocado@postgres:5432/bocado` |
-| `SESSION_SECRET` | secreto largo aleatorio |
-| `PUBLIC_APP_URL` | `http://tu-dominio:4321` |
-
-Sin `DATABASE_URL` el servidor usa memoria (solo desarrollo).

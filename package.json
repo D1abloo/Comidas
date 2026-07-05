@@ -26,6 +26,8 @@
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f web",
+    "deploy:vps": "bash scripts/deploy-vps.sh",
+    "smoke:orders": "bash scripts/smoke-orders.sh",
     "apps:config:prod": "npm run mobile:config:prod && npm run courier:config:prod && npm run admin:config:prod"
   },
   "engines": {

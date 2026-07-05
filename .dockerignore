@@ -1,0 +1,11 @@
+node_modules
+.git
+.data
+dist
+apks
+*.apk
+.env.local
+apps/web/.env.local
+.env.deploy
+.env
+**/.env.local

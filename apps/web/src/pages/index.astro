@@ -4,8 +4,10 @@ import Hero from '../components/Hero.astro';
 import CategoryStrip from '../components/CategoryStrip.astro';
 import DailyMenu from '../components/DailyMenu.astro';
 import BestsellerCarousel from '../components/islands/BestsellerCarousel.tsx';
+import PopularMenusCarousel from '../components/islands/PopularMenusCarousel.tsx';
 import MenuCatalog from '../components/islands/MenuCatalog.tsx';
 import { getStore } from '../server/db';
+import { listOrders } from '../server/order-service';
 import type { Dish } from '../server/types';
 
 const q = Astro.url.searchParams.get('q');
@@ -16,6 +18,7 @@ if (q?.trim()) {
 const store = getStore();
 const dishes = store.dishes;
 const dishesForOrder = store.dishes.filter((d) => d.is_available);
+const allOrders = await listOrders();
 
 const allSections = store.menu_sections.filter((s) => s.is_active).sort((a, b) => a.sort_order - b.sort_order);
 const catalogSections = allSections.filter((s) => s.id !== 'sec-menu-dia');
@@ -28,9 +31,20 @@ const dateLabel = new Intl.DateTimeFormat('es-ES', {
 }).format(new Date());
 
 const soldCount = new Map<string, number>();
-for (const o of store.orders) {
+const sectionSales = new Map<string, number>();
+const sectionTopDish = new Map<string, { name: string; count: number }>();
+
+for (const o of allOrders) {
   for (const line of o.items) {
     soldCount.set(line.dish_id, (soldCount.get(line.dish_id) ?? 0) + line.quantity);
+    const dish = dishes.find((d) => d.id === line.dish_id);
+    if (!dish?.menu_section_id) continue;
+    sectionSales.set(dish.menu_section_id, (sectionSales.get(dish.menu_section_id) ?? 0) + line.quantity);
+    const prev = sectionTopDish.get(dish.menu_section_id);
+    const lineCount = line.quantity;
+    if (!prev || lineCount > prev.count) {
+      sectionTopDish.set(dish.menu_section_id, { name: line.dish_name, count: lineCount });
+    }
   }
 }
 
@@ -46,15 +60,42 @@ if (bestsellers.length < 4) {
     .slice(0, 8)
     .map((d) => ({ ...d, sold_count: soldCount.get(d.id) ?? 0 }));
 }
+
+let popularSections = allSections
+  .filter((s) => s.id !== 'sec-menu-dia')
+  .map((s) => ({
+    id: s.id,
+    slug: s.slug,
+    title: s.title,
+    emoji: s.emoji,
+    description: s.description,
+    order_count: sectionSales.get(s.id) ?? 0,
+    top_dish: sectionTopDish.get(s.id)?.name,
+  }))
+  .filter((s) => s.order_count > 0)
+  .sort((a, b) => b.order_count - a.order_count)
+  .slice(0, 8);
+
+if (popularSections.length < 3) {
+  popularSections = catalogSections.slice(0, 6).map((s) => ({
+    id: s.id,
+    slug: s.slug,
+    title: s.title,
+    emoji: s.emoji,
+    description: s.description,
+    order_count: sectionSales.get(s.id) ?? 0,
+    top_dish: sectionTopDish.get(s.id)?.name,
+  }));
+}
 ---
 <Base>
   <Hero />
   <CategoryStrip />
 
-  <section class="trust-strip" aria-label="Ventajas de BocadO">
+  <section class="trust-strip animate-fade-up stagger-1" aria-label="Ventajas de BocadO">
     <div class="container-bocado grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-bocado-line/60">
       <div class="trust-strip-item">
-        <span class="trust-strip-icon" aria-hidden="true">⚡</span>
+        <span class="trust-strip-icon trust-strip-icon--pulse" aria-hidden="true">⚡</span>
         <div>
           <p class="text-sm font-semibold text-bocado-ink">Entrega 20–40 min</p>
           <p class="text-xs text-bocado-mute mt-0.5">Seguimiento en tiempo real</p>
@@ -77,6 +118,7 @@ if (bestsellers.length < 4) {
     </div>
   </section>
 
+  <PopularMenusCarousel client:load sections={popularSections} />
   <BestsellerCarousel client:load dishes={bestsellers} restaurants={restNames} />
   <DailyMenu dishes={dailyDishes} restaurants={store.restaurants} dateLabel={dateLabel} />
 
