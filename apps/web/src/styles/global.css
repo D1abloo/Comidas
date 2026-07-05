@@ -207,6 +207,93 @@
   .admin-toast-dismiss {
     @apply text-xs text-white/60 hover:text-white px-2 py-1;
   }
+  .admin-toast--delivered {
+    @apply border-emerald-400/40 bg-gradient-to-br from-[#0f1a14] to-[#142820];
+  }
+  .courier-shell {
+    @apply min-h-screen bg-bocado-house text-white;
+  }
+  .courier-app {
+    @apply max-w-lg mx-auto min-h-[calc(100vh-28px)] flex flex-col px-4 pb-8;
+  }
+  .courier-header {
+    @apply flex items-start justify-between gap-3 pt-5 pb-4;
+  }
+  .courier-kicker {
+    @apply text-[10px] font-bold uppercase tracking-[0.18em] text-bocado-lime/80;
+  }
+  .courier-title {
+    @apply text-2xl font-bold tracking-tight mt-1;
+  }
+  .courier-tabs {
+    @apply flex gap-2 overflow-x-auto scrollbar-hide pb-1;
+  }
+  .courier-tab {
+    @apply shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-pill text-sm font-semibold border border-white/15 text-white/70 hover:bg-white/10 transition-all;
+  }
+  .courier-tab--active {
+    @apply bg-bocado-lime text-bocado-ink border-bocado-lime;
+  }
+  .courier-tab-badge {
+    @apply min-w-[20px] h-5 px-1.5 rounded-full bg-bocado-ink/20 text-[11px] font-bold grid place-items-center;
+  }
+  .courier-tab--active .courier-tab-badge {
+    @apply bg-bocado-ink/15 text-bocado-ink;
+  }
+  .courier-list {
+    @apply flex-1 space-y-4 mt-4;
+  }
+  .courier-empty {
+    @apply text-sm text-white/55 text-center py-12 px-4 rounded-2xl border border-dashed border-white/15;
+  }
+  .courier-card {
+    @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-4 space-y-3;
+  }
+  .courier-card-head {
+    @apply flex items-start justify-between gap-3;
+  }
+  .courier-card-number {
+    @apply font-bold text-lg;
+  }
+  .courier-card-customer {
+    @apply text-sm text-white/65;
+  }
+  .courier-card-total {
+    @apply shrink-0 bg-bocado-lime text-bocado-ink font-bold px-3 py-1.5 rounded-pill text-sm;
+  }
+  .courier-address {
+    @apply flex gap-2 text-sm text-bocado-lime hover:underline;
+  }
+  .courier-items {
+    @apply text-sm text-white/80 space-y-1 border-t border-white/10 pt-3;
+  }
+  .courier-meta {
+    @apply text-xs text-white/50 flex flex-wrap gap-1;
+  }
+  .courier-card-actions {
+    @apply flex flex-wrap gap-2 pt-2;
+  }
+  .courier-btn-primary {
+    @apply inline-flex items-center justify-center rounded-pill bg-white text-bocado-ink text-sm font-bold px-4 py-2.5 hover:opacity-90 active:scale-[0.97] transition-all flex-1 min-w-[140px];
+  }
+  .courier-btn-lime {
+    @apply inline-flex items-center justify-center rounded-pill bg-bocado-lime text-bocado-ink text-sm font-bold px-4 py-2.5 hover:brightness-95 active:scale-[0.97] transition-all flex-1 min-w-[140px];
+  }
+  .courier-btn-ghost {
+    @apply inline-flex items-center justify-center rounded-pill border border-white/25 text-white text-sm font-semibold px-4 py-2.5 hover:bg-white/10 active:scale-[0.97] transition-all;
+  }
+  .courier-done-badge {
+    @apply inline-flex items-center text-xs font-semibold text-emerald-300 bg-emerald-400/15 border border-emerald-400/30 px-3 py-2 rounded-pill;
+  }
+  .courier-login-wrap {
+    @apply min-h-[calc(100vh-28px)] grid place-items-center px-6 py-12 bg-bocado-house;
+  }
+  .courier-login-card {
+    @apply w-full max-w-md rounded-3xl border border-white/15 bg-white/5 backdrop-blur p-8 text-white;
+  }
+  .courier-login-title {
+    @apply text-2xl font-bold tracking-tight mt-1;
+  }
   .admin-stat-card {
     @apply rounded-2xl border border-bocado-line/80 bg-white p-4 sm:p-5 relative overflow-hidden transition-all duration-200 hover:shadow-card-lift hover:-translate-y-0.5;
   }

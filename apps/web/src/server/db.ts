@@ -498,6 +498,7 @@ function seed(): Store {
 
   const adminHash = bcrypt.hashSync('admin1234', 8);
   const customerHash = bcrypt.hashSync('cliente1234', 8);
+  const courierHash = bcrypt.hashSync('repartidor1234', 8);
 
   const users: User[] = [
     {
@@ -508,6 +509,16 @@ function seed(): Store {
       phone: '+34911234567',
       tax_id: null,
       password_hash: adminHash,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'u-courier',
+      email: 'repartidor@bocado.app',
+      full_name: 'Carlos Repartidor',
+      role: 'courier',
+      phone: '+34600222333',
+      tax_id: null,
+      password_hash: courierHash,
       created_at: new Date().toISOString(),
     },
     {

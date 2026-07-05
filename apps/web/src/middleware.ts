@@ -13,6 +13,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
       return context.redirect('/admin/login?next=' + encodeURIComponent(path));
     }
   }
+  if (path.startsWith('/repartidor') && path !== '/repartidor/login') {
+    if (!context.locals.user || context.locals.user.role !== 'courier') {
+      return context.redirect('/repartidor/login?next=' + encodeURIComponent(path));
+    }
+  }
   if (path.startsWith('/perfil')) {
     if (!context.locals.user) {
       return context.redirect('/login?next=' + encodeURIComponent(path));

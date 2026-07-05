@@ -21,7 +21,7 @@ export function statusLabel(s: string): string {
     confirmed: 'Confirmado',
     preparing: 'En preparación',
     delivering: 'En reparto',
-    delivered: 'Entregado',
+    delivered: 'Completado',
     cancelled: 'Cancelado',
     paid: 'Pagado',
     awaiting_confirmation: 'Bizum por confirmar',

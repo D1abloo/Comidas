@@ -3,13 +3,14 @@ import { eur } from './order-shared';
 
 type Alert = {
   id: string;
-  kind?: 'new_order' | 'bizum_paid';
+  kind?: 'new_order' | 'bizum_paid' | 'order_delivered';
   order_id: string;
   order_number: string;
   customer_name: string;
   total_cents: number;
   item_count: number;
   created_at: string;
+  courier_name?: string | null;
 };
 
 export default function AdminAlerts() {
@@ -55,19 +56,25 @@ export default function AdminAlerts() {
         if (!fresh.length) return;
 
         fresh.forEach((a) => known.current.add(a.id));
-        setToasts((prev) => [...fresh, ...prev].slice(0, 4));
+        setToasts((prev) => [...fresh, ...prev].slice(0, 5));
         void ack(fresh.map((a) => a.id));
-        if (autoPrintRef.current) {
-          for (const a of fresh) {
-            if (a.kind === 'bizum_paid') continue;
-            if (!printedRef.current.has(a.id)) {
-              printedRef.current.add(a.id);
-              window.open(
-                `/admin/impresion/ticket?order=${a.order_id}&autoprint=1`,
-                `print-${a.id}`,
-                'width=420,height=720',
-              );
-            }
+
+        for (const a of fresh) {
+          if (a.kind === 'order_delivered') {
+            window.dispatchEvent(
+              new CustomEvent('bocado-admin-order-update', {
+                detail: { order_id: a.order_id, status: 'delivered', courier_name: a.courier_name },
+              }),
+            );
+            continue;
+          }
+          if (autoPrintRef.current && a.kind !== 'bizum_paid' && !printedRef.current.has(a.id)) {
+            printedRef.current.add(a.id);
+            window.open(
+              `/admin/impresion/ticket?order=${a.order_id}&autoprint=1`,
+              `print-${a.id}`,
+              'width=420,height=720',
+            );
           }
         }
       } catch {
@@ -90,30 +97,49 @@ export default function AdminAlerts() {
     <div className="admin-toast-stack" aria-live="assertive">
       {toasts.map((t) => {
         const isBizum = t.kind === 'bizum_paid';
+        const isDelivered = t.kind === 'order_delivered';
         return (
-          <article key={t.id} className="admin-toast animate-order-pop">
+          <article
+            key={t.id}
+            className={`admin-toast animate-order-pop ${isDelivered ? 'admin-toast--delivered' : ''}`}
+          >
             <div className="admin-toast-glow" aria-hidden />
             <div className="flex items-start gap-3 relative z-10">
               <span className="admin-toast-icon" aria-hidden>
-                {isBizum ? '💳' : '🔔'}
+                {isDelivered ? '✅' : isBizum ? '💳' : '🔔'}
               </span>
               <div className="min-w-0 flex-1">
                 <p
-                  className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isBizum ? 'text-sky-300' : 'text-lime-300'}`}
+                  className={`text-[10px] font-bold uppercase tracking-[0.2em] ${
+                    isDelivered ? 'text-emerald-300' : isBizum ? 'text-sky-300' : 'text-lime-300'
+                  }`}
                 >
-                  {isBizum ? 'Bizum completado' : 'Nuevo pedido'}
+                  {isDelivered ? 'Pedido completado' : isBizum ? 'Bizum completado' : 'Nuevo pedido'}
                 </p>
                 <p className="text-base font-bold text-white mt-0.5">{t.order_number}</p>
                 <p className="text-sm text-white/80 mt-1">
-                  {t.customer_name} · {t.item_count} artículo{t.item_count !== 1 ? 's' : ''}
+                  {isDelivered && t.courier_name ? (
+                    <>
+                      Entregado por <strong>{t.courier_name}</strong>
+                    </>
+                  ) : (
+                    <>
+                      {t.customer_name} · {t.item_count} artículo{t.item_count !== 1 ? 's' : ''}
+                    </>
+                  )}
                 </p>
-                <p className="text-lg font-semibold text-bocado-lime mt-2">{eur(t.total_cents)}</p>
+                {!isDelivered && (
+                  <p className="text-lg font-semibold text-bocado-lime mt-2">{eur(t.total_cents)}</p>
+                )}
               </div>
               <div className="flex flex-col gap-2 shrink-0">
-                <a href={isBizum ? '/admin/pagos' : '/admin/pedidos'} className="admin-toast-btn">
-                  {isBizum ? 'Ver pagos' : 'Ver pedido'}
+                <a
+                  href={isBizum ? '/admin/pagos' : '/admin/pedidos'}
+                  className={`admin-toast-btn ${isDelivered ? '!bg-emerald-400 !text-bocado-ink' : ''}`}
+                >
+                  {isDelivered ? 'Ver pedidos' : isBizum ? 'Ver pagos' : 'Ver pedido'}
                 </a>
-                {!isBizum && (
+                {!isBizum && !isDelivered && (
                   <a
                     href={`/admin/impresion/ticket?order=${t.order_id}&autoprint=1`}
                     target="_blank"

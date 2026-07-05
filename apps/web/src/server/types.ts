@@ -1,6 +1,6 @@
 export type UUID = string;
 export type ISODate = string;
-export type Role = 'admin' | 'customer';
+export type Role = 'admin' | 'customer' | 'courier';
 
 export const ALLERGENS = [
   'gluten',
@@ -205,6 +205,10 @@ export interface Order {
   payment_status: PaymentStatus;
   notes?: string | null;
   invoice_id?: UUID | null;
+  courier_id?: UUID | null;
+  courier_name?: string | null;
+  courier_accepted_at?: ISODate | null;
+  delivered_at?: ISODate | null;
   created_at: ISODate;
 }
 
@@ -244,7 +248,7 @@ export interface NotificationEvent {
   created_at: ISODate;
 }
 
-export type AdminAlertKind = 'new_order' | 'bizum_paid';
+export type AdminAlertKind = 'new_order' | 'bizum_paid' | 'order_delivered';
 
 /** Alertas en tiempo real para el panel admin (nuevo pedido, Bizum pagado, etc.) */
 export interface AdminAlert {
@@ -257,4 +261,5 @@ export interface AdminAlert {
   item_count: number;
   seen: boolean;
   created_at: ISODate;
+  courier_name?: string | null;
 }

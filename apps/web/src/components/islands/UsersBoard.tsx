@@ -1,13 +1,13 @@
 import { useState } from 'react';
 
-interface UserRow { id: string; email: string; full_name: string; role: 'admin' | 'customer'; created_at: string }
+interface UserRow { id: string; email: string; full_name: string; role: 'admin' | 'customer' | 'courier'; created_at: string }
 
 export default function UsersBoard({ initialUsers, selfId }: { initialUsers: UserRow[]; selfId: string }) {
   const [users, setUsers] = useState(initialUsers);
-  const [filter, setFilter] = useState<'all' | 'admin' | 'customer'>('all');
+  const [filter, setFilter] = useState<'all' | 'admin' | 'customer' | 'courier'>('all');
   const list = filter === 'all' ? users : users.filter((u) => u.role === filter);
 
-  async function setRole(id: string, role: 'admin' | 'customer') {
+  async function setRole(id: string, role: 'admin' | 'customer' | 'courier') {
     setUsers((p) => p.map((u) => (u.id === id ? { ...u, role } : u)));
     await fetch(`/api/users/${id}/role`, {
       method: 'PATCH',
@@ -27,6 +27,7 @@ export default function UsersBoard({ initialUsers, selfId }: { initialUsers: Use
         <button onClick={() => setFilter('all')} className={`chip ${filter === 'all' ? '!bg-bocado-ink !text-white' : ''}`}>Todos</button>
         <button onClick={() => setFilter('admin')} className={`chip ${filter === 'admin' ? '!bg-bocado-ink !text-white' : ''}`}>Administradores</button>
         <button onClick={() => setFilter('customer')} className={`chip ${filter === 'customer' ? '!bg-bocado-ink !text-white' : ''}`}>Clientes</button>
+        <button onClick={() => setFilter('courier')} className={`chip ${filter === 'courier' ? '!bg-bocado-ink !text-white' : ''}`}>Repartidores</button>
         <div className="ml-auto text-xs text-bocado-mute">
           Nuevos administradores se crean en <a href="/admin/registro" className="underline">/admin/registro</a>.
         </div>
@@ -51,6 +52,7 @@ export default function UsersBoard({ initialUsers, selfId }: { initialUsers: Use
                 <td>
                   <select value={u.role} onChange={(e) => setRole(u.id, e.target.value as any)} className="chip" disabled={u.id === selfId}>
                     <option value="customer">Cliente</option>
+                    <option value="courier">Repartidor</option>
                     <option value="admin">Administrador</option>
                   </select>
                 </td>

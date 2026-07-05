@@ -1,0 +1,9 @@
+---
+import Courier from '../../layouts/Courier.astro';
+import CourierBoard from '../../components/islands/CourierBoard.tsx';
+
+const user = Astro.locals.user!;
+---
+<Courier title="Mis repartos">
+  <CourierBoard client:load courierName={user.full_name} />
+</Courier>

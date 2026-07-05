@@ -11,7 +11,7 @@ export const STATUS_STEPS: { key: OrderStatus; label: string }[] = [
   { key: 'confirmed', label: 'Confirmado' },
   { key: 'preparing', label: 'Cocinando' },
   { key: 'delivering', label: 'En camino' },
-  { key: 'delivered', label: 'Entregado' },
+  { key: 'delivered', label: 'Completado' },
 ];
 
 export const STATUS_LABEL: Record<string, string> = {
@@ -19,7 +19,7 @@ export const STATUS_LABEL: Record<string, string> = {
   confirmed: 'Confirmado',
   preparing: 'En preparación',
   delivering: 'En reparto',
-  delivered: 'Entregado',
+  delivered: 'Completado',
   cancelled: 'Cancelado',
 };
 

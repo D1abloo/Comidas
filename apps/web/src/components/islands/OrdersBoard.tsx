@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   OrderTimeline,
   STATUS_LABEL,
@@ -18,6 +18,21 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
   const [filter, setFilter] = useState('');
   const [selected, setSelected] = useState<any | null>(null);
   const [mobileDetail, setMobileDetail] = useState(false);
+
+  useEffect(() => {
+    function onOrderUpdate(e: Event) {
+      const detail = (e as CustomEvent<{ order_id: string; status: string; courier_name?: string }>).detail;
+      if (!detail?.order_id) return;
+      const patch = (o: any) =>
+        o.id === detail.order_id
+          ? { ...o, status: detail.status, courier_name: detail.courier_name ?? o.courier_name }
+          : o;
+      setOrders((prev) => prev.map(patch));
+      setSelected((s: any) => (s?.id === detail.order_id ? patch(s) : s));
+    }
+    window.addEventListener('bocado-admin-order-update', onOrderUpdate);
+    return () => window.removeEventListener('bocado-admin-order-update', onOrderUpdate);
+  }, []);
 
   const filtered = filter ? orders.filter((o) => o.status === filter) : orders;
 
@@ -172,6 +187,15 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
                   <span className="label block">Pago</span>
                   {PAYMENT_LABEL[selected.payment_method]} · {PAYMENT_STATUS_LABEL[selected.payment_status] ?? selected.payment_status}
                 </p>
+                {selected.courier_name && (
+                  <p>
+                    <span className="label block">Repartidor</span>
+                    {selected.courier_name}
+                    {selected.delivered_at && (
+                      <span className="text-bocado-mute"> · {fmtDateTime(selected.delivered_at)}</span>
+                    )}
+                  </p>
+                )}
                 <p>
                   <span className="label block">Dirección</span>
                   {selected.delivery_address.street} {selected.delivery_address.number}, {selected.delivery_address.city}

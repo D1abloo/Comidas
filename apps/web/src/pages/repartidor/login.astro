@@ -1,0 +1,40 @@
+---
+import Base from '../../layouts/Base.astro';
+import { loginUser, setSession } from '../../server/auth';
+
+let error = '';
+const next = Astro.url.searchParams.get('next') ?? '/repartidor';
+
+if (Astro.request.method === 'POST') {
+  try {
+    const fd = await Astro.request.formData();
+    const user = await loginUser(String(fd.get('email')), String(fd.get('password')));
+    if (user.role !== 'courier') throw new Error('Esta cuenta no es de repartidor.');
+    await setSession(Astro.cookies, { id: user.id, email: user.email, full_name: user.full_name, role: user.role });
+    return Astro.redirect(next);
+  } catch (e: any) {
+    error = e.message ?? 'Error';
+  }
+}
+---
+<Base title="Repartidor · Acceder" hideChrome>
+  <section class="courier-login-wrap">
+    <div class="courier-login-card">
+      <p class="courier-kicker">BocadO · Repartidor</p>
+      <h1 class="courier-login-title">App de entregas</h1>
+      <p class="text-sm text-bocado-mute mt-2">Acepta pedidos en reparto y márcalos como completados al entregar.</p>
+      <form method="POST" class="mt-6 space-y-4">
+        <label class="block">
+          <span class="label">Email</span>
+          <input class="input mt-1.5" name="email" type="email" required defaultValue="repartidor@bocado.app" />
+        </label>
+        <label class="block">
+          <span class="label">Contraseña</span>
+          <input class="input mt-1.5" name="password" type="password" required defaultValue="repartidor1234" />
+        </label>
+        {error && <p class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">{error}</p>}
+        <button class="courier-btn-lime w-full justify-center py-3.5">Entrar</button>
+      </form>
+    </div>
+  </section>
+</Base>

@@ -10,7 +10,9 @@ if (Astro.request.method === 'POST') {
     const fd = await Astro.request.formData();
     const user = await loginUser(String(fd.get('email')), String(fd.get('password')));
     await setSession(Astro.cookies, { id: user.id, email: user.email, full_name: user.full_name, role: user.role });
-    return Astro.redirect(user.role === 'admin' ? '/admin' : (next || '/perfil'));
+    return Astro.redirect(
+      user.role === 'admin' ? '/admin' : user.role === 'courier' ? '/repartidor' : (next || '/perfil'),
+    );
   } catch (e: any) {
     error = e.message ?? 'Error';
   }
