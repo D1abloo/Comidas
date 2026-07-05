@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { CourierLocationMap, formatLocationAge, isLocationStale } from './CourierLocationMap';
+import { formatLocationAge, isLocationStale } from '../../lib/courier-location-utils';
+import { CourierLocationMap } from './CourierLocationMap';
 import { onMobileSync } from '../../lib/mobile-sync';
 
 const POLL_MS = 5000;
@@ -95,7 +96,7 @@ export default function CourierLivePanel() {
                   compact
                 />
                 {loc.active_order_id && (
-                  <a href="/admin/pedidos" className="courier-loc-link mt-2 inline-block">
+                    <a href="/movil/admin" className="courier-loc-link mt-2 inline-block">
                     Ver pedido en cola →
                   </a>
                 )}
@@ -108,21 +109,4 @@ export default function CourierLivePanel() {
   );
 }
 
-export function OrderCourierLocation({
-  lat,
-  lng,
-  locationAt,
-  courierName,
-}: {
-  lat: number;
-  lng: number;
-  locationAt?: string | null;
-  courierName?: string | null;
-}) {
-  return (
-    <div className="rounded-xl border border-bocado-line bg-bocado-paper/30 p-3">
-      <p className="label mb-2">Ubicación del repartidor {courierName ? `· ${courierName}` : ''}</p>
-      <CourierLocationMap lat={lat} lng={lng} updatedAt={locationAt} />
-    </div>
-  );
-}
+export { OrderCourierLocation } from './OrderCourierLocation';

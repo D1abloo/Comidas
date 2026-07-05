@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../../../../server/db';
 import { completeOrderDelivery } from '../../../../../server/courier-orders';
+import { persistOperationalState } from '../../../../../server/store-persistence';
 
 export const PATCH: APIRoute = async ({ params, locals }) => {
   if (!locals.user || locals.user.role !== 'courier') {
@@ -15,6 +16,7 @@ export const PATCH: APIRoute = async ({ params, locals }) => {
 
   try {
     completeOrderDelivery(store, order, locals.user);
+    await persistOperationalState(store);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'No se pudo completar la entrega';
     return new Response(JSON.stringify({ error: message }), { status: 400 });

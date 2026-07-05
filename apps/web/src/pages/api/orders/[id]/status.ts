@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../../../server/db';
 import { createInvoiceForOrder } from '../../../../server/invoices';
+import { persistOperationalState } from '../../../../server/store-persistence';
 import { randomUUID } from 'node:crypto';
 
 export const PATCH: APIRoute = async ({ request, params, locals }) => {
@@ -38,5 +39,6 @@ export const PATCH: APIRoute = async ({ request, params, locals }) => {
       created_at: new Date().toISOString(),
     });
   }
+  await persistOperationalState(store);
   return new Response(JSON.stringify({ order }), { headers: { 'content-type': 'application/json' } });
 };

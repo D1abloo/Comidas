@@ -11,7 +11,7 @@ import {
   type OrderStatus,
 } from './order-shared';
 import { onMobileSync } from '../../lib/mobile-sync';
-import { OrderCourierLocation } from './CourierLivePanel';
+import { OrderCourierLocation } from './OrderCourierLocation';
 
 const STATUS = ['pending', 'confirmed', 'preparing', 'delivering', 'delivered', 'cancelled'] as const;
 
@@ -20,13 +20,24 @@ export default function MobileOrdersPanel() {
   const [filter, setFilter] = useState('');
   const [selected, setSelected] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
-      const r = await fetch('/api/admin/orders');
-      if (!r.ok) return;
+      const r = await fetch('/api/admin/orders', { credentials: 'include' });
+      if (r.status === 401) {
+        window.location.href = '/movil';
+        return;
+      }
+      if (!r.ok) {
+        setError('No se pudieron cargar los pedidos. Pulsa actualizar.');
+        return;
+      }
       const data = await r.json();
       setOrders(data.orders ?? []);
+      setError(null);
+    } catch {
+      setError('Sin conexión. Los pedidos guardados se mantienen en pantalla.');
     } finally {
       setLoading(false);
     }
@@ -53,13 +64,21 @@ export default function MobileOrdersPanel() {
   }, []);
 
   async function setStatus(id: string, status: string) {
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+    const prev = orders;
+    const prevSelected = selected;
+    setOrders((list) => list.map((o) => (o.id === id ? { ...o, status } : o)));
     if (selected?.id === id) setSelected((s: any) => (s ? { ...s, status } : s));
-    await fetch(`/api/orders/${id}/status`, {
+    const r = await fetch(`/api/orders/${id}/status`, {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ status }),
     });
+    if (!r.ok) {
+      setOrders(prev);
+      setSelected(prevSelected);
+      setError('No se pudo actualizar el estado del pedido.');
+    }
   }
 
   const filtered = filter ? orders.filter((o) => o.status === filter) : orders;
@@ -73,6 +92,12 @@ export default function MobileOrdersPanel() {
           <span>
             <strong>{pendingCount}</strong> pedido{pendingCount !== 1 ? 's' : ''} pendiente{pendingCount !== 1 ? 's' : ''}
           </span>
+        </div>
+      )}
+
+      {error && (
+        <div className="mobile-orders-alert !bg-amber-500/15 !border-amber-400/40 !text-amber-100" role="alert">
+          {error}
         </div>
       )}
 
@@ -156,7 +181,7 @@ export default function MobileOrdersPanel() {
                   <span>
                     {it.quantity}× {it.dish_name}
                   </span>
-                  <span className="text-bocado-mute">{eur(it.line_total_cents)}</span>
+                  <span className="text-bocado-mute">{eur(it.unit_price_cents * it.quantity)}</span>
                 </li>
               ))}
             </ul>

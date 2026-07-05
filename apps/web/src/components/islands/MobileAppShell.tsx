@@ -2,15 +2,6 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { MOBILE_SYNC_MS, dispatchMobileSync, formatSyncAge } from '../../lib/mobile-sync';
 import { initMobileNotifications, notifyMobileDevice } from '../../lib/mobile-notifications';
 import { isBocadoMobileApp } from '../../lib/capacitor-app';
-import { eur } from './order-shared';
-
-type Alert = {
-  id: string;
-  kind?: string;
-  order_number: string;
-  customer_name: string;
-  total_cents: number;
-};
 
 interface Tab {
   id: string;
@@ -25,7 +16,6 @@ interface Props {
   activeTab?: string;
   onTabChange?: (id: string) => void;
   children: ReactNode;
-  onSyncAlerts?: (alerts: Alert[]) => void;
 }
 
 function RefreshIcon({ spinning }: { spinning: boolean }) {
@@ -57,7 +47,6 @@ export default function MobileAppShell({
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
   const [native, setNative] = useState(false);
-  const knownAlerts = useRef<Set<string>>(new Set());
   const knownOrders = useRef<Set<string>>(new Set());
   const booted = useRef(false);
 
@@ -66,58 +55,10 @@ export default function MobileAppShell({
   }, []);
 
   const pollAlerts = useCallback(async () => {
-    if (role === 'admin') {
-      try {
-        const r = await fetch('/api/admin/alerts');
-        if (!r.ok) return;
-        const data = await r.json();
-        const alerts: Alert[] = data.alerts ?? [];
-
-        if (!booted.current) {
-          alerts.forEach((a) => knownAlerts.current.add(a.id));
-          booted.current = true;
-          return;
-        }
-
-        const fresh = alerts.filter((a) => !knownAlerts.current.has(a.id));
-        for (const a of fresh) {
-          knownAlerts.current.add(a.id);
-          if (a.kind === 'new_order' || !a.kind) {
-            void notifyMobileDevice({
-              id: a.id,
-              title: '🔔 Nuevo pedido',
-              body: `${a.order_number} · ${a.customer_name} · ${eur(a.total_cents)}`,
-            });
-          } else if (a.kind === 'bizum_paid') {
-            void notifyMobileDevice({
-              id: a.id,
-              title: '💳 Bizum recibido',
-              body: `${a.order_number} · ${a.customer_name}`,
-            });
-          } else if (a.kind === 'order_accepted') {
-            void notifyMobileDevice({
-              id: a.id,
-              title: '🛵 Repartidor asignado',
-              body: `${a.order_number} aceptado`,
-            });
-          }
-        }
-
-        if (fresh.length) {
-          await fetch('/api/admin/alerts', {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ ids: fresh.map((a) => a.id) }),
-          });
-        }
-      } catch {
-        /* ignore */
-      }
-      return;
-    }
+    if (role === 'admin') return;
 
     try {
-      const r = await fetch('/api/courier/orders');
+      const r = await fetch('/api/courier/orders', { credentials: 'include' });
       if (!r.ok) return;
       const data = await r.json();
       const available: { id: string; number: string; customer_name: string }[] = data.available ?? [];

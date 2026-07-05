@@ -41,10 +41,11 @@ export async function verifySession(token: string): Promise<SessionUser | null> 
 
 export async function setSession(cookies: AstroCookies, user: SessionUser) {
   const token = await signSession(user);
+  const secure = typeof process !== 'undefined' && process.env.NODE_ENV === 'production';
   cookies.set(COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: false,
+    secure,
     path: '/',
     maxAge: MAX_AGE,
   });

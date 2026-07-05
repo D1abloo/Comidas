@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { eur } from './order-shared';
+import { notifyMobileDevice } from '../../lib/mobile-notifications';
+import { isBocadoMobileApp } from '../../lib/capacitor-app';
 
 type Alert = {
   id: string;
@@ -58,6 +60,36 @@ export default function AdminAlerts() {
         fresh.forEach((a) => known.current.add(a.id));
         setToasts((prev) => [...fresh, ...prev].slice(0, 5));
         void ack(fresh.map((a) => a.id));
+
+        if (isBocadoMobileApp()) {
+          for (const a of fresh) {
+            if (a.kind === 'new_order' || !a.kind) {
+              void notifyMobileDevice({
+                id: a.id,
+                title: '🔔 Nuevo pedido',
+                body: `${a.order_number} · ${a.customer_name} · ${eur(a.total_cents)}`,
+              });
+            } else if (a.kind === 'bizum_paid') {
+              void notifyMobileDevice({
+                id: a.id,
+                title: '💳 Bizum recibido',
+                body: `${a.order_number} · ${a.customer_name}`,
+              });
+            } else if (a.kind === 'order_accepted') {
+              void notifyMobileDevice({
+                id: a.id,
+                title: '🛵 Repartidor asignado',
+                body: `${a.order_number} aceptado`,
+              });
+            } else if (a.kind === 'order_delivered') {
+              void notifyMobileDevice({
+                id: a.id,
+                title: '✅ Pedido entregado',
+                body: `${a.order_number} · ${a.courier_name ?? 'Repartidor'}`,
+              });
+            }
+          }
+        }
 
         for (const a of fresh) {
           if (a.kind === 'order_delivered') {

@@ -1,9 +1,11 @@
 import { defineMiddleware } from 'astro:middleware';
 import { getSessionFromCookies } from './server/auth.js';
 import { getStore } from './server/db.js';
+import { ensureOperationalStateHydrated } from './server/store-persistence.js';
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  getStore(); // garantiza inicialización del seed en el primer request
+  const store = getStore();
+  await ensureOperationalStateHydrated(store);
   context.locals.user = await getSessionFromCookies(context.cookies);
 
   // Proteger rutas /admin y /perfil

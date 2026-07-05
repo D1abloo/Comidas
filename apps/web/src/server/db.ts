@@ -40,9 +40,12 @@ export interface Store {
 // HMR-safe singleton
 const g = globalThis as unknown as { __BOCADO_STORE?: Store };
 
+import { hydrateOperationalStateSync } from './store-persistence.js';
+
 export function getStore(): Store {
   if (!g.__BOCADO_STORE) {
     g.__BOCADO_STORE = seed();
+    hydrateOperationalStateSync(g.__BOCADO_STORE);
   }
   if (!g.__BOCADO_STORE.courier_locations) {
     g.__BOCADO_STORE.courier_locations = [];

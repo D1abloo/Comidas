@@ -132,6 +132,7 @@ export default function CourierBoard({ courierName, embedded = false }: { courie
   const [nativeApp, setNativeApp] = useState(false);
   const [logoutNext, setLogoutNext] = useState('/');
   const activeOrderRef = useRef<string | null>(null);
+  const tabBooted = useRef(false);
 
   useEffect(() => {
     setNativeApp(isCourierNativeApp());
@@ -145,8 +146,11 @@ export default function CourierBoard({ courierName, embedded = false }: { courie
     setAvailable(data.available ?? []);
     setMine(data.mine ?? []);
     setCompleted(data.completed ?? []);
-    if ((data.mine?.length ?? 0) > 0) setTab('mine');
-    else if ((data.available?.length ?? 0) > 0) setTab('available');
+    if (!tabBooted.current) {
+      if ((data.mine?.length ?? 0) > 0) setTab('mine');
+      else if ((data.available?.length ?? 0) > 0) setTab('available');
+      tabBooted.current = true;
+    }
   }, []);
 
   useEffect(() => {

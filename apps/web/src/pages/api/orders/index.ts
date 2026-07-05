@@ -3,6 +3,7 @@ import { getStore } from '../../../server/db';
 import { pushAdminNewOrderAlert } from '../../../server/admin-alerts';
 import { onOrderCreated } from '../../../server/order-emails';
 import { geocodeAddress } from '../../../server/geo';
+import { persistOperationalState } from '../../../server/store-persistence';
 import type { Order } from '../../../server/types';
 import { randomUUID } from 'node:crypto';
 
@@ -103,6 +104,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
   void attachDeliveryCoords(store, order.id);
   void onOrderCreated(store, order).catch((err) => console.error('[order] post-create:', err));
+  await persistOperationalState(store);
 
   if (store.settings.whatsapp_notifications_enabled) {
     store.notifications.unshift({

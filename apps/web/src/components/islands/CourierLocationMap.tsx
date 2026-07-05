@@ -1,65 +1,63 @@
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import {
+  formatLocationAge,
+  googleMapsUrl,
+  isLocationStale,
+  osmExternalUrl,
+} from '../../lib/courier-location-utils';
 
-export function formatLocationAge(iso: string) {
-  const sec = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
-  if (sec < 60) return `hace ${sec}s`;
-  const min = Math.round(sec / 60);
-  if (min < 60) return `hace ${min} min`;
-  return new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-}
-
-export function isLocationStale(iso: string | null | undefined, maxSec = 300) {
-  if (!iso) return true;
-  return Date.now() - new Date(iso).getTime() > maxSec * 1000;
-}
-
-export function osmExternalUrl(lat: number, lng: number) {
-  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
-}
-
-export function googleMapsUrl(lat: number, lng: number) {
-  return `https://www.google.com/maps?q=${lat},${lng}`;
-}
-
-const courierPin = L.divIcon({
-  className: 'courier-map-pin',
-  html: '<span class="courier-map-pin-dot" aria-hidden="true"></span>',
-  iconSize: [22, 22],
-  iconAnchor: [11, 11],
-});
+type LeafletModule = typeof import('leaflet');
 
 function LiveMap({ lat, lng, height }: { lat: number; lng: number; height: number }) {
   const hostRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
-  const markerRef = useRef<L.Marker | null>(null);
+  const mapRef = useRef<import('leaflet').Map | null>(null);
+  const markerRef = useRef<import('leaflet').Marker | null>(null);
+  const leafletRef = useRef<LeafletModule | null>(null);
 
   useEffect(() => {
     if (!hostRef.current || mapRef.current) return;
 
-    const map = L.map(hostRef.current, {
-      zoomControl: true,
-      attributionControl: true,
-      scrollWheelZoom: false,
-    }).setView([lat, lng], 16);
+    let ro: ResizeObserver | null = null;
+    let cancelled = false;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map);
+    void (async () => {
+      const L = await import('leaflet');
+      await import('leaflet/dist/leaflet.css');
+      if (cancelled || !hostRef.current) return;
 
-    markerRef.current = L.marker([lat, lng], { icon: courierPin }).addTo(map);
-    mapRef.current = map;
+      leafletRef.current = L;
+      const pin = L.divIcon({
+        className: 'courier-map-pin',
+        html: '<span class="courier-map-pin-dot" aria-hidden="true"></span>',
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+      });
 
-    const ro = new ResizeObserver(() => map.invalidateSize());
-    ro.observe(hostRef.current);
+      const map = L.map(hostRef.current, {
+        zoomControl: true,
+        attributionControl: true,
+        scrollWheelZoom: false,
+      }).setView([lat, lng], 16);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(map);
+
+      markerRef.current = L.marker([lat, lng], { icon: pin }).addTo(map);
+      mapRef.current = map;
+
+      ro = new ResizeObserver(() => map.invalidateSize());
+      ro.observe(hostRef.current);
+    })();
 
     return () => {
-      ro.disconnect();
-      map.remove();
+      cancelled = true;
+      ro?.disconnect();
+      mapRef.current?.remove();
       mapRef.current = null;
       markerRef.current = null;
+      leafletRef.current = null;
     };
   }, []);
 
@@ -91,9 +89,7 @@ export function CourierLocationMap({ lat, lng, label, updatedAt, accuracy_m, com
       <div className="courier-loc-frame">
         <LiveMap lat={lat} lng={lng} height={h} />
         {stale && <span className="courier-loc-stale">Sin señal reciente</span>}
-        {!stale && updatedAt && (
-          <span className="courier-loc-live">En vivo</span>
-        )}
+        {!stale && updatedAt && <span className="courier-loc-live">En vivo</span>}
       </div>
       <div className="courier-loc-meta">
         <span className="font-mono text-xs">
