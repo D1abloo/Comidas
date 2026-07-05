@@ -248,7 +248,7 @@ export interface NotificationEvent {
   created_at: ISODate;
 }
 
-export type AdminAlertKind = 'new_order' | 'bizum_paid' | 'order_delivered';
+export type AdminAlertKind = 'new_order' | 'bizum_paid' | 'order_delivered' | 'order_accepted';
 
 /** Alertas en tiempo real para el panel admin (nuevo pedido, Bizum pagado, etc.) */
 export interface AdminAlert {

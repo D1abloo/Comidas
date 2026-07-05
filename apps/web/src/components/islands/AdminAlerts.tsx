@@ -3,7 +3,7 @@ import { eur } from './order-shared';
 
 type Alert = {
   id: string;
-  kind?: 'new_order' | 'bizum_paid' | 'order_delivered';
+  kind?: 'new_order' | 'bizum_paid' | 'order_delivered' | 'order_accepted';
   order_id: string;
   order_number: string;
   customer_name: string;
@@ -68,6 +68,14 @@ export default function AdminAlerts() {
             );
             continue;
           }
+          if (a.kind === 'order_accepted') {
+            window.dispatchEvent(
+              new CustomEvent('bocado-admin-order-update', {
+                detail: { order_id: a.order_id, status: 'delivering', courier_name: a.courier_name },
+              }),
+            );
+            continue;
+          }
           if (autoPrintRef.current && a.kind !== 'bizum_paid' && !printedRef.current.has(a.id)) {
             printedRef.current.add(a.id);
             window.open(
@@ -98,23 +106,24 @@ export default function AdminAlerts() {
       {toasts.map((t) => {
         const isBizum = t.kind === 'bizum_paid';
         const isDelivered = t.kind === 'order_delivered';
+        const isAccepted = t.kind === 'order_accepted';
         return (
           <article
             key={t.id}
-            className={`admin-toast animate-order-pop ${isDelivered ? 'admin-toast--delivered' : ''}`}
+            className={`admin-toast animate-order-pop ${isDelivered ? 'admin-toast--delivered' : ''} ${isAccepted ? 'admin-toast--accepted' : ''}`}
           >
             <div className="admin-toast-glow" aria-hidden />
             <div className="flex items-start gap-3 relative z-10">
               <span className="admin-toast-icon" aria-hidden>
-                {isDelivered ? '✅' : isBizum ? '💳' : '🔔'}
+                {isDelivered ? '✅' : isAccepted ? '🛵' : isBizum ? '💳' : '🔔'}
               </span>
               <div className="min-w-0 flex-1">
                 <p
                   className={`text-[10px] font-bold uppercase tracking-[0.2em] ${
-                    isDelivered ? 'text-emerald-300' : isBizum ? 'text-sky-300' : 'text-lime-300'
+                    isDelivered ? 'text-emerald-300' : isAccepted ? 'text-orange-200' : isBizum ? 'text-sky-300' : 'text-lime-300'
                   }`}
                 >
-                  {isDelivered ? 'Pedido completado' : isBizum ? 'Bizum completado' : 'Nuevo pedido'}
+                  {isDelivered ? 'Pedido completado' : isAccepted ? 'Repartidor asignado' : isBizum ? 'Bizum completado' : 'Nuevo pedido'}
                 </p>
                 <p className="text-base font-bold text-white mt-0.5">{t.order_number}</p>
                 <p className="text-sm text-white/80 mt-1">
@@ -122,24 +131,28 @@ export default function AdminAlerts() {
                     <>
                       Entregado por <strong>{t.courier_name}</strong>
                     </>
+                  ) : isAccepted && t.courier_name ? (
+                    <>
+                      <strong>{t.courier_name}</strong> ha aceptado el reparto
+                    </>
                   ) : (
                     <>
                       {t.customer_name} · {t.item_count} artículo{t.item_count !== 1 ? 's' : ''}
                     </>
                   )}
                 </p>
-                {!isDelivered && (
+                {!isDelivered && !isAccepted && (
                   <p className="text-lg font-semibold text-bocado-lime mt-2">{eur(t.total_cents)}</p>
                 )}
               </div>
               <div className="flex flex-col gap-2 shrink-0">
                 <a
                   href={isBizum ? '/admin/pagos' : '/admin/pedidos'}
-                  className={`admin-toast-btn ${isDelivered ? '!bg-emerald-400 !text-bocado-ink' : ''}`}
+                  className={`admin-toast-btn ${isDelivered ? '!bg-emerald-400 !text-bocado-ink' : ''} ${isAccepted ? '!bg-orange-300 !text-bocado-ink' : ''}`}
                 >
-                  {isDelivered ? 'Ver pedidos' : isBizum ? 'Ver pagos' : 'Ver pedido'}
+                  {isDelivered ? 'Ver pedidos' : isAccepted ? 'Ver pedido' : isBizum ? 'Ver pagos' : 'Ver pedido'}
                 </a>
-                {!isBizum && !isDelivered && (
+                {!isBizum && !isDelivered && !isAccepted && (
                   <a
                     href={`/admin/impresion/ticket?order=${t.order_id}&autoprint=1`}
                     target="_blank"

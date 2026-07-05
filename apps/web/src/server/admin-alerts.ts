@@ -56,3 +56,22 @@ export function pushAdminOrderDeliveredAlert(store: Store, order: Order, courier
     store.admin_alerts = store.admin_alerts.slice(0, 50);
   }
 }
+
+export function pushAdminOrderAcceptedAlert(store: Store, order: Order, courierName: string) {
+  const item_count = order.items.reduce((s, i) => s + i.quantity, 0);
+  store.admin_alerts.unshift({
+    id: randomUUID(),
+    kind: 'order_accepted',
+    order_id: order.id,
+    order_number: order.number,
+    customer_name: order.customer.full_name,
+    total_cents: order.total_cents,
+    item_count,
+    seen: false,
+    courier_name: courierName,
+    created_at: new Date().toISOString(),
+  });
+  if (store.admin_alerts.length > 50) {
+    store.admin_alerts = store.admin_alerts.slice(0, 50);
+  }
+}

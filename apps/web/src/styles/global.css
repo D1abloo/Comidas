@@ -210,6 +210,9 @@
   .admin-toast--delivered {
     @apply border-emerald-400/40 bg-gradient-to-br from-[#0f1a14] to-[#142820];
   }
+  .admin-toast--accepted {
+    @apply border-orange-400/40 bg-gradient-to-br from-[#1a140f] to-[#282014];
+  }
   .courier-shell {
     @apply min-h-screen bg-bocado-house text-white;
   }
