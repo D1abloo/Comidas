@@ -1,14 +1,6 @@
-export function osmStaticMapUrl(lat: number, lng: number, w = 400, h = 220) {
-  return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=15&size=${w}x${h}&markers=${lat},${lng},red`;
-}
-
-export function osmExternalUrl(lat: number, lng: number) {
-  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
-}
-
-export function googleMapsUrl(lat: number, lng: number) {
-  return `https://www.google.com/maps?q=${lat},${lng}`;
-}
+import { useEffect, useRef } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 export function formatLocationAge(iso: string) {
   const sec = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
@@ -23,6 +15,63 @@ export function isLocationStale(iso: string | null | undefined, maxSec = 300) {
   return Date.now() - new Date(iso).getTime() > maxSec * 1000;
 }
 
+export function osmExternalUrl(lat: number, lng: number) {
+  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=16/${lat}/${lng}`;
+}
+
+export function googleMapsUrl(lat: number, lng: number) {
+  return `https://www.google.com/maps?q=${lat},${lng}`;
+}
+
+const courierPin = L.divIcon({
+  className: 'courier-map-pin',
+  html: '<span class="courier-map-pin-dot" aria-hidden="true"></span>',
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+});
+
+function LiveMap({ lat, lng, height }: { lat: number; lng: number; height: number }) {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+
+  useEffect(() => {
+    if (!hostRef.current || mapRef.current) return;
+
+    const map = L.map(hostRef.current, {
+      zoomControl: true,
+      attributionControl: true,
+      scrollWheelZoom: false,
+    }).setView([lat, lng], 16);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    markerRef.current = L.marker([lat, lng], { icon: courierPin }).addTo(map);
+    mapRef.current = map;
+
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(hostRef.current);
+
+    return () => {
+      ro.disconnect();
+      map.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapRef.current || !markerRef.current) return;
+    markerRef.current.setLatLng([lat, lng]);
+    mapRef.current.panTo([lat, lng], { animate: true, duration: 0.45 });
+  }, [lat, lng]);
+
+  return <div ref={hostRef} className="courier-loc-leaflet" style={{ height }} aria-hidden />;
+}
+
 interface MapProps {
   lat: number;
   lng: number;
@@ -34,20 +83,16 @@ interface MapProps {
 
 export function CourierLocationMap({ lat, lng, label, updatedAt, accuracy_m, compact }: MapProps) {
   const stale = isLocationStale(updatedAt);
-  const h = compact ? 160 : 220;
+  const h = compact ? 180 : 240;
 
   return (
     <div className="courier-loc-map">
       {label && <p className="courier-loc-label">{label}</p>}
       <div className="courier-loc-frame">
-        <img
-          src={osmStaticMapUrl(lat, lng, 400, h)}
-          alt={`Ubicación en mapa: ${lat.toFixed(5)}, ${lng.toFixed(5)}`}
-          className="courier-loc-img"
-          loading="lazy"
-        />
-        {stale && (
-          <span className="courier-loc-stale">Sin señal reciente</span>
+        <LiveMap lat={lat} lng={lng} height={h} />
+        {stale && <span className="courier-loc-stale">Sin señal reciente</span>}
+        {!stale && updatedAt && (
+          <span className="courier-loc-live">En vivo</span>
         )}
       </div>
       <div className="courier-loc-meta">

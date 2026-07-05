@@ -348,11 +348,27 @@
   .courier-loc-frame {
     @apply relative rounded-xl overflow-hidden border border-bocado-line bg-bocado-paper2;
   }
-  .courier-loc-img {
-    @apply w-full h-auto block;
+  .courier-loc-leaflet {
+    @apply w-full z-0;
   }
   .courier-loc-stale {
-    @apply absolute top-2 right-2 text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-900 px-2 py-1 rounded-full;
+    @apply absolute top-2 right-2 z-[500] text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-900 px-2 py-1 rounded-full;
+  }
+  .courier-loc-live {
+    @apply absolute top-2 right-2 z-[500] text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-900 px-2 py-1 rounded-full;
+  }
+  .courier-map-pin {
+    background: none !important;
+    border: none !important;
+  }
+  .courier-map-pin-dot {
+    display: block;
+    width: 22px;
+    height: 22px;
+    background: #e85d4c;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   }
   .courier-loc-meta {
     @apply text-xs text-bocado-mute flex flex-wrap gap-1;

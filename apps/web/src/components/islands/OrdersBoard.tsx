@@ -59,7 +59,7 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
     }
 
     void pollLocation();
-    const id = window.setInterval(pollLocation, 10000);
+    const id = window.setInterval(pollLocation, 5000);
     return () => window.clearInterval(id);
   }, [selected?.id, selected?.status, selected?.courier_id]);
 

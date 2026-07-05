@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { CourierLocationMap, formatLocationAge, isLocationStale } from './CourierLocationMap';
 
+const POLL_MS = 5000;
+
 interface CourierLoc {
   courier_id: string;
   courier_name: string;
@@ -25,7 +27,6 @@ interface OrderLoc {
 export default function CourierLivePanel() {
   const [locations, setLocations] = useState<CourierLoc[]>([]);
   const [orders, setOrders] = useState<OrderLoc[]>([]);
-  const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -40,7 +41,7 @@ export default function CourierLivePanel() {
       }
     }
     void load();
-    const id = window.setInterval(load, 10000);
+    const id = window.setInterval(load, POLL_MS);
     return () => window.clearInterval(id);
   }, []);
 
@@ -59,7 +60,7 @@ export default function CourierLivePanel() {
       <div className="admin-frame-header">
         <div>
           <h3 className="admin-frame-title">📍 Repartidores en vivo</h3>
-          <p className="admin-frame-sub">Ubicación GPS desde la app · actualización cada 10 s</p>
+          <p className="admin-frame-sub">Ubicación GPS desde la app · actualización cada 5 s</p>
         </div>
         <span className="chip text-xs !bg-emerald-100 !text-emerald-800 !border-emerald-200">
           {locations.length} en línea
@@ -67,45 +68,33 @@ export default function CourierLivePanel() {
       </div>
       <div className="p-4 grid gap-4 lg:grid-cols-2">
         {locations.map((loc) => {
-          const open = expanded === loc.courier_id;
           const stale = isLocationStale(loc.updated_at);
           return (
             <div key={loc.courier_id} className="rounded-xl border border-bocado-line bg-bocado-paper/40 overflow-hidden">
-              <button
-                type="button"
-                className="w-full flex items-center justify-between gap-3 p-3 text-left hover:bg-white transition-colors"
-                onClick={() => setExpanded(open ? null : loc.courier_id)}
-              >
-                <div>
-                  <p className="font-semibold text-sm">{loc.courier_name}</p>
-                  <p className="text-xs text-bocado-mute mt-0.5">
-                    {loc.active_order_number ? `Pedido ${loc.active_order_number}` : 'Sin pedido activo'}
-                    {' · '}
-                    <span className={stale ? 'text-amber-700' : 'text-emerald-700'}>
-                      {formatLocationAge(loc.updated_at)}
-                    </span>
-                  </p>
-                </div>
-                <span className="text-bocado-mute text-lg" aria-hidden>
-                  {open ? '▾' : '▸'}
-                </span>
-              </button>
-              {open && (
-                <div className="px-3 pb-3">
-                  <CourierLocationMap
-                    lat={loc.lat}
-                    lng={loc.lng}
-                    updatedAt={loc.updated_at}
-                    accuracy_m={loc.accuracy_m}
-                    compact
-                  />
-                  {loc.active_order_id && (
-                    <a href="/admin/pedidos" className="courier-loc-link mt-2 inline-block">
-                      Ver pedido en cola →
-                    </a>
-                  )}
-                </div>
-              )}
+              <div className="p-3 border-b border-bocado-line/60 bg-white/50">
+                <p className="font-semibold text-sm">{loc.courier_name}</p>
+                <p className="text-xs text-bocado-mute mt-0.5">
+                  {loc.active_order_number ? `Pedido ${loc.active_order_number}` : 'Sin pedido activo'}
+                  {' · '}
+                  <span className={stale ? 'text-amber-700' : 'text-emerald-700'}>
+                    {formatLocationAge(loc.updated_at)}
+                  </span>
+                </p>
+              </div>
+              <div className="px-3 py-3">
+                <CourierLocationMap
+                  lat={loc.lat}
+                  lng={loc.lng}
+                  updatedAt={loc.updated_at}
+                  accuracy_m={loc.accuracy_m}
+                  compact
+                />
+                {loc.active_order_id && (
+                  <a href="/admin/pedidos" className="courier-loc-link mt-2 inline-block">
+                    Ver pedido en cola →
+                  </a>
+                )}
+              </div>
             </div>
           );
         })}
