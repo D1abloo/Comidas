@@ -7,7 +7,11 @@
     "dev": "npm run dev -w @bocado/web",
     "build": "npm run build -w @bocado/web",
     "start": "npm run start -w @bocado/web",
-    "preview": "npm run preview -w @bocado/web"
+    "preview": "npm run preview -w @bocado/web",
+    "courier:config:prod": "npm run config:prod -w @bocado/courier-app",
+    "courier:sync": "npm run sync -w @bocado/courier-app",
+    "courier:android": "npm run open:android -w @bocado/courier-app",
+    "courier:apk": "npm run build:apk -w @bocado/courier-app"
   },
   "engines": {
     "node": ">=20"

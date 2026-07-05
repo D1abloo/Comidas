@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BocadO Repartidor</string>
+    <string name="title_activity_main">BocadO Repartidor</string>
+    <string name="package_name">app.bocado.repartidor</string>
+    <string name="custom_url_scheme">app.bocado.repartidor</string>
+</resources>

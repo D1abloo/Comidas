@@ -165,6 +165,22 @@ Checklist ordenada:
 | `npm run build` | Build producción |
 | `npm run start` | Servidor Node tras build |
 | `bash apps/web/scripts/fetch-carta-images.sh` | Descarga fotos a `apps/web/public/carta/` |
+| `npm run courier:config:prod` | URL de producción en app Android repartidor |
+| `npm run courier:sync` | Sincronizar Capacitor → Android |
+| `npm run courier:android` | Abrir proyecto en Android Studio |
+| `npm run courier:apk` | Compilar APK debug |
+
+### App Android repartidor
+
+Proyecto en `apps/courier-app` (Capacitor). Carga `/repartidor` y envía GPS al panel admin.
+
+```bash
+BOCADO_APP_URL=https://tu-dominio.vercel.app npm run courier:config:prod
+cd apps/courier-app && npm install && npx cap sync android
+npm run courier:android
+```
+
+Cuenta demo: `repartidor@bocado.app` / `repartidor1234`. Ver `apps/courier-app/README.md`.
 
 ---
 

@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { eur, PAYMENT_LABEL, PAYMENT_STATUS_LABEL } from './order-shared';
+import { isCourierNativeApp, startCourierLocationTracking } from '../../lib/courier-geolocation';
 
 interface CourierOrder {
   id: string;
@@ -123,6 +124,8 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [tab, setTab] = useState<'available' | 'mine' | 'completed'>('mine');
   const [gpsOk, setGpsOk] = useState<boolean | null>(null);
+  const activeOrderRef = useRef<string | null>(null);
+  const nativeApp = typeof window !== 'undefined' && isCourierNativeApp();
 
   const load = useCallback(async () => {
     const r = await fetch('/api/courier/orders');
@@ -142,39 +145,31 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
   }, [load]);
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setGpsOk(false);
-      return;
-    }
+    activeOrderRef.current = mine[0]?.id ?? null;
+  }, [mine]);
 
-    const activeOrderId = mine[0]?.id ?? null;
-
-    async function send(pos: GeolocationPosition) {
+  useEffect(() => {
+    let stop: (() => void) | undefined;
+    void startCourierLocationTracking(async (coords) => {
       try {
         const r = await fetch('/api/courier/location', {
           method: 'PATCH',
           headers: { 'content-type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-            accuracy_m: pos.coords.accuracy,
-            active_order_id: activeOrderId,
+            ...coords,
+            active_order_id: activeOrderRef.current,
           }),
         });
         setGpsOk(r.ok);
       } catch {
         setGpsOk(false);
       }
-    }
-
-    const watchId = navigator.geolocation.watchPosition(
-      (pos) => void send(pos),
-      () => setGpsOk(false),
-      { enableHighAccuracy: true, maximumAge: 20000, timeout: 25000 },
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [mine]);
+    }).then((cleanup) => {
+      stop = cleanup;
+    });
+    return () => stop?.();
+  }, []);
 
   async function accept(id: string) {
     setBusy(id);
@@ -219,7 +214,7 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
     <div className="courier-app">
       <header className="courier-header">
         <div>
-          <p className="courier-kicker">App repartidor</p>
+          <p className="courier-kicker">{nativeApp ? 'App Android' : 'App repartidor'}</p>
           <h1 className="courier-title">Hola, {courierName.split(' ')[0]}</h1>
         </div>
         <form action="/api/auth/logout" method="POST">
