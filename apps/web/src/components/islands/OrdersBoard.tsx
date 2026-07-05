@@ -10,6 +10,7 @@ import {
   statusFilterClass,
   type OrderStatus,
 } from './order-shared';
+import CourierLivePanel, { OrderCourierLocation } from './CourierLivePanel';
 
 const STATUS = ['pending', 'confirmed', 'preparing', 'delivering', 'delivered', 'cancelled'] as const;
 
@@ -33,6 +34,34 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
     window.addEventListener('bocado-admin-order-update', onOrderUpdate);
     return () => window.removeEventListener('bocado-admin-order-update', onOrderUpdate);
   }, []);
+
+  useEffect(() => {
+    if (!selected || selected.status !== 'delivering') return;
+
+    async function pollLocation() {
+      try {
+        const r = await fetch('/api/admin/courier-locations');
+        if (!r.ok) return;
+        const data = await r.json();
+        const orderLoc = (data.orders as any[])?.find((o) => o.id === selected.id);
+        const courierLoc = (data.locations as any[])?.find((l) => l.courier_id === selected.courier_id);
+        const lat = orderLoc?.lat ?? courierLoc?.lat;
+        const lng = orderLoc?.lng ?? courierLoc?.lng;
+        const at = orderLoc?.location_at ?? courierLoc?.updated_at;
+        if (lat == null || lng == null) return;
+        const patch = (o: any) =>
+          o.id === selected.id ? { ...o, courier_lat: lat, courier_lng: lng, courier_location_at: at } : o;
+        setOrders((prev) => prev.map(patch));
+        setSelected((s: any) => (s?.id === selected.id ? patch(s) : s));
+      } catch {
+        /* ignore */
+      }
+    }
+
+    void pollLocation();
+    const id = window.setInterval(pollLocation, 10000);
+    return () => window.clearInterval(id);
+  }, [selected?.id, selected?.status, selected?.courier_id]);
 
   const filtered = filter ? orders.filter((o) => o.status === filter) : orders;
 
@@ -68,7 +97,9 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
 
   return (
     <section className="admin-content space-y-6 !py-0 font-admin">
-            <div className="flex flex-wrap items-center gap-2">
+      <CourierLivePanel />
+
+      <div className="flex flex-wrap items-center gap-2">
         <button type="button" onClick={() => setFilter('')} className={statusFilterClass('', !filter)}>
           Todos ({orders.length})
         </button>
@@ -201,6 +232,15 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
                   {selected.delivery_address.street} {selected.delivery_address.number}, {selected.delivery_address.city}
                 </p>
               </div>
+
+              {selected.status === 'delivering' && selected.courier_lat != null && selected.courier_lng != null && (
+                <OrderCourierLocation
+                  lat={selected.courier_lat}
+                  lng={selected.courier_lng}
+                  locationAt={selected.courier_location_at}
+                  courierName={selected.courier_name}
+                />
+              )}
 
               <ul className="text-sm border-t border-bocado-line pt-3 space-y-2">
                 {selected.items.map((it: any, i: number) => (

@@ -1,0 +1,7 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import CourierLivePanel from '../../components/islands/CourierLivePanel.tsx';
+---
+<Admin title="Mapa de repartidores" crumb="Inicio / Operaciones / Mapa GPS">
+  <CourierLivePanel client:load />
+</Admin>

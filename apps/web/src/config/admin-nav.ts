@@ -33,6 +33,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: 'Operaciones',
     items: [
       { href: '/admin/pedidos', label: 'Pedidos', emoji: '🛵', match: '/admin/pedidos', description: 'Cola, estados y pagos' },
+      { href: '/admin/repartidores', label: 'Mapa GPS', emoji: '📍', match: '/admin/repartidores', description: 'Ubicación en vivo de repartidores' },
       { href: '/admin/impresion', label: 'Impresión', emoji: '🖨️', match: '/admin/impresion', description: 'Tickets y impresora térmica' },
       { href: '/admin/avisos', label: 'Avisos', emoji: '🔔', match: '/admin/avisos', description: 'Alertas de pedidos nuevos' },
     ],

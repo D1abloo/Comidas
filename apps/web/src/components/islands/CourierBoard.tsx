@@ -122,6 +122,7 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
   const [completed, setCompleted] = useState<CourierOrder[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   const [tab, setTab] = useState<'available' | 'mine' | 'completed'>('mine');
+  const [gpsOk, setGpsOk] = useState<boolean | null>(null);
 
   const load = useCallback(async () => {
     const r = await fetch('/api/courier/orders');
@@ -139,6 +140,41 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
     const id = window.setInterval(load, 8000);
     return () => window.clearInterval(id);
   }, [load]);
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setGpsOk(false);
+      return;
+    }
+
+    const activeOrderId = mine[0]?.id ?? null;
+
+    async function send(pos: GeolocationPosition) {
+      try {
+        const r = await fetch('/api/courier/location', {
+          method: 'PATCH',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracy_m: pos.coords.accuracy,
+            active_order_id: activeOrderId,
+          }),
+        });
+        setGpsOk(r.ok);
+      } catch {
+        setGpsOk(false);
+      }
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => void send(pos),
+      () => setGpsOk(false),
+      { enableHighAccuracy: true, maximumAge: 20000, timeout: 25000 },
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [mine]);
 
   async function accept(id: string) {
     setBusy(id);
@@ -192,6 +228,15 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
           </button>
         </form>
       </header>
+
+      {gpsOk === false && (
+        <p className="courier-gps-warn">
+          Activa la ubicación GPS para que el admin pueda seguir tu ruta en tiempo real.
+        </p>
+      )}
+      {gpsOk === true && (
+        <p className="courier-gps-ok">📍 GPS activo · el panel admin ve tu ubicación</p>
+      )}
 
       <div className="courier-tabs">
         {tabs.map((t) => (

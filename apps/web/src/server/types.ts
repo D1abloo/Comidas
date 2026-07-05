@@ -209,7 +209,21 @@ export interface Order {
   courier_name?: string | null;
   courier_accepted_at?: ISODate | null;
   delivered_at?: ISODate | null;
+  courier_lat?: number | null;
+  courier_lng?: number | null;
+  courier_location_at?: ISODate | null;
   created_at: ISODate;
+}
+
+export interface CourierLocation {
+  courier_id: UUID;
+  courier_name: string;
+  lat: number;
+  lng: number;
+  accuracy_m?: number | null;
+  active_order_id?: UUID | null;
+  active_order_number?: string | null;
+  updated_at: ISODate;
 }
 
 export interface InvoiceLine {

@@ -6,6 +6,7 @@ import type {
   Dish,
   Invoice,
   AdminAlert,
+  CourierLocation,
   MenuSection,
   NotificationEvent,
   Order,
@@ -32,6 +33,7 @@ export interface Store {
   invoices: Invoice[];
   notifications: NotificationEvent[];
   admin_alerts: AdminAlert[];
+  courier_locations: CourierLocation[];
   counters: { order: number; invoice: number };
 }
 
@@ -41,6 +43,9 @@ const g = globalThis as unknown as { __BOCADO_STORE?: Store };
 export function getStore(): Store {
   if (!g.__BOCADO_STORE) {
     g.__BOCADO_STORE = seed();
+  }
+  if (!g.__BOCADO_STORE.courier_locations) {
+    g.__BOCADO_STORE.courier_locations = [];
   }
   return g.__BOCADO_STORE;
 }
@@ -563,6 +568,7 @@ function seed(): Store {
     invoices: [],
     notifications: [],
     admin_alerts: [],
+    courier_locations: [],
     counters: { order: 1044, invoice: 1 },
   };
 }

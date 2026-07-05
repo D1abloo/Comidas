@@ -297,6 +297,36 @@
   .courier-login-title {
     @apply text-2xl font-bold tracking-tight mt-1;
   }
+  .courier-gps-warn {
+    @apply text-xs text-amber-200 bg-amber-500/15 border border-amber-400/30 rounded-xl px-3 py-2.5 mb-3;
+  }
+  .courier-gps-ok {
+    @apply text-xs text-emerald-200 bg-emerald-500/15 border border-emerald-400/25 rounded-xl px-3 py-2 mb-3;
+  }
+  .courier-loc-map {
+    @apply space-y-2;
+  }
+  .courier-loc-label {
+    @apply text-xs font-semibold text-bocado-ink;
+  }
+  .courier-loc-frame {
+    @apply relative rounded-xl overflow-hidden border border-bocado-line bg-bocado-paper2;
+  }
+  .courier-loc-img {
+    @apply w-full h-auto block;
+  }
+  .courier-loc-stale {
+    @apply absolute top-2 right-2 text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-900 px-2 py-1 rounded-full;
+  }
+  .courier-loc-meta {
+    @apply text-xs text-bocado-mute flex flex-wrap gap-1;
+  }
+  .courier-loc-links {
+    @apply flex gap-3 text-xs font-semibold;
+  }
+  .courier-loc-link {
+    @apply text-bocado-ink hover:text-bocado-coral underline-offset-2 hover:underline;
+  }
   .admin-stat-card {
     @apply rounded-2xl border border-bocado-line/80 bg-white p-4 sm:p-5 relative overflow-hidden transition-all duration-200 hover:shadow-card-lift hover:-translate-y-0.5;
   }
