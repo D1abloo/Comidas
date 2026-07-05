@@ -1,0 +1,9 @@
+---
+import MobileApp from '../../../layouts/MobileApp.astro';
+import MobileAdminApp from '../../../components/islands/MobileAdminApp.tsx';
+
+const user = Astro.locals.user!;
+---
+<MobileApp title="BocadO · Admin" role="admin">
+  <MobileAdminApp client:load userName={user.full_name} />
+</MobileApp>

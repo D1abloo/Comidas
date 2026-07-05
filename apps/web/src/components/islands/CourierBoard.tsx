@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { eur, PAYMENT_LABEL, PAYMENT_STATUS_LABEL } from './order-shared';
 import { isCourierNativeApp, startCourierLocationTracking } from '../../lib/courier-geolocation';
 import { getNativeLogoutNext } from '../../lib/capacitor-app';
+import { MOBILE_SYNC_MS, onMobileSync } from '../../lib/mobile-sync';
 
 interface CourierOrder {
   id: string;
@@ -122,7 +123,7 @@ function OrderCard({
   );
 }
 
-export default function CourierBoard({ courierName }: { courierName: string }) {
+export default function CourierBoard({ courierName, embedded = false }: { courierName: string; embedded?: boolean }) {
   const [available, setAvailable] = useState<CourierOrder[]>([]);
   const [mine, setMine] = useState<CourierOrder[]>([]);
   const [completed, setCompleted] = useState<CourierOrder[]>([]);
@@ -150,9 +151,14 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
 
   useEffect(() => {
     void load();
-    const id = window.setInterval(load, 8000);
-    return () => window.clearInterval(id);
-  }, [load]);
+    const ms = embedded ? MOBILE_SYNC_MS : 8000;
+    const id = window.setInterval(load, ms);
+    const off = embedded ? onMobileSync(() => void load()) : () => {};
+    return () => {
+      window.clearInterval(id);
+      off();
+    };
+  }, [load, embedded]);
 
   useEffect(() => {
     activeOrderRef.current = mine[0]?.id ?? null;
@@ -221,19 +227,21 @@ export default function CourierBoard({ courierName }: { courierName: string }) {
   const list = tab === 'available' ? available : tab === 'mine' ? mine : completed;
 
   return (
-    <div className="courier-app">
-      <header className="courier-header">
-        <div>
-          <p className="courier-kicker">{nativeApp ? 'App BocadO' : 'App repartidor'}</p>
-          <h1 className="courier-title">Hola, {courierName.split(' ')[0]}</h1>
-        </div>
-        <form action="/api/auth/logout" method="POST">
-          <input type="hidden" name="next" value={logoutNext} />
-          <button type="submit" className="courier-btn-ghost text-xs">
-            Salir
-          </button>
-        </form>
-      </header>
+    <div className={`courier-app ${embedded ? 'courier-app--embedded' : ''}`}>
+      {!embedded && (
+        <header className="courier-header">
+          <div>
+            <p className="courier-kicker">{nativeApp ? 'App BocadO' : 'App repartidor'}</p>
+            <h1 className="courier-title">Hola, {courierName.split(' ')[0]}</h1>
+          </div>
+          <form action="/api/auth/logout" method="POST">
+            <input type="hidden" name="next" value={logoutNext} />
+            <button type="submit" className="courier-btn-ghost text-xs">
+              Salir
+            </button>
+          </form>
+        </header>
+      )}
 
       <div className="courier-tabs">
         {tabs.map((t) => (

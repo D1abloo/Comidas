@@ -18,6 +18,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
       return context.redirect('/repartidor/login?next=' + encodeURIComponent(path));
     }
   }
+  if (path.startsWith('/movil/admin')) {
+    if (!context.locals.user || context.locals.user.role !== 'admin') {
+      return context.redirect('/movil');
+    }
+  }
+  if (path.startsWith('/movil/repartidor')) {
+    if (!context.locals.user || context.locals.user.role !== 'courier') {
+      return context.redirect('/movil');
+    }
+  }
   if (path.startsWith('/perfil')) {
     if (!context.locals.user) {
       return context.redirect('/login?next=' + encodeURIComponent(path));

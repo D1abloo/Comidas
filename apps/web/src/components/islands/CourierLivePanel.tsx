@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CourierLocationMap, formatLocationAge, isLocationStale } from './CourierLocationMap';
+import { onMobileSync } from '../../lib/mobile-sync';
 
 const POLL_MS = 5000;
 
@@ -42,7 +43,11 @@ export default function CourierLivePanel() {
     }
     void load();
     const id = window.setInterval(load, POLL_MS);
-    return () => window.clearInterval(id);
+    const off = onMobileSync(() => void load());
+    return () => {
+      window.clearInterval(id);
+      off();
+    };
   }, []);
 
   const active = locations.length > 0 || orders.length > 0;

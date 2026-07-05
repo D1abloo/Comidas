@@ -3,8 +3,8 @@ import Mobile from '../../layouts/Mobile.astro';
 import { loginUser, setSession } from '../../server/auth';
 
 const user = Astro.locals.user;
-if (user?.role === 'admin') return Astro.redirect('/admin');
-if (user?.role === 'courier') return Astro.redirect('/repartidor');
+if (user?.role === 'admin') return Astro.redirect('/movil/admin');
+if (user?.role === 'courier') return Astro.redirect('/movil/repartidor');
 
 let error = '';
 
@@ -18,8 +18,8 @@ if (Astro.request.method === 'POST') {
       full_name: logged.full_name,
       role: logged.role,
     });
-    if (logged.role === 'admin') return Astro.redirect('/admin');
-    if (logged.role === 'courier') return Astro.redirect('/repartidor');
+    if (logged.role === 'admin') return Astro.redirect('/movil/admin');
+    if (logged.role === 'courier') return Astro.redirect('/movil/repartidor');
     error = 'Esta app es solo para administradores y repartidores. Usa la web para clientes.';
   } catch (e: unknown) {
     error = e instanceof Error ? e.message : 'Error al iniciar sesión';
@@ -37,12 +37,12 @@ if (Astro.request.method === 'POST') {
         <img src="/logo-bocado-mark.svg" alt="" class="mobile-app-logo" width="112" height="112" />
       </div>
       <p class="mobile-app-brand">Bocad<span>O</span></p>
-      <p class="mobile-app-tagline">Admin · Repartidor · Conectado en vivo</p>
+      <p class="mobile-app-tagline">Sincronización · Notificaciones · En vivo</p>
     </div>
 
     <div class="mobile-app-card">
       <h1 class="mobile-app-title">Entra con tu cuenta</h1>
-      <p class="mobile-app-sub">Detectamos tu rol y abrimos el panel correcto al instante.</p>
+      <p class="mobile-app-sub">Solo panel de trabajo: pedidos, mapa y repartos. Sin tienda web.</p>
 
       <form method="POST" class="mobile-app-form">
         <label class="mobile-app-field">

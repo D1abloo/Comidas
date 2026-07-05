@@ -1,0 +1,9 @@
+---
+import MobileApp from '../../../layouts/MobileApp.astro';
+import MobileCourierApp from '../../../components/islands/MobileCourierApp.tsx';
+
+const user = Astro.locals.user!;
+---
+<MobileApp title="BocadO · Repartidor" role="courier">
+  <MobileCourierApp client:load courierName={user.full_name} />
+</MobileApp>
