@@ -7,7 +7,7 @@ mkdir -p "$OUT"
 fetch() {
   local file="$1"
   local url="$2"
-  if [[ -f "$OUT/$file" ]] && [[ -s "$OUT/$file" ]]; then
+  if [[ -f "$OUT/$file" ]] && [[ -s "$OUT/$file" ]] && [[ -z "${FORCE:-}" ]]; then
     echo "skip $file"
     return 0
   fi
@@ -19,14 +19,12 @@ fetch() {
   return 1
 }
 
-# Bebidas — logos oficiales (Wikimedia Commons, PNG)
-fetch "coca-cola-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Coca-Cola_logo.svg/512px-Coca-Cola_logo.svg.png"
-fetch "pepsi-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Pepsi_logo_2014.svg/512px-Pepsi_logo_2014.svg.png"
-fetch "fanta-naranja-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Fanta_logo.svg/512px-Fanta_logo.svg.png"
-fetch "aquarius-limon-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Aquarius_logo.svg/512px-Aquarius_logo.svg.png" || \
-  fetch "aquarius-limon-lata.jpg" "https://images.unsplash.com/photo-1546173159-315724a3160b?auto=format&fit=crop&w=1200&q=85"
-fetch "monster-energy-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Monster_Energy_logo.svg/512px-Monster_Energy_logo.svg.png" || \
-  fetch "monster-energy-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Monster_Energy_logo.svg/512px-Monster_Energy_logo.svg.png"
+# Bebidas — fotos reales de producto (Unsplash)
+fetch "coca-cola-lata.jpg" "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=1200&q=85"
+fetch "pepsi-lata.jpg" "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?auto=format&fit=crop&w=1200&q=85"
+fetch "fanta-naranja-lata.jpg" "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=85"
+fetch "aquarius-limon-lata.jpg" "https://images.unsplash.com/photo-1523677011787-c91d155a0f62?auto=format&fit=crop&w=1200&q=85"
+fetch "monster-energy-lata.jpg" "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=1200&q=85"
 fetch "limonada-jengibre.jpg" "https://images.unsplash.com/photo-1497534446932-c925b458314e?auto=format&fit=crop&w=1200&q=85"
 
 # Platos (foto acorde al nombre)
@@ -50,7 +48,7 @@ fetch "fabada-asturiana.jpg" "https://images.unsplash.com/photo-1547592166-23ac4
 fetch "callos-madrilenos.jpg" "https://images.unsplash.com/photo-1604908176997-4313efdd2453?auto=format&fit=crop&w=1200&q=85"
 fetch "cocido-madrileno.jpg" "https://images.unsplash.com/photo-1604908177522-402cfa3a0c0a?auto=format&fit=crop&w=1200&q=85"
 fetch "gazpacho-andaluz.jpg" "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=85"
-fetch "pad-thai-pollo.jpg" "https://images.unsplash.com/photo-1559314809-0d31640f0a27?auto=format&fit=crop&w=1200&q=85"
+fetch "pad-thai-pollo.jpg" "https://images.unsplash.com/photo-1455619452474-d660be986d72?auto=format&fit=crop&w=1200&q=85"
 fetch "prado-classic.jpg" "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85"
 fetch "smash-doble-bacon.jpg" "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=1200&q=85"
 fetch "alitas-bbq.jpg" "https://images.unsplash.com/photo-1608039829572-78524f79c4c7?auto=format&fit=crop&w=1200&q=85"

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { formatLocationAge, isLocationStale } from '../../lib/courier-location-utils';
 import { CourierLocationMap } from './CourierLocationMap';
 import { onMobileSync } from '../../lib/mobile-sync';
+import { onOrdersChanged, useOrderStream } from '../../lib/order-stream';
 
 const POLL_MS = 5000;
 
@@ -30,10 +31,12 @@ export default function CourierLivePanel() {
   const [locations, setLocations] = useState<CourierLoc[]>([]);
   const [orders, setOrders] = useState<OrderLoc[]>([]);
 
+  useOrderStream(true);
+
   useEffect(() => {
     async function load() {
       try {
-        const r = await fetch('/api/admin/courier-locations');
+        const r = await fetch('/api/admin/courier-locations', { credentials: 'include' });
         if (!r.ok) return;
         const data = await r.json();
         setLocations(data.locations ?? []);
@@ -44,10 +47,12 @@ export default function CourierLivePanel() {
     }
     void load();
     const id = window.setInterval(load, POLL_MS);
-    const off = onMobileSync(() => void load());
+    const offSync = onMobileSync(() => void load());
+    const offStream = onOrdersChanged(() => void load());
     return () => {
       window.clearInterval(id);
-      off();
+      offSync();
+      offStream();
     };
   }, []);
 

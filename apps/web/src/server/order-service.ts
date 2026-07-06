@@ -56,6 +56,7 @@ export async function createOrder(order: Order): Promise<Order> {
   const store = getStore();
   store.orders.unshift(order);
   await persistOperationalState(store);
+  emitOrderEvent({ type: 'order_created', order_id: order.id, status: order.status });
   return order;
 }
 

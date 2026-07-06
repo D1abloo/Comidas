@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { eur } from './order-shared';
 import { notifyMobileDevice } from '../../lib/mobile-notifications';
 import { isBocadoMobileApp } from '../../lib/capacitor-app';
+import { onOrdersChanged, useOrderStream } from '../../lib/order-stream';
 
 type Alert = {
   id: string;
@@ -21,6 +22,8 @@ export default function AdminAlerts() {
   const booted = useRef(false);
   const autoPrintRef = useRef(false);
   const printedRef = useRef<Set<string>>(new Set());
+
+  useOrderStream(true);
 
   useEffect(() => {
     fetch('/api/settings')
@@ -124,7 +127,11 @@ export default function AdminAlerts() {
 
     poll();
     const id = window.setInterval(poll, 3500);
-    return () => window.clearInterval(id);
+    const offStream = onOrdersChanged(() => void poll());
+    return () => {
+      window.clearInterval(id);
+      offStream();
+    };
   }, [ack]);
 
   function dismiss(id: string) {

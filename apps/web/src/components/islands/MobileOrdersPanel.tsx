@@ -11,7 +11,7 @@ import {
   type OrderStatus,
 } from './order-shared';
 import { onMobileSync } from '../../lib/mobile-sync';
-import { useOrderStream } from '../../lib/order-stream';
+import { onOrdersChanged, useOrderStream } from '../../lib/order-stream';
 import { OrderCourierLocation } from './OrderCourierLocation';
 
 const STATUS = ['pending', 'confirmed', 'preparing', 'delivering', 'delivered', 'cancelled'] as const;
@@ -48,7 +48,12 @@ export default function MobileOrdersPanel() {
 
   useEffect(() => {
     void load();
-    return onMobileSync(() => void load());
+    const offSync = onMobileSync(() => void load());
+    const offStream = onOrdersChanged(() => void load());
+    return () => {
+      offSync();
+      offStream();
+    };
   }, [load]);
 
   useEffect(() => {

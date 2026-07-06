@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { eur, PAYMENT_LABEL, PAYMENT_STATUS_LABEL } from './order-shared';
 import { isCourierNativeApp, startCourierLocationTracking } from '../../lib/courier-geolocation';
 import { getNativeLogoutNext } from '../../lib/capacitor-app';
-import { useOrderStream } from '../../lib/order-stream';
 import { MOBILE_SYNC_MS, onMobileSync } from '../../lib/mobile-sync';
+import { onOrdersChanged, useOrderStream } from '../../lib/order-stream';
 
 interface CourierOrder {
   id: string;
@@ -143,7 +143,7 @@ export default function CourierBoard({ courierName, embedded = false }: { courie
   useOrderStream(true);
 
   const load = useCallback(async () => {
-    const r = await fetch('/api/courier/orders');
+    const r = await fetch('/api/courier/orders', { credentials: 'include' });
     if (!r.ok) return;
     const data = await r.json();
     setAvailable(data.available ?? []);
@@ -160,10 +160,12 @@ export default function CourierBoard({ courierName, embedded = false }: { courie
     void load();
     const ms = embedded ? MOBILE_SYNC_MS : 8000;
     const id = window.setInterval(load, ms);
-    const off = embedded ? onMobileSync(() => void load()) : () => {};
+    const offSync = onMobileSync(() => void load());
+    const offStream = onOrdersChanged(() => void load());
     return () => {
       window.clearInterval(id);
-      off();
+      offSync();
+      offStream();
     };
   }, [load, embedded]);
 
@@ -197,7 +199,7 @@ export default function CourierBoard({ courierName, embedded = false }: { courie
   async function accept(id: string) {
     setBusy(id);
     try {
-      const r = await fetch(`/api/courier/orders/${id}/accept`, { method: 'PATCH' });
+      const r = await fetch(`/api/courier/orders/${id}/accept`, { method: 'PATCH', credentials: 'include' });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error ?? 'Error');
       await load();
@@ -213,7 +215,7 @@ export default function CourierBoard({ courierName, embedded = false }: { courie
     if (!confirm('¿Confirmas que el pedido ha sido entregado al cliente?')) return;
     setBusy(id);
     try {
-      const r = await fetch(`/api/courier/orders/${id}/deliver`, { method: 'PATCH' });
+      const r = await fetch(`/api/courier/orders/${id}/deliver`, { method: 'PATCH', credentials: 'include' });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error ?? 'Error');
       await load();
