@@ -12,8 +12,15 @@ export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Pr
   const [payment, setPayment] = useState<PM>('tpv');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [bizum, setBizum] = useState<null | { qr: string; phone: string; concept: string; amount: string; order_id: string; payment_token: string }>(null);
-  const [done, setDone] = useState<null | { number: string; method: PM }>(null);
+  const [bizum, setBizum] = useState<null | {
+    qr: string;
+    phone: string;
+    concept: string;
+    amount: string;
+    order_id: string;
+    payment_token: string;
+    access_token: string;
+  }>(null);
 
   const subtotal = total();
   const free = subtotal >= 2500;
@@ -55,6 +62,7 @@ export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Pr
       if (!r.ok) throw new Error(data.error ?? 'Error creando pedido');
       const order = data.order;
       const paymentToken = data.payment_token as string;
+      const accessToken = data.access_token as string;
 
       const pay = await fetch('/api/payments/start', {
         method: 'POST',
@@ -72,13 +80,14 @@ export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Pr
           amount: payData.amount,
           order_id: order.id,
           payment_token: paymentToken,
+          access_token: accessToken,
         });
       } else if (payData.method === 'cash') {
         clear();
-        setDone({ number: order.number, method: 'cash' });
+        location.href = `/checkout/ok?order=${order.id}&token=${encodeURIComponent(accessToken)}`;
       } else if (payData.method === 'tpv') {
         clear();
-        location.href = payData.redirect_url;
+        location.href = `${payData.redirect_url}${payData.redirect_url.includes('?') ? '&' : '?'}token=${encodeURIComponent(accessToken)}`;
       }
     } catch (err: any) {
       setError(err?.message ?? 'Error inesperado');
@@ -112,26 +121,14 @@ export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Pr
               });
               const data = await r.json();
               clear();
-              location.href = data.redirect_url;
+              const sep = data.redirect_url.includes('?') ? '&' : '?';
+              location.href = `${data.redirect_url}${sep}token=${encodeURIComponent(bizum.access_token)}`;
             }}
             className="btn-lime mt-6 w-full"
           >
             He enviado el Bizum
           </button>
         </div>
-      </div>
-    );
-  }
-
-  if (done) {
-    return (
-      <div className="card p-10 text-center">
-        <div className="w-12 h-12 rounded-full bg-bocado-lime grid place-items-center mx-auto">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="2"><path d="m5 12 4 4L19 6"/></svg>
-        </div>
-        <h3 className="mt-6 text-2xl font-semibold tracking-tight">Pedido recibido</h3>
-        <p className="mt-2 text-bocado-mute">Pagarás en efectivo al repartidor. Número de pedido <b>{done.number}</b>.</p>
-        <a href="/" className="btn-primary mt-6 inline-flex">Volver al inicio</a>
       </div>
     );
   }

@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { getStore } from '../../../server/db';
 import { generateBizumQR } from '../../../server/bizum';
 import { createInvoiceForOrder } from '../../../server/invoices';
-import { verifyOrderPaymentToken } from '../../../server/order-payment-token';
+import { verifyOrderPaymentToken } from '../../../server/order-tokens';
 import { getOrderById, saveOrder } from '../../../server/order-service';
 
 export const POST: APIRoute = async ({ request }) => {

@@ -2,10 +2,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { AdminAlert, CourierLocation, Order } from './types.js';
 import type { Store } from './db.js';
-import { getSupabaseAdmin } from './supabase.js';
-import { isDatabaseEnabled, isSupabaseConfigured } from './env.js';
+import { isDatabaseEnabled } from './env.js';
 
-const STORE_KEY = 'bocado_operational_state';
 const FILE_PATH = join(process.cwd(), '.data', 'bocado-store.json');
 
 type OperationalState = {
@@ -15,7 +13,7 @@ type OperationalState = {
   counters: { order: number; invoice: number };
 };
 
-let hydratedFromRemote = false;
+let hydratedFromFile = false;
 let hydratePromise: Promise<void> | null = null;
 
 function sliceState(store: Store): OperationalState {
@@ -53,49 +51,24 @@ function persistToFile(store: Store) {
   }
 }
 
-async function hydrateFromSupabase(store: Store) {
-  if (isDatabaseEnabled()) return;
-  const sb = getSupabaseAdmin();
-  if (!sb) return;
-  const { data, error } = await sb.from('app_settings').select('value').eq('key', STORE_KEY).maybeSingle();
-  if (error) {
-    console.error('[store] Supabase hydrate error:', error.message);
-    return;
-  }
-  if (data?.value) applyState(store, data.value as OperationalState);
-}
-
-async function persistToSupabase(store: Store) {
-  const sb = getSupabaseAdmin();
-  if (!sb) return;
-  const payload = sliceState(store);
-  const { error } = await sb.from('app_settings').upsert({
-    key: STORE_KEY,
-    value: payload,
-    updated_at: new Date().toISOString(),
-  });
-  if (error) console.error('[store] Supabase persist error:', error.message);
-}
-
 export function hydrateOperationalStateSync(store: Store) {
-  if (hydratedFromRemote) return;
+  if (hydratedFromFile || isDatabaseEnabled()) return;
   hydrateFromFile(store);
-  if (!isSupabaseConfigured()) hydratedFromRemote = true;
+  hydratedFromFile = true;
 }
 
 export async function ensureOperationalStateHydrated(store: Store) {
-  if (hydratedFromRemote || isDatabaseEnabled()) return;
+  if (hydratedFromFile || isDatabaseEnabled()) return;
   if (!hydratePromise) {
-    hydratePromise = (async () => {
+    hydratePromise = Promise.resolve().then(() => {
       hydrateFromFile(store);
-      if (isSupabaseConfigured()) await hydrateFromSupabase(store);
-      hydratedFromRemote = true;
-    })();
+      hydratedFromFile = true;
+    });
   }
   await hydratePromise;
 }
 
 export async function persistOperationalState(store: Store) {
+  if (isDatabaseEnabled()) return;
   persistToFile(store);
-  if (isSupabaseConfigured()) await persistToSupabase(store);
 }

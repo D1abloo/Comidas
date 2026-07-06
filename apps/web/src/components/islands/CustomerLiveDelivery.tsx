@@ -21,6 +21,7 @@ interface Props {
   orderStatus: string;
   courierAcceptedAt?: string | null;
   compact?: boolean;
+  accessToken?: string;
 }
 
 export default function CustomerLiveDelivery({
@@ -28,6 +29,7 @@ export default function CustomerLiveDelivery({
   orderStatus,
   courierAcceptedAt,
   compact,
+  accessToken,
 }: Props) {
   const [tracking, setTracking] = useState<CustomerTracking | null>(null);
 
@@ -37,7 +39,8 @@ export default function CustomerLiveDelivery({
     let cancelled = false;
     async function poll() {
       try {
-        const r = await fetch(`/api/orders/${orderId}/tracking`);
+        const q = accessToken ? `?token=${encodeURIComponent(accessToken)}` : '';
+        const r = await fetch(`/api/orders/${orderId}/tracking${q}`);
         if (!r.ok) return;
         const data = await r.json();
         if (!cancelled) setTracking(data.tracking ?? null);
@@ -52,7 +55,7 @@ export default function CustomerLiveDelivery({
       cancelled = true;
       window.clearInterval(id);
     };
-  }, [orderId, orderStatus]);
+  }, [orderId, orderStatus, accessToken]);
 
   const label = tracking?.status_label ?? customerOrderLabel({
     status: orderStatus as 'delivering',

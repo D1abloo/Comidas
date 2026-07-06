@@ -1,5 +1,7 @@
 import { resolve } from 'node:path';
-import type { Company, CompanySettings, OrderStatus, PaymentMethod } from './types.js';
+import type { SessionUser } from './auth.js';
+import type { Order, Company, CompanySettings, OrderStatus, PaymentMethod } from './types.js';
+import { verifyOrderAccessToken } from './order-tokens.js';
 
 const DEFAULT_SESSION_SECRET = 'bocado-demo-secret-change-me';
 const INSECURE_SESSION_SECRETS = new Set([
@@ -151,4 +153,22 @@ export function resolveUnderRoot(root: string, relativePath: string): string | n
   const rootResolved = resolve(root);
   if (abs !== rootResolved && !abs.startsWith(rootResolved + '/')) return null;
   return abs;
+}
+
+export function getAccessTokenFromRequest(request: Request): string | null {
+  const q = new URL(request.url).searchParams.get('token');
+  return q && q.length > 0 ? q : null;
+}
+
+export function canAccessOrder(
+  order: Order,
+  user: SessionUser | null | undefined,
+  accessToken?: string | null,
+): boolean {
+  if (user?.role === 'admin') return true;
+  if (user) {
+    const email = user.email.toLowerCase();
+    if (order.customer.user_id === user.id || order.customer.email.toLowerCase() === email) return true;
+  }
+  return Boolean(accessToken && verifyOrderAccessToken(order.id, accessToken));
 }

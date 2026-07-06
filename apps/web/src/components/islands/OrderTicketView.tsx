@@ -21,15 +21,21 @@ type TicketData = {
 export default function OrderTicketView({
   orderId,
   publicMode = true,
+  accessToken,
 }: {
   orderId: string;
   publicMode?: boolean;
+  accessToken?: string;
 }) {
   const [data, setData] = useState<TicketData | null>(null);
   const [err, setErr] = useState('');
 
   useEffect(() => {
-    const url = publicMode ? `/api/orders/${orderId}/ticket-public` : `/api/orders/${orderId}/ticket`;
+    const token =
+      accessToken ??
+      (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('token') : null);
+    const q = token ? `?token=${encodeURIComponent(token)}` : '';
+    const url = publicMode ? `/api/orders/${orderId}/ticket-public${q}` : `/api/orders/${orderId}/ticket`;
     fetch(url)
       .then((r) => r.json())
       .then((d) => {
@@ -37,7 +43,7 @@ export default function OrderTicketView({
         else setData(d);
       })
       .catch(() => setErr('No se pudo cargar el ticket'));
-  }, [orderId, publicMode]);
+  }, [orderId, publicMode, accessToken]);
 
   if (err) return <p className="text-center text-red-600 py-12">{err}</p>;
   if (!data) return <p className="text-center text-bocado-mute py-12 animate-pulse">Cargando ticket…</p>;

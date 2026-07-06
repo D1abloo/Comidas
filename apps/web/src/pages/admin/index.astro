@@ -3,33 +3,35 @@ import Admin from '../../layouts/Admin.astro';
 import AdminDashboard from '../../components/islands/AdminDashboard.tsx';
 import type { DashboardData } from '../../components/islands/AdminDashboard.types';
 import { getStore } from '../../server/db';
+import { listOrders } from '../../server/order-service';
 
 const store = getStore();
+const allOrders = await listOrders();
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
 
-const ordersToday = store.orders.filter((o) => new Date(o.created_at) >= today);
+const ordersToday = allOrders.filter((o) => new Date(o.created_at) >= today);
 const paidToday = ordersToday.filter((o) => o.payment_status === 'paid');
 const salesToday = paidToday.reduce((s, o) => s + o.total_cents, 0);
 const avgTicket = paidToday.length ? Math.round(salesToday / paidToday.length) : 0;
 
-const paidMonth = store.orders.filter(
+const paidMonth = allOrders.filter(
   (o) => new Date(o.created_at) >= monthStart && o.payment_status === 'paid',
 );
 const salesMonth = paidMonth.reduce((s, o) => s + o.total_cents, 0);
 
 const activeStatuses = ['pending', 'confirmed', 'preparing', 'delivering'] as const;
-const activeOrders = store.orders.filter((o) => activeStatuses.includes(o.status as typeof activeStatuses[number])).length;
+const activeOrders = allOrders.filter((o) => activeStatuses.includes(o.status as typeof activeStatuses[number])).length;
 
 const pipeline = {
-  pending: store.orders.filter((o) => o.status === 'pending').length,
-  confirmed: store.orders.filter((o) => o.status === 'confirmed').length,
-  preparing: store.orders.filter((o) => o.status === 'preparing').length,
-  delivering: store.orders.filter((o) => o.status === 'delivering').length,
+  pending: allOrders.filter((o) => o.status === 'pending').length,
+  confirmed: allOrders.filter((o) => o.status === 'confirmed').length,
+  preparing: allOrders.filter((o) => o.status === 'preparing').length,
+  delivering: allOrders.filter((o) => o.status === 'delivering').length,
 };
 
-const pendingBizum = store.orders.filter(
+const pendingBizum = allOrders.filter(
   (o) => o.payment_method === 'bizum' && o.payment_status === 'awaiting_confirmation',
 ).length;
 
@@ -41,7 +43,7 @@ for (const o of paidMonth) {
 }
 
 const dishStats = new Map<string, { name: string; qty: number; revenue_cents: number }>();
-for (const o of store.orders) {
+for (const o of allOrders) {
   for (const line of o.items) {
     const cur = dishStats.get(line.dish_id) ?? { name: line.dish_name, qty: 0, revenue_cents: 0 };
     cur.qty += line.quantity;
@@ -58,7 +60,7 @@ for (let i = 6; i >= 0; i--) {
   dt.setDate(dt.getDate() - i);
   const next = new Date(dt);
   next.setDate(dt.getDate() + 1);
-  const total = store.orders
+  const total = allOrders
     .filter((o) => new Date(o.created_at) >= dt && new Date(o.created_at) < next)
     .reduce((s, o) => s + o.total_cents, 0);
   series.push({
@@ -68,7 +70,7 @@ for (let i = 6; i >= 0; i--) {
   });
 }
 
-const recentOrders = [...store.orders]
+const recentOrders = [...allOrders]
   .sort((a, b) => b.created_at.localeCompare(a.created_at))
   .slice(0, 6)
   .map((o) => ({

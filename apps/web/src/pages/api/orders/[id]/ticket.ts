@@ -1,14 +1,15 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../../../server/db';
+import { getOrderById } from '../../../../server/order-service';
 import { buildPaymentQrForOrder } from '../../../../server/payment-qr';
 import { formatEUR } from '../../../../server/format';
 
 /** Datos del ticket con QR para cliente o impresión */
 export const GET: APIRoute = async ({ params, url, locals }) => {
-  const store = getStore();
-  const order = store.orders.find((o) => o.id === params.id);
+  const order = await getOrderById(String(params.id));
   if (!order) return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
 
+  const store = getStore();
   const isAdmin = locals.user?.role === 'admin';
   const isOwner =
     locals.user &&

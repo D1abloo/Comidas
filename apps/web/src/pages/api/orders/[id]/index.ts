@@ -1,11 +1,14 @@
 import type { APIRoute } from 'astro';
-import { getStore } from '../../../../server/db';
+import { getOrderById } from '../../../../server/order-service';
+import { canAccessOrder, getAccessTokenFromRequest } from '../../../../server/security';
 
-/** Seguimiento público de un pedido por ID (demo). */
-export const GET: APIRoute = async ({ params }) => {
-  const store = getStore();
-  const order = store.orders.find((o) => o.id === params.id);
+export const GET: APIRoute = async ({ params, request, locals }) => {
+  const order = await getOrderById(String(params.id));
   if (!order) return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+  const token = getAccessTokenFromRequest(request);
+  if (!canAccessOrder(order, locals.user, token)) {
+    return new Response(JSON.stringify({ error: 'forbidden' }), { status: 403 });
+  }
 
   return new Response(
     JSON.stringify({
@@ -17,6 +20,7 @@ export const GET: APIRoute = async ({ params }) => {
         total_cents: order.total_cents,
         created_at: order.created_at,
         invoice_id: order.invoice_id,
+        courier_accepted_at: order.courier_accepted_at,
         items: order.items.map((i) => ({ dish_name: i.dish_name, quantity: i.quantity })),
       },
     }),

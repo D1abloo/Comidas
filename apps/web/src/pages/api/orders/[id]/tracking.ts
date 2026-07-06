@@ -1,12 +1,15 @@
 import type { APIRoute } from 'astro';
-import { getStore } from '../../../../server/db';
+import { getOrderById } from '../../../../server/order-service';
 import { buildCustomerTracking } from '../../../../server/order-tracking';
+import { canAccessOrder, getAccessTokenFromRequest } from '../../../../server/security';
 
-/** Seguimiento en vivo para el cliente (demo: por ID de pedido). */
-export const GET: APIRoute = async ({ params }) => {
-  const store = getStore();
-  const order = store.orders.find((o) => o.id === params.id);
+export const GET: APIRoute = async ({ params, request, locals }) => {
+  const order = await getOrderById(String(params.id));
   if (!order) return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+  const token = getAccessTokenFromRequest(request);
+  if (!canAccessOrder(order, locals.user, token)) {
+    return new Response(JSON.stringify({ error: 'forbidden' }), { status: 403 });
+  }
 
   return new Response(
     JSON.stringify({

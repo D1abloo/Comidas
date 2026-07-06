@@ -3,7 +3,7 @@ import { getStore } from '../../../server/db';
 import { pushAdminNewOrderAlert } from '../../../server/admin-alerts';
 import { onOrderCreated } from '../../../server/order-emails';
 import { geocodeAddress } from '../../../server/geo';
-import { createOrderPaymentToken } from '../../../server/order-payment-token';
+import { createOrderAccessToken, createOrderPaymentToken } from '../../../server/order-tokens';
 import { parsePaymentMethod } from '../../../server/security';
 import { createOrder, getOrderById, listOrders, nextOrderNumber, saveOrder } from '../../../server/order-service';
 import type { Order } from '../../../server/types';
@@ -21,7 +21,6 @@ async function attachDeliveryCoords(orderId: string) {
 }
 
 export const GET: APIRoute = async ({ locals, url }) => {
-  const email = url.searchParams.get('email')?.trim().toLowerCase();
   const allOrders = await listOrders();
 
   if (locals.user?.role === 'admin') {
@@ -39,13 +38,6 @@ export const GET: APIRoute = async ({ locals, url }) => {
     if (url.searchParams.get('active') === '1') {
       orders = orders.filter((o) => o.status !== 'delivered' && o.status !== 'cancelled');
     }
-    return new Response(JSON.stringify({ orders }), {
-      headers: { 'content-type': 'application/json' },
-    });
-  }
-
-  if (email) {
-    const orders = allOrders.filter((o) => o.customer.email.toLowerCase() === email);
     return new Response(JSON.stringify({ orders }), {
       headers: { 'content-type': 'application/json' },
     });
@@ -128,7 +120,11 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   }
 
-  return new Response(JSON.stringify({ order, payment_token: createOrderPaymentToken(order.id) }), {
+  return new Response(JSON.stringify({
+    order,
+    payment_token: createOrderPaymentToken(order.id),
+    access_token: createOrderAccessToken(order.id),
+  }), {
     status: 201,
     headers: { 'content-type': 'application/json' },
   });

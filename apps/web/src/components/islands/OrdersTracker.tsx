@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   OrderTimeline,
-  STATUS_LABEL,
   PAYMENT_LABEL,
   customerOrderLabel,
   eur,
@@ -10,6 +9,7 @@ import {
   type OrderStatus,
 } from './order-shared';
 import CustomerLiveDelivery from './CustomerLiveDelivery';
+import { loadGuestOrders, type SavedGuestOrder } from './order-track-storage';
 
 interface Order {
   id: string;
@@ -20,6 +20,7 @@ interface Order {
   created_at: string;
   courier_accepted_at?: string | null;
   items: { dish_name: string; quantity: number }[];
+  accessToken?: string;
 }
 
 interface Props {
@@ -27,60 +28,59 @@ interface Props {
   initialOrders?: Order[];
 }
 
+async function fetchOrderWithToken(id: string, token: string): Promise<Order | null> {
+  const r = await fetch(`/api/orders/${id}?token=${encodeURIComponent(token)}`);
+  if (!r.ok) return null;
+  const data = await r.json();
+  return { ...data.order, accessToken: token } as Order;
+}
+
 export default function OrdersTracker({ userEmail, initialOrders = [] }: Props) {
-  const [email, setEmail] = useState(userEmail ?? '');
   const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!userEmail);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<Order | null>(initialOrders[0] ?? null);
 
-  async function search(e?: React.FormEvent) {
-    e?.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      const q = userEmail ? '' : `?email=${encodeURIComponent(email.trim())}`;
-      const r = await fetch(`/api/orders${q}`);
-      const data = await r.json();
-      if (!r.ok) {
-        setError(data.error === 'unauthorized' ? 'Introduce el email con el que hiciste el pedido.' : 'No se pudieron cargar los pedidos.');
-        setOrders([]);
-        setSelected(null);
+  useEffect(() => {
+    if (userEmail) return;
+    let cancelled = false;
+    async function loadGuest() {
+      setLoading(true);
+      setError('');
+      const saved = loadGuestOrders();
+      if (!saved.length) {
+        if (!cancelled) {
+          setOrders([]);
+          setSelected(null);
+          setLoading(false);
+        }
         return;
       }
-      const list = (data.orders ?? []) as Order[];
-      setOrders(list);
-      setSelected(list[0] ?? null);
-      if (list.length === 0) setError('No hay pedidos para ese email.');
-    } catch {
-      setError('Error de conexión. Inténtalo de nuevo.');
-    } finally {
-      setLoading(false);
+      const loaded = (
+        await Promise.all(saved.map((s: SavedGuestOrder) => fetchOrderWithToken(s.id, s.accessToken)))
+      ).filter((o): o is Order => Boolean(o));
+      if (!cancelled) {
+        setOrders(loaded);
+        setSelected(loaded[0] ?? null);
+        if (!loaded.length) setError('No se encontraron pedidos guardados en este dispositivo.');
+        setLoading(false);
+      }
     }
-  }
+    void loadGuest();
+    return () => {
+      cancelled = true;
+    };
+  }, [userEmail]);
 
   return (
     <div className="space-y-8">
-      {!userEmail && (
-        <form onSubmit={search} className="card p-6 flex flex-col sm:flex-row gap-3 animate-fade-up">
-          <div className="flex-1">
-            <label className="label" htmlFor="track-email">
-              Email del pedido
-            </label>
-            <input
-              id="track-email"
-              type="email"
-              required
-              className="input mt-1"
-              placeholder="cliente@bocado.app"
-              value={email}
-              onChange={(ev) => setEmail(ev.target.value)}
-            />
-          </div>
-          <button type="submit" className="btn-lime sm:self-end shrink-0" disabled={loading}>
-            {loading ? 'Buscando…' : 'Buscar pedidos'}
-          </button>
-        </form>
+      {!userEmail && !loading && orders.length === 0 && (
+        <p className="text-sm text-bocado-mute text-center card p-8">
+          Los pedidos que hagas desde este navegador aparecerán aquí automáticamente.{' '}
+          <a href="/" className="underline">
+            Ver catálogo
+          </a>
+        </p>
       )}
 
       {userEmail && orders.length === 0 && !loading && (
@@ -91,6 +91,8 @@ export default function OrdersTracker({ userEmail, initialOrders = [] }: Props) 
           </a>
         </p>
       )}
+
+      {loading && <p className="text-sm text-bocado-mute text-center card p-8 animate-pulse">Cargando pedidos…</p>}
 
       {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">{error}</p>}
 
@@ -137,6 +139,7 @@ export default function OrdersTracker({ userEmail, initialOrders = [] }: Props) 
                 orderId={selected.id}
                 orderStatus={selected.status}
                 courierAcceptedAt={selected.courier_accepted_at}
+                accessToken={selected.accessToken}
               />
 
               <div>

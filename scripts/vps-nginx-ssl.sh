@@ -9,12 +9,35 @@ CERT_DIR="/etc/letsencrypt/live/${DOMAIN}"
 apt-get update -qq
 DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nginx certbot python3-certbot-nginx
 
-write_http_only() {
-  cat > /etc/nginx/sites-available/bocado <<NGINX
-server {
-    listen 80;
-    listen [::]:80;
-    server_name ${DOMAIN};
+cat > /etc/nginx/conf.d/bocado-rate-limit.conf <<'LIMITS'
+limit_req_zone $binary_remote_addr zone=bocado_api:10m rate=10r/s;
+limit_req_zone $binary_remote_addr zone=bocado_login:10m rate=20r/m;
+LIMITS
+
+proxy_locations() {
+  local proto="$1"
+  cat <<NGINX
+    location /api/ {
+        limit_req zone=bocado_api burst=30 nodelay;
+        proxy_pass http://127.0.0.1:4321;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto ${proto};
+        proxy_buffering off;
+        proxy_read_timeout 86400;
+    }
+
+    location ~ ^/(login|admin/login|repartidor/login|admin/registro)$ {
+        limit_req zone=bocado_login burst=5 nodelay;
+        proxy_pass http://127.0.0.1:4321;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto ${proto};
+    }
 
     location / {
         proxy_pass http://127.0.0.1:4321;
@@ -22,12 +45,23 @@ server {
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Proto ${proto};
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_buffering off;
         proxy_read_timeout 86400;
     }
+NGINX
+}
+
+write_http_only() {
+  cat > /etc/nginx/sites-available/bocado <<NGINX
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN};
+
+$(proxy_locations '$scheme')
 }
 NGINX
 }
@@ -51,18 +85,7 @@ server {
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-    location / {
-        proxy_pass http://127.0.0.1:4321;
-        proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto https;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_buffering off;
-        proxy_read_timeout 86400;
-    }
+$(proxy_locations 'https')
 }
 NGINX
 }

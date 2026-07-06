@@ -3,12 +3,13 @@ import Base from '../../layouts/Base.astro';
 import OrderTicketView from '../../components/islands/OrderTicketView.tsx';
 
 const orderId = Astro.url.searchParams.get('order');
+const accessToken = Astro.url.searchParams.get('token') ?? undefined;
 if (!orderId) {
   return Astro.redirect('/');
 }
 ---
 <Base title="Ticket de pago · BocadO" description="Escanea el QR para pagar tu pedido">
   <section class="container-bocado py-12 md:py-16">
-    <OrderTicketView client:load orderId={orderId} publicMode={true} />
+    <OrderTicketView client:load orderId={orderId} accessToken={accessToken} publicMode={true} />
   </section>
 </Base>

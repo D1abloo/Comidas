@@ -2,10 +2,11 @@
 import Admin from '../../layouts/Admin.astro';
 import BizumQRPanel from '../../components/islands/BizumQRPanel.tsx';
 import { getStore } from '../../server/db';
+import { listOrders } from '../../server/order-service';
 import { formatEUR, statusLabel } from '../../server/format';
 
 const store = getStore();
-const orders = store.orders;
+const orders = await listOrders();
 const byMethod: Record<string, number> = { tpv: 0, bizum: 0, cash: 0 };
 orders.forEach((o) => (byMethod[o.payment_method] = (byMethod[o.payment_method] ?? 0) + 1));
 const total = orders.length || 1;

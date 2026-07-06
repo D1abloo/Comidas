@@ -1,11 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import ProfileOrders from '../components/islands/ProfileOrders.tsx';
-import { getStore } from '../server/db';
+import { listOrders } from '../server/order-service';
 
 const user = Astro.locals.user!;
-const store = getStore();
-const myOrders = store.orders
+const myOrders = (await listOrders())
   .filter((o) => o.customer.user_id === user.id || o.customer.email === user.email)
   .sort((a, b) => b.created_at.localeCompare(a.created_at));
 ---
@@ -27,7 +26,7 @@ const myOrders = store.orders
       </form>
     </aside>
 
-        <div>
+    <div>
       <h2 class="text-2xl font-semibold tracking-tight animate-fade-up">Mis pedidos</h2>
       <p class="text-sm text-bocado-mute mt-1 animate-fade-up stagger-1">
         Histórico con seguimiento detallado · {myOrders.length} pedido{myOrders.length === 1 ? '' : 's'}

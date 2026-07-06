@@ -4,6 +4,7 @@ import CustomerLiveDelivery from './CustomerLiveDelivery';
 import {
   TRACK_ORDER_KEY,
   clearOrderTracking,
+  getOrderTrackingToken,
   isOrderAlreadyFinalized,
   markOrderDone,
 } from './order-track-storage';
@@ -67,7 +68,9 @@ export default function OrderTrackerBar() {
           picked = (stored ? list.find((o) => o.id === stored) : null) ?? list[0] ?? null;
         }
         if (!picked && stored) {
-          const one = await fetch(`/api/orders/${stored}`);
+          const token = getOrderTrackingToken();
+          const q = token ? `?token=${encodeURIComponent(token)}` : '';
+          const one = await fetch(`/api/orders/${stored}${q}`);
           if (one.ok) {
             const data = await one.json();
             picked = data.order ?? null;
@@ -178,6 +181,7 @@ export default function OrderTrackerBar() {
                     orderId={order.id}
                     orderStatus={order.status}
                     courierAcceptedAt={order.courier_accepted_at}
+                    accessToken={getOrderTrackingToken() ?? undefined}
                     compact
                   />
                   <div className="flex gap-1 mt-3">

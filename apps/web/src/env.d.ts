@@ -11,9 +11,7 @@ interface ImportMetaEnv {
   readonly PUBLIC_APP_URL: string;
   readonly SESSION_SECRET: string;
   readonly BIZUM_COMPANY_PHONE: string;
-  readonly PUBLIC_SUPABASE_URL?: string;
-  readonly PUBLIC_SUPABASE_ANON_KEY?: string;
-  readonly SUPABASE_SERVICE_ROLE_KEY?: string;
+  readonly DATABASE_URL?: string;
   readonly EMAIL_ENABLED?: string;
   readonly EMAIL_PROVIDER?: string;
   readonly EMAIL_FROM?: string;

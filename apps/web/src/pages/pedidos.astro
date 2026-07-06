@@ -1,12 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
 import OrdersTracker from '../components/islands/OrdersTracker.tsx';
-import { getStore } from '../server/db';
+import { listOrders } from '../server/order-service';
 
 const user = Astro.locals.user;
-const store = getStore();
+const allOrders = user ? await listOrders() : [];
 const initialOrders = user
-  ? store.orders
+  ? allOrders
       .filter((o) => o.customer.user_id === user.id || o.customer.email === user.email)
       .sort((a, b) => b.created_at.localeCompare(a.created_at))
   : [];
@@ -19,7 +19,7 @@ const initialOrders = user
       <p class="premium-sub mt-3">
         {user
           ? 'Aquí ves el estado en tiempo real de tus pedidos con esta cuenta.'
-          : 'Introduce el email con el que realizaste la compra para ver el estado.'}
+          : 'Aquí aparecen los pedidos realizados desde este navegador.'}
       </p>
     </div>
 

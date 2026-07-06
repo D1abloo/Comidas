@@ -29,9 +29,14 @@ sed -i "s|^PUBLIC_APP_URL=.*|PUBLIC_APP_URL=https://\$DOMAIN|" .env.deploy
 sed -i "s|^DOMAIN=.*|DOMAIN=\$DOMAIN|" .env.deploy
 source .env.deploy
 export SESSION_SECRET PUBLIC_APP_URL DOMAIN BIZUM_COMPANY_PHONE='+34600123456'
+docker system prune -f --filter "until=72h" 2>/dev/null || true
 docker compose up -d --build
 bash scripts/vps-nginx-ssl.sh
 docker compose ps
+echo "--- Memoria VPS ---"
+free -h
+swapon --show 2>/dev/null || true
+docker stats --no-stream 2>/dev/null || true
 curl -sI "https://\$DOMAIN/movil" | head -5
 REMOTE
 

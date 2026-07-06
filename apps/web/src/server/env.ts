@@ -7,19 +7,6 @@ function read(key: string): string | undefined {
   return undefined;
 }
 
-export function isSupabaseConfigured(): boolean {
-  if (isDatabaseEnabled()) return false;
-  return Boolean(read('PUBLIC_SUPABASE_URL') && read('SUPABASE_SERVICE_ROLE_KEY'));
-}
-
-export function getSupabaseConfig() {
-  return {
-    url: read('PUBLIC_SUPABASE_URL')!,
-    serviceRoleKey: read('SUPABASE_SERVICE_ROLE_KEY')!,
-    anonKey: read('PUBLIC_SUPABASE_ANON_KEY'),
-  };
-}
-
 export function getEmailConfig() {
   const provider = (read('EMAIL_PROVIDER') ?? 'console') as 'console' | 'resend' | 'smtp';
   return {
