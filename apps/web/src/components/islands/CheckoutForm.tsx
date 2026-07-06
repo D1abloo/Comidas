@@ -12,7 +12,7 @@ export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Pr
   const [payment, setPayment] = useState<PM>('tpv');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [bizum, setBizum] = useState<null | { qr: string; phone: string; concept: string; amount: string; order_id: string }>(null);
+  const [bizum, setBizum] = useState<null | { qr: string; phone: string; concept: string; amount: string; order_id: string; payment_token: string }>(null);
   const [done, setDone] = useState<null | { number: string; method: PM }>(null);
 
   const subtotal = total();
@@ -54,17 +54,25 @@ export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Pr
       const data = await r.json();
       if (!r.ok) throw new Error(data.error ?? 'Error creando pedido');
       const order = data.order;
+      const paymentToken = data.payment_token as string;
 
       const pay = await fetch('/api/payments/start', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ order_id: order.id }),
+        body: JSON.stringify({ order_id: order.id, payment_token: paymentToken }),
       });
       const payData = await pay.json();
       if (!pay.ok) throw new Error(payData.error ?? 'Error iniciando pago');
 
       if (payData.method === 'bizum') {
-        setBizum({ qr: payData.qr_data_url, phone: payData.phone, concept: payData.concept, amount: payData.amount, order_id: order.id });
+        setBizum({
+          qr: payData.qr_data_url,
+          phone: payData.phone,
+          concept: payData.concept,
+          amount: payData.amount,
+          order_id: order.id,
+          payment_token: paymentToken,
+        });
       } else if (payData.method === 'cash') {
         clear();
         setDone({ number: order.number, method: 'cash' });
@@ -100,7 +108,7 @@ export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Pr
               const r = await fetch('/api/payments/bizum-confirm', {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ order_id: bizum.order_id }),
+                body: JSON.stringify({ order_id: bizum.order_id, payment_token: bizum.payment_token }),
               });
               const data = await r.json();
               clear();

@@ -299,3 +299,13 @@ export async function pgFindUserByEmail(email: string) {
   }>('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
   return rows[0] ?? null;
 }
+
+export async function pgFindUserById(id: string) {
+  const { rows } = await pgQuery<{
+    id: string;
+    email: string;
+    full_name: string;
+    role: string;
+  }>('SELECT id, email, full_name, role FROM users WHERE id = $1', [id]);
+  return rows[0] ?? null;
+}

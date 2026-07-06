@@ -1,18 +1,19 @@
 ---
 import Base from '../layouts/Base.astro';
 import { loginUser, setSession } from '../server/auth';
+import { safeRedirectPath } from '../server/security';
 
 let error = '';
-const next = Astro.url.searchParams.get('next') ?? '/';
+const next = safeRedirectPath(Astro.url.searchParams.get('next'), '/');
 
 if (Astro.request.method === 'POST') {
   try {
     const fd = await Astro.request.formData();
     const user = await loginUser(String(fd.get('email')), String(fd.get('password')));
     await setSession(Astro.cookies, { id: user.id, email: user.email, full_name: user.full_name, role: user.role }, Astro.request);
-    return Astro.redirect(
-      user.role === 'admin' ? '/admin' : user.role === 'courier' ? '/repartidor' : (next || '/perfil'),
-    );
+    const redirectTo =
+      user.role === 'admin' ? '/admin' : user.role === 'courier' ? '/repartidor' : safeRedirectPath(next, '/perfil');
+    return Astro.redirect(redirectTo);
   } catch (e: any) {
     error = e.message ?? 'Error';
   }
@@ -34,10 +35,10 @@ if (Astro.request.method === 'POST') {
 
       <form method="POST" class="mt-6 space-y-3">
         <label class="block"><span class="label">Email</span>
-          <input class="input mt-1" name="email" type="email" required defaultValue="cliente@bocado.app" />
+          <input class="input mt-1" name="email" type="email" required autocomplete="username" />
         </label>
         <label class="block"><span class="label">Contraseña</span>
-          <input class="input mt-1" name="password" type="password" required defaultValue="cliente1234" />
+          <input class="input mt-1" name="password" type="password" required autocomplete="current-password" />
         </label>
         {error && <p class="text-sm text-red-600">{error}</p>}
         <button class="btn-primary w-full mt-2">Acceder</button>

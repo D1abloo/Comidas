@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../../../server/db';
 import { dishImagePath } from '../../../../server/dish-images';
+import { sanitizeDishImageUrl } from '../../../../server/security';
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
@@ -17,7 +18,13 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
   if (body.use_default) {
     dish.images = [dishImagePath(dish.slug)];
   } else if (Array.isArray(body.images) && body.images.length > 0) {
-    dish.images = body.images.filter((u) => typeof u === 'string' && u.trim().length > 0);
+    const sanitized = body.images
+      .map((u) => (typeof u === 'string' ? sanitizeDishImageUrl(u) : null))
+      .filter((u): u is string => Boolean(u));
+    if (!sanitized.length) {
+      return new Response(JSON.stringify({ error: 'invalid_images' }), { status: 400 });
+    }
+    dish.images = sanitized;
   } else {
     return new Response(JSON.stringify({ error: 'invalid_images' }), { status: 400 });
   }

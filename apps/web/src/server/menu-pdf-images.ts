@@ -1,25 +1,20 @@
-import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { PDFDocument, PDFImage } from 'pdf-lib';
+import { resolveUnderRoot } from './security.js';
 
-const THUMB_FETCH_TIMEOUT_MS = 10_000;
 const cache = new Map<string, PDFImage | null>();
 
 export const DISH_THUMB_PT = 52;
-
-function resolveImageUrl(imageUrl: string, baseOrigin?: string): string {
-  const u = imageUrl.trim();
-  if (u.startsWith('http://') || u.startsWith('https://')) return u;
-  if (u.startsWith('/') && baseOrigin) return `${baseOrigin.replace(/\/$/, '')}${u}`;
-  return u;
-}
 
 async function readPublicAsset(relativePath: string): Promise<Uint8Array | null> {
   const rel = relativePath.replace(/^\//, '');
   const roots = [join(process.cwd(), 'public'), join(process.cwd(), 'apps/web/public')];
   for (const root of roots) {
+    const abs = resolveUnderRoot(root, rel);
+    if (!abs) continue;
     try {
-      return await readFile(join(root, rel));
+      const { readFile } = await import('node:fs/promises');
+      return await readFile(abs);
     } catch {
       /* try next root */
     }
@@ -43,16 +38,9 @@ export async function embedDishThumbnail(
       bytes = await readPublicAsset(raw);
     }
     if (!bytes) {
-      const url = resolveImageUrl(raw, baseOrigin);
-      const res = await fetch(url, {
-        signal: AbortSignal.timeout(THUMB_FETCH_TIMEOUT_MS),
-        headers: { Accept: 'image/*' },
-      });
-      if (!res.ok) {
-        cache.set(cacheKey, null);
-        return null;
-      }
-      bytes = new Uint8Array(await res.arrayBuffer());
+      // ponytail: miniaturas PDF solo desde assets locales; sin fetch externo (SSRF).
+      cache.set(cacheKey, null);
+      return null;
     }
     let embedded: PDFImage;
     const isPng = raw.toLowerCase().endsWith('.png') || (bytes[0] === 0x89 && bytes[1] === 0x50);

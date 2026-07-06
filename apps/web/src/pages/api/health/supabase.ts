@@ -2,9 +2,9 @@ import type { APIRoute } from 'astro';
 import { getSupabaseAdmin } from '../../../server/supabase';
 import { isSupabaseConfigured } from '../../../server/env';
 
-/** Comprueba conexión a Supabase (solo admin o en desarrollo). */
+/** Comprueba conexión a Supabase (solo admin). */
 export const GET: APIRoute = async ({ locals }) => {
-  if (locals.user?.role !== 'admin' && import.meta.env.PROD) {
+  if (locals.user?.role !== 'admin') {
     return new Response(JSON.stringify({ error: 'forbidden' }), { status: 403 });
   }
 

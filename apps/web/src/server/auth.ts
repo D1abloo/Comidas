@@ -4,11 +4,8 @@ import type { AstroCookies } from 'astro';
 import { getStore } from './db.js';
 import { isDatabaseEnabled } from './env.js';
 import { pgFindUserByEmail } from './orders-db.js';
+import { getSessionSecretBytes } from './security.js';
 import type { Role, User } from './types.js';
-
-const SECRET = new TextEncoder().encode(
-  process.env.SESSION_SECRET ?? 'bocado-demo-secret-change-me',
-);
 const COOKIE = 'bocado_session';
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 días
 
@@ -24,12 +21,12 @@ export async function signSession(user: SessionUser): Promise<string> {
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('7d')
     .setIssuedAt()
-    .sign(SECRET);
+    .sign(getSessionSecretBytes());
 }
 
 export async function verifySession(token: string): Promise<SessionUser | null> {
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, getSessionSecretBytes());
     return {
       id: String(payload.id),
       email: String(payload.email),
@@ -104,7 +101,7 @@ export async function registerUser(input: {
     role: input.role,
     phone: input.phone,
     tax_id: input.tax_id ?? null,
-    password_hash: bcrypt.hashSync(input.password, 8),
+    password_hash: bcrypt.hashSync(input.password, 10),
     created_at: new Date().toISOString(),
   };
   store.users.push(user);

@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { clearSession } from '../../../server/auth';
+import { safeRedirectPath } from '../../../server/security';
 
 export const POST: APIRoute = async ({ cookies, redirect, request }) => {
   clearSession(cookies);
@@ -7,7 +8,7 @@ export const POST: APIRoute = async ({ cookies, redirect, request }) => {
   try {
     const fd = await request.formData();
     const value = fd.get('next');
-    if (typeof value === 'string' && value.startsWith('/')) next = value;
+    if (typeof value === 'string') next = safeRedirectPath(value, '/');
   } catch {
     /* form vacío */
   }

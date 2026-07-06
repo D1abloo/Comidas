@@ -28,7 +28,16 @@ ORDER_JSON="$(curl -s -X POST "$BASE/api/orders" \
 
 echo "$ORDER_JSON" | grep -q '"number"' || fail "POST /api/orders: $ORDER_JSON"
 ORDER_NUM="$(echo "$ORDER_JSON" | sed -n 's/.*"number":"\([^"]*\)".*/\1/p')"
+ORDER_ID="$(echo "$ORDER_JSON" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p' | head -1)"
+PAY_TOKEN="$(echo "$ORDER_JSON" | sed -n 's/.*"payment_token":"\([^"]*\)".*/\1/p')"
+[ -n "$PAY_TOKEN" ] || fail "Falta payment_token en respuesta de pedido"
 ok "Pedido creado $ORDER_NUM"
+
+PAY_JSON="$(curl -s -X POST "$BASE/api/payments/start" \
+  -H 'content-type: application/json' \
+  -d "{\"order_id\":\"$ORDER_ID\",\"payment_token\":\"$PAY_TOKEN\"}")"
+echo "$PAY_JSON" | grep -q '"method":"bizum"' || fail "POST /api/payments/start: $PAY_JSON"
+ok "Pago Bizum iniciado con token"
 
 curl -s -c "$COOKIE_JAR" -b "$COOKIE_JAR" -X POST "$BASE/admin/login" \
   -H 'content-type: application/x-www-form-urlencoded' \

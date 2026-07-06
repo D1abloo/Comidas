@@ -2,17 +2,22 @@ import type { APIRoute } from 'astro';
 import { getOrderById, saveOrder } from '../../../../server/order-service';
 import { createInvoiceForOrder } from '../../../../server/invoices';
 import { getStore } from '../../../../server/db';
+import { parseOrderStatus } from '../../../../server/security';
 import { randomUUID } from 'node:crypto';
 
 export const PATCH: APIRoute = async ({ request, params, locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
     return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
   }
-  const { status } = (await request.json()) as { status: string };
+  const { status: rawStatus } = (await request.json()) as { status: string };
+  const status = parseOrderStatus(rawStatus);
+  if (!status) {
+    return new Response(JSON.stringify({ error: 'invalid_status' }), { status: 400 });
+  }
   const order = await getOrderById(String(params.id));
   if (!order) return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
 
-  order.status = status as typeof order.status;
+  order.status = status;
 
   if (status === 'confirmed') {
     createInvoiceForOrder(getStore(), order);

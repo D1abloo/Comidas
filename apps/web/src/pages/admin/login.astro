@@ -1,9 +1,10 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { loginUser, setSession } from '../../server/auth';
+import { safeRedirectPath } from '../../server/security';
 
 let error = '';
-const next = Astro.url.searchParams.get('next') ?? '/admin';
+const next = safeRedirectPath(Astro.url.searchParams.get('next'), '/admin');
 
 if (Astro.request.method === 'POST') {
   try {
@@ -30,11 +31,11 @@ if (Astro.request.method === 'POST') {
       <form method="POST" class="space-y-4">
         <label class="block">
           <span class="label">Email</span>
-          <input class="input mt-1.5" name="email" type="email" required defaultValue="admin@bocado.app" />
+          <input class="input mt-1.5" name="email" type="email" required autocomplete="username" />
         </label>
         <label class="block">
           <span class="label">Contraseña</span>
-          <input class="input mt-1.5" name="password" type="password" required defaultValue="admin1234" />
+          <input class="input mt-1.5" name="password" type="password" required autocomplete="current-password" />
         </label>
         {error && <p class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">{error}</p>}
         <button class="btn-primary w-full mt-2">Entrar al panel</button>
