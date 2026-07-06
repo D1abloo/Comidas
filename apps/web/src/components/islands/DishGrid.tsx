@@ -72,7 +72,7 @@ function DishTile({ dish, restaurant, delay }: { dish: GridDish; restaurant?: st
             }}
           />
         )}
-        {!drink && <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />}
+        {!isBrandDrink && <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />}
         <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 items-start">
           <AvailabilityBadge available={available} size="md" />
           {dish.is_featured && (
@@ -81,7 +81,7 @@ function DishTile({ dish, restaurant, delay }: { dish: GridDish; restaurant?: st
             </span>
           )}
         </div>
-        {!drink ? (
+        {!isBrandDrink ? (
           <div className="absolute bottom-3 left-3 right-3 text-white z-10">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-white/80">{restaurant}</p>
             <h3 className="font-display text-lg leading-tight mt-0.5">{dish.name}</h3>

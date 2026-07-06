@@ -13,12 +13,17 @@ if (!dish) return Astro.redirect('/');
 const restaurant = store.restaurants.find((r) => r.id === dish.restaurant_id)!;
 const related = store.dishes.filter((d) => d.id !== dish.id && d.cuisine === dish.cuisine).slice(0, 3);
 const img = dish.images[0]!;
+const isDrink = dish.category === 'drink' || dish.slug.endsWith('-lata') || dish.slug.includes('limonada');
 ---
 <Base title={`${dish.name} · BocadO`} description={dish.description}>
   <section class="container-bocado pt-10 md:pt-14 pb-20 grid md:grid-cols-[1.05fr_1fr] gap-10 md:gap-14 animate-fade-up">
     <div>
-      <div class="aspect-[5/4] rounded-4xl overflow-hidden bg-bocado-paper2 shadow-premium ring-1 ring-bocado-line/80">
-        <img src={img} alt={dish.name} class="w-full h-full object-cover" />
+      <div class:list={['aspect-[5/4] rounded-4xl overflow-hidden shadow-premium ring-1 ring-bocado-line/80', isDrink ? 'bg-white' : 'bg-bocado-paper2']}>
+        <img
+          src={img}
+          alt={dish.name}
+          class:list={['w-full h-full', isDrink ? 'object-contain p-10' : 'object-cover']}
+        />
       </div>
       {dish.images.length > 1 && (
         <div class="mt-4 grid grid-cols-4 gap-3">

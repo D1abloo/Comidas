@@ -24,7 +24,7 @@ fetch "coca-cola-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/9/94/
 fetch "pepsi-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Pepsi_Max_can.jpg/960px-Pepsi_Max_can.jpg"
 fetch "fanta-naranja-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Fanta-Orange-Can-330ml_84177_%287116950883%29.jpg/960px-Fanta-Orange-Can-330ml_84177_%287116950883%29.jpg"
 fetch "monster-energy-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Monster_Energy_Mega_can.jpg/960px-Monster_Energy_Mega_can.jpg"
-fetch "aquarius-limon-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Lemonade_Slice.jpg/960px-Lemonade_Slice.jpg"
+fetch "aquarius-limon-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/d/d2/Active_diet_by_AQUARIUS.JPG"
 fetch "limonada-jengibre.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Armenian_lemonade.jpg/960px-Armenian_lemonade.jpg"
 
 # Platos (Unsplash — acorde al nombre)
