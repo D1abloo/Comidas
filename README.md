@@ -173,7 +173,8 @@ Checklist ordenada:
 | `npm run admin:sync` | Sincronizar Capacitor admin → Android |
 | `npm run admin:android` | Abrir app admin en Android Studio |
 | `npm run admin:apk` | Compilar APK debug admin |
-| `npm run apps:config:prod` | Configurar URL en ambas apps Android |
+| `npm run deploy:vps` | Despliegue Docker + nginx en VPS |
+| Ver [`docs/BBDD-OPERACIONES.md`](docs/BBDD-OPERACIONES.md) | Contraseñas en PostgreSQL y exportar facturas/ventas |
 
 ### Apps Android (admin + repartidor)
 

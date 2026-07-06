@@ -62,3 +62,5 @@ npm run mobile:sync && npm run mobile:apk
 `users`, `orders`, `order_items`, `courier_locations`, `admin_alerts`, `notification_events`, `invoices`, `company_settings`, `order_counters`
 
 Script: `docker/postgres/init.sql`
+
+**Operaciones manuales** (cambiar contraseñas, exportar ventas/facturas por día/semana/mes): ver [`docs/BBDD-OPERACIONES.md`](./BBDD-OPERACIONES.md).
