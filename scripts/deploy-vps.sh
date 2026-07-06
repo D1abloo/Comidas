@@ -20,7 +20,9 @@ cd /root/comidas
 DOMAIN="${DOMAIN}"
 if [ ! -f .env.deploy ]; then
   echo "SESSION_SECRET=\$(openssl rand -hex 32)" > .env.deploy
+  echo "ALLOW_ADMIN_REGISTRATION=false" >> .env.deploy
 fi
+grep -q '^ALLOW_ADMIN_REGISTRATION=' .env.deploy || echo "ALLOW_ADMIN_REGISTRATION=false" >> .env.deploy
 grep -q '^DOMAIN=' .env.deploy || echo "DOMAIN=\$DOMAIN" >> .env.deploy
 grep -q '^PUBLIC_APP_URL=' .env.deploy || echo "PUBLIC_APP_URL=https://\$DOMAIN" >> .env.deploy
 sed -i "s|^PUBLIC_APP_URL=.*|PUBLIC_APP_URL=https://\$DOMAIN|" .env.deploy
