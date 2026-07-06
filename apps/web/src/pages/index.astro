@@ -4,7 +4,6 @@ import Hero from '../components/Hero.astro';
 import CategoryStrip from '../components/CategoryStrip.astro';
 import DailyMenu from '../components/DailyMenu.astro';
 import BestsellerCarousel from '../components/islands/BestsellerCarousel.tsx';
-import PopularMenusCarousel from '../components/islands/PopularMenusCarousel.tsx';
 import MenuCatalog from '../components/islands/MenuCatalog.tsx';
 import { getStore } from '../server/db';
 import { listOrders } from '../server/order-service';
@@ -31,20 +30,9 @@ const dateLabel = new Intl.DateTimeFormat('es-ES', {
 }).format(new Date());
 
 const soldCount = new Map<string, number>();
-const sectionSales = new Map<string, number>();
-const sectionTopDish = new Map<string, { name: string; count: number }>();
-
 for (const o of allOrders) {
   for (const line of o.items) {
     soldCount.set(line.dish_id, (soldCount.get(line.dish_id) ?? 0) + line.quantity);
-    const dish = dishes.find((d) => d.id === line.dish_id);
-    if (!dish?.menu_section_id) continue;
-    sectionSales.set(dish.menu_section_id, (sectionSales.get(dish.menu_section_id) ?? 0) + line.quantity);
-    const prev = sectionTopDish.get(dish.menu_section_id);
-    const lineCount = line.quantity;
-    if (!prev || lineCount > prev.count) {
-      sectionTopDish.set(dish.menu_section_id, { name: line.dish_name, count: lineCount });
-    }
   }
 }
 
@@ -59,33 +47,6 @@ if (bestsellers.length < 4) {
     .filter((d) => d.is_featured)
     .slice(0, 8)
     .map((d) => ({ ...d, sold_count: soldCount.get(d.id) ?? 0 }));
-}
-
-let popularSections = allSections
-  .filter((s) => s.id !== 'sec-menu-dia')
-  .map((s) => ({
-    id: s.id,
-    slug: s.slug,
-    title: s.title,
-    emoji: s.emoji,
-    description: s.description,
-    order_count: sectionSales.get(s.id) ?? 0,
-    top_dish: sectionTopDish.get(s.id)?.name,
-  }))
-  .filter((s) => s.order_count > 0)
-  .sort((a, b) => b.order_count - a.order_count)
-  .slice(0, 8);
-
-if (popularSections.length < 3) {
-  popularSections = catalogSections.slice(0, 6).map((s) => ({
-    id: s.id,
-    slug: s.slug,
-    title: s.title,
-    emoji: s.emoji,
-    description: s.description,
-    order_count: sectionSales.get(s.id) ?? 0,
-    top_dish: sectionTopDish.get(s.id)?.name,
-  }));
 }
 ---
 <Base>
@@ -118,7 +79,6 @@ if (popularSections.length < 3) {
     </div>
   </section>
 
-  <PopularMenusCarousel client:load sections={popularSections} />
   <BestsellerCarousel client:load dishes={bestsellers} restaurants={restNames} />
   <DailyMenu dishes={dailyDishes} restaurants={store.restaurants} dateLabel={dateLabel} />
 

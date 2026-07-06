@@ -885,36 +885,6 @@
   .bestseller-dot--active {
     @apply w-6 bg-bocado-ink;
   }
-  .popular-menus-band {
-    @apply mt-8 md:mt-10;
-    background: linear-gradient(165deg, #0a1210 0%, #1a2421 45%, #243029 100%);
-  }
-  .popular-menus-track {
-    @apply flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2;
-    scroll-padding-inline: 0.25rem;
-  }
-  .popular-menu-card {
-    @apply relative snap-start shrink-0 w-[min(240px,72vw)] flex flex-col rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-5 min-h-[11rem] transition-all duration-300 hover:border-bocado-lime/40 hover:bg-white/10 hover:-translate-y-1;
-    animation: fade-up 0.55s ease both;
-  }
-  .popular-menu-rank {
-    @apply absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider text-bocado-lime/70;
-  }
-  .popular-menu-emoji {
-    @apply text-4xl block transition-transform duration-300 group-hover:scale-110;
-  }
-  .popular-menu-count {
-    @apply text-[11px] font-bold uppercase tracking-wider text-white/45;
-  }
-  .popular-menus-nav {
-    @apply w-10 h-10 rounded-full border border-white/20 text-white/80 hover:bg-white/10 hover:border-bocado-lime/50 transition-all active:scale-95;
-  }
-  .popular-menus-dot {
-    @apply w-2 h-2 rounded-full bg-white/25 transition-all duration-300;
-  }
-  .popular-menus-dot--active {
-    @apply w-7 bg-bocado-lime;
-  }
   .trust-strip-icon--pulse {
     animation: pulse-soft 2.5s ease-in-out infinite;
   }

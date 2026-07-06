@@ -27,7 +27,6 @@ Referencia: **Starbucks retail** (calidez, confianza, CTAs en pill) adaptada a l
 1. Hero oscuro + búsqueda
 2. Categorías (rail horizontal)
 3. Trust strip
-4. Banda oscura — menús más pedidos (carousel)
-5. Platos top ventas (carousel)
-6. Menú del día
-7. Catálogo completo
+4. Platos top ventas (carousel)
+5. Menú del día
+6. Catálogo completo
