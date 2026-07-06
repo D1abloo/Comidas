@@ -17,7 +17,7 @@ if (Astro.request.method === 'POST') {
       email: logged.email,
       full_name: logged.full_name,
       role: logged.role,
-    });
+    }, Astro.request);
     if (logged.role === 'admin') return Astro.redirect('/movil/admin');
     if (logged.role === 'courier') return Astro.redirect('/movil/repartidor');
     error = 'Esta app es solo para administradores y repartidores. Usa la web para clientes.';

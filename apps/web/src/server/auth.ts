@@ -41,13 +41,23 @@ export async function verifySession(token: string): Promise<SessionUser | null> 
   }
 }
 
-export async function setSession(cookies: AstroCookies, user: SessionUser) {
+function isSecureRequest(request?: Request): boolean {
+  if (!request) return process.env.NODE_ENV === 'production';
+  const proto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
+  if (proto) return proto === 'https';
+  try {
+    return new URL(request.url).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+export async function setSession(cookies: AstroCookies, user: SessionUser, request?: Request) {
   const token = await signSession(user);
-  const secure = typeof process !== 'undefined' && process.env.NODE_ENV === 'production';
   cookies.set(COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure,
+    secure: isSecureRequest(request),
     path: '/',
     maxAge: MAX_AGE,
   });

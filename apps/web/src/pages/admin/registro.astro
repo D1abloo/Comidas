@@ -13,7 +13,7 @@ if (Astro.request.method === 'POST') {
       phone: String(fd.get('phone') ?? '') || undefined,
       role: 'admin',
     });
-    await setSession(Astro.cookies, { id: user.id, email: user.email, full_name: user.full_name, role: user.role });
+    await setSession(Astro.cookies, { id: user.id, email: user.email, full_name: user.full_name, role: user.role }, Astro.request);
     return Astro.redirect('/admin');
   } catch (e: any) {
     error = e.message ?? 'Error';
