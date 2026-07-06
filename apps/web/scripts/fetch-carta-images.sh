@@ -12,22 +12,22 @@ fetch() {
     return 0
   fi
   echo "get $file"
-  if curl -fsSL --max-time 60 -o "$OUT/$file" "$url"; then
+  if curl -fsSL --max-time 90 -A "BocadO/1.0" -o "$OUT/$file" "$url"; then
     return 0
   fi
   echo "FAIL $file"
   return 1
 }
 
-# Bebidas — fotos reales de producto (Unsplash)
-fetch "coca-cola-lata.jpg" "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=1200&q=85"
-fetch "pepsi-lata.jpg" "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?auto=format&fit=crop&w=1200&q=85"
-fetch "fanta-naranja-lata.jpg" "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1200&q=85"
-fetch "aquarius-limon-lata.jpg" "https://images.unsplash.com/photo-1523677011787-c91d155a0f62?auto=format&fit=crop&w=1200&q=85"
-fetch "monster-energy-lata.jpg" "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=1200&q=85"
-fetch "limonada-jengibre.jpg" "https://images.unsplash.com/photo-1497534446932-c925b458314e?auto=format&fit=crop&w=1200&q=85"
+# Bebidas — fotos de producto (Wikimedia Commons, licencia libre)
+fetch "coca-cola-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/9/94/Coca_cola_1-1-.jpg"
+fetch "pepsi-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Pepsi_Max_can.jpg/960px-Pepsi_Max_can.jpg"
+fetch "fanta-naranja-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Fanta-Orange-Can-330ml_84177_%287116950883%29.jpg/960px-Fanta-Orange-Can-330ml_84177_%287116950883%29.jpg"
+fetch "monster-energy-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Monster_Energy_Mega_can.jpg/960px-Monster_Energy_Mega_can.jpg"
+fetch "aquarius-limon-lata.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Lemonade_Slice.jpg/960px-Lemonade_Slice.jpg"
+fetch "limonada-jengibre.jpg" "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Armenian_lemonade.jpg/960px-Armenian_lemonade.jpg"
 
-# Platos (foto acorde al nombre)
+# Platos (Unsplash — acorde al nombre)
 fetch "ramen-tonkotsu.jpg" "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=1200&q=85"
 fetch "gyozas-pollo.jpg" "https://images.unsplash.com/photo-1496116218417-1a781b67df0e?auto=format&fit=crop&w=1200&q=85"
 fetch "gyozas-cerdo.jpg" "https://images.unsplash.com/photo-1455619452474-d660be986d72?auto=format&fit=crop&w=1200&q=85"
@@ -61,7 +61,6 @@ fetch "menu-dia-paella-valenciana.jpg" "https://images.unsplash.com/photo-153408
 fetch "menu-dia-lasana-bolo.jpg" "https://images.unsplash.com/photo-1574894709920-7b0e6b8b2b8a?auto=format&fit=crop&w=1200&q=85"
 fetch "menu-dia-bowl-verde.jpg" "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1200&q=85"
 
-# Placeholder
 if [[ ! -f "$OUT/placeholder.jpg" ]]; then
   cp "$OUT/ramen-tonkotsu.jpg" "$OUT/placeholder.jpg" 2>/dev/null || \
     fetch "placeholder.jpg" "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=85"

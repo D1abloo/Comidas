@@ -1,10 +1,11 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { loginUser, setSession } from '../../server/auth';
-import { safeRedirectPath } from '../../server/security';
+import { isAdminRegistrationAllowed, safeRedirectPath } from '../../server/security';
 
 let error = '';
 const next = safeRedirectPath(Astro.url.searchParams.get('next'), '/admin');
+const allowRegister = isAdminRegistrationAllowed();
 
 if (Astro.request.method === 'POST') {
   try {
@@ -40,8 +41,14 @@ if (Astro.request.method === 'POST') {
         {error && <p class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2">{error}</p>}
         <button class="btn-primary w-full mt-2">Entrar al panel</button>
       </form>
-      <p class="mt-6 text-xs text-bocado-mute text-center">
-        ¿Sin cuenta admin? <a href="/admin/registro" class="underline font-medium text-bocado-ink">Crear cuenta de equipo</a>
+      {allowRegister && (
+        <p class="mt-6 text-xs text-bocado-mute text-center">
+          ¿Sin cuenta admin? <a href="/admin/registro" class="underline font-medium text-bocado-ink">Crear cuenta de equipo</a>
+        </p>
+      )}
+      <p class="mt-4 text-xs text-bocado-mute text-center">
+        <a href="/movil/admin" class="underline">App móvil admin</a>
+        · <a href="/" class="underline">Ver tienda</a>
       </p>
     </div>
   </section>

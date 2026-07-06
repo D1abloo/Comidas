@@ -47,7 +47,7 @@ if (Astro.request.method === 'POST') {
       <form method="POST" class="mobile-app-form">
         <label class="mobile-app-field">
           <span>Email</span>
-          <input name="email" type="email" required autocomplete="username" placeholder="admin@bocado.app" />
+          <input name="email" type="email" required autocomplete="username" placeholder="tu@email.com" />
         </label>
         <label class="mobile-app-field">
           <span>Contraseña</span>
@@ -59,12 +59,12 @@ if (Astro.request.method === 'POST') {
 
       <div class="mobile-app-roles">
         <div class="mobile-app-role mobile-app-role--admin">
-          <span>Admin</span>
-          <small>admin@bocado.app</small>
+          <span>Administrador</span>
+          <small>Pedidos, avisos y ajustes</small>
         </div>
         <div class="mobile-app-role mobile-app-role--courier">
           <span>Repartidor</span>
-          <small>repartidor@bocado.app</small>
+          <small>Entregas y mapa en vivo</small>
         </div>
       </div>
     </div>

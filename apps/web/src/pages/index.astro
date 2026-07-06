@@ -53,32 +53,6 @@ if (bestsellers.length < 4) {
   <Hero />
   <CategoryStrip />
 
-  <section class="trust-strip animate-fade-up stagger-1" aria-label="Ventajas de BocadO">
-    <div class="container-bocado grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-bocado-line/60">
-      <div class="trust-strip-item">
-        <span class="trust-strip-icon trust-strip-icon--pulse" aria-hidden="true">⚡</span>
-        <div>
-          <p class="text-sm font-semibold text-bocado-ink">Entrega 20–40 min</p>
-          <p class="text-xs text-bocado-mute mt-0.5">Seguimiento en tiempo real</p>
-        </div>
-      </div>
-      <div class="trust-strip-item">
-        <span class="trust-strip-icon" aria-hidden="true">📸</span>
-        <div>
-          <p class="text-sm font-semibold text-bocado-ink">Fotos reales</p>
-          <p class="text-xs text-bocado-mute mt-0.5">Lo que ves es lo que comes</p>
-        </div>
-      </div>
-      <div class="trust-strip-item">
-        <span class="trust-strip-icon" aria-hidden="true">🧾</span>
-        <div>
-          <p class="text-sm font-semibold text-bocado-ink">Factura al instante</p>
-          <p class="text-xs text-bocado-mute mt-0.5">PDF y ticket con QR</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <BestsellerCarousel client:load dishes={bestsellers} restaurants={restNames} />
   <DailyMenu dishes={dailyDishes} restaurants={store.restaurants} dateLabel={dateLabel} />
 

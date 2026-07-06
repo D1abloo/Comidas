@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
-import { DishGrid, type GridDish } from './DishGrid';
+import MenuCarousel from './MenuCarousel';
+import type { GridDish } from './DishGrid';
 import {
   filterDishes,
   uniqueCuisines,
@@ -226,7 +227,13 @@ export default function SectionMenu({
         </p>
       </form>
 
-      <DishGrid dishes={filtered as GridDish[]} restaurants={restMap} />
+      {filtered.length > 0 ? (
+        <MenuCarousel dishes={filtered as GridDish[]} restaurants={restMap} autoPlayMs={8000} />
+      ) : (
+        <p className="text-center text-bocado-mute py-16 rounded-2xl bg-bocado-paper2 border border-bocado-line/60">
+          No hay platos con estos filtros. Prueba otra búsqueda o quita algún filtro.
+        </p>
+      )}
     </div>
   );
 }

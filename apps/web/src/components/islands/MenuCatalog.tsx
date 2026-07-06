@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { DishGrid, type GridDish } from './DishGrid';
+import MenuCarousel from './MenuCarousel';
+import type { GridDish } from './DishGrid';
 
 interface Section {
   id: string;
@@ -21,7 +22,7 @@ interface Props {
   previewLimit?: number;
 }
 
-const PREVIEW_LIMIT = 4;
+const PREVIEW_LIMIT = 12;
 
 export default function MenuCatalog({ sections, dishes, restaurants, previewLimit = PREVIEW_LIMIT }: Props) {
   const [activeSection, setActiveSection] = useState(sections[0]?.id ?? 'all');
@@ -67,11 +68,11 @@ export default function MenuCatalog({ sections, dishes, restaurants, previewLimi
       {sections.map((sec, si) => {
         const list = bySection.get(sec.id) ?? [];
         if (!list.length) return null;
-        const preview = list.slice(0, previewLimit);
         const hasMore = list.length > previewLimit;
+        const carouselDishes = list.slice(0, previewLimit);
         return (
           <section key={sec.id} id={`sec-${sec.slug}`} className="scroll-mt-32 animate-fade-up" style={{ animationDelay: `${si * 0.04}s` }}>
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 pb-4 border-b border-bocado-line/60">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-4 border-b border-bocado-line/60">
               <div className="flex items-center gap-4">
                 <span className="w-14 h-14 rounded-2xl bg-gradient-to-br from-bocado-lime/30 to-bocado-coral/20 grid place-items-center text-3xl shadow-sm">
                   {sec.emoji}
@@ -96,7 +97,7 @@ export default function MenuCatalog({ sections, dishes, restaurants, previewLimi
                 )}
               </div>
             </div>
-            <DishGrid dishes={preview} restaurants={restaurants} />
+            <MenuCarousel dishes={carouselDishes} restaurants={restaurants} />
           </section>
         );
       })}
