@@ -1,12 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
 import ProfileOrders from '../components/islands/ProfileOrders.tsx';
-import { listOrders } from '../server/order-service';
+import { listOrdersForUser } from '../server/order-service';
 
 const user = Astro.locals.user!;
-const myOrders = (await listOrders())
-  .filter((o) => o.customer.user_id === user.id || o.customer.email === user.email)
-  .sort((a, b) => b.created_at.localeCompare(a.created_at));
+const myOrders = await listOrdersForUser(user.id);
 ---
 <Base title="Mi cuenta · BocadO">
   <section class="container-bocado py-12 grid lg:grid-cols-[280px_1fr] gap-10">

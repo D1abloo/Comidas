@@ -13,7 +13,7 @@ const INSECURE_SESSION_SECRETS = new Set([
 function readEnv(key: string): string | undefined {
   const fromProcess = typeof process !== 'undefined' ? process.env[key] : undefined;
   if (typeof fromProcess === 'string' && fromProcess.length > 0) return fromProcess;
-  const v = import.meta.env[key];
+  const v = import.meta.env?.[key];
   if (typeof v === 'string' && v.length > 0) return v;
   return undefined;
 }
@@ -28,13 +28,21 @@ export function getSessionSecretBytes(): Uint8Array {
   return new TextEncoder().encode(getSessionSecretRaw());
 }
 
+export function getOrderTokenSecretRaw(): string {
+  return readEnv('ORDER_TOKEN_SECRET') ?? `${getSessionSecretRaw()}:order-tokens`;
+}
+
 export function assertProductionSecrets(): void {
   if (secretsChecked) return;
   secretsChecked = true;
-  if (!import.meta.env.PROD) return;
+  if (!import.meta.env?.PROD) return;
   const secret = getSessionSecretRaw();
   if (INSECURE_SESSION_SECRETS.has(secret) || secret.length < 32) {
     throw new Error('SESSION_SECRET must be a unique value of at least 32 characters in production');
+  }
+  const orderSecret = readEnv('ORDER_TOKEN_SECRET');
+  if (!orderSecret || orderSecret.length < 32 || orderSecret === secret) {
+    throw new Error('ORDER_TOKEN_SECRET must be a distinct value of at least 32 characters in production');
   }
 }
 
@@ -51,7 +59,7 @@ export function isAdminRegistrationAllowed(): boolean {
   const flag = readEnv('ALLOW_ADMIN_REGISTRATION');
   if (flag === 'true') return true;
   if (flag === 'false') return false;
-  return !import.meta.env.PROD;
+  return !import.meta.env?.PROD;
 }
 
 const ORDER_STATUSES: ReadonlySet<OrderStatus> = new Set([
@@ -110,7 +118,13 @@ const SETTINGS_KEYS: ReadonlySet<keyof CompanySettings> = new Set([
 export function pickCompanyPatch(raw: Record<string, unknown>): Partial<Company> {
   const out: Partial<Company> = {};
   for (const key of COMPANY_KEYS) {
-    if (key in raw) (out as Record<string, unknown>)[key] = raw[key];
+    if (!(key in raw)) continue;
+    const value = raw[key];
+    if (typeof value !== 'string' || value.trim().length > 250) throw new Error('invalid_company');
+    (out as Record<string, unknown>)[key] = value.trim();
+  }
+  if (out.contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(out.contact_email)) {
+    throw new Error('invalid_company_email');
   }
   return out;
 }
@@ -118,7 +132,23 @@ export function pickCompanyPatch(raw: Record<string, unknown>): Partial<Company>
 export function pickSettingsPatch(raw: Record<string, unknown>): Partial<CompanySettings> {
   const out: Partial<CompanySettings> = {};
   for (const key of SETTINGS_KEYS) {
-    if (key in raw) (out as Record<string, unknown>)[key] = raw[key];
+    if (!(key in raw)) continue;
+    const value = raw[key];
+    if (['tpv_enabled', 'cash_enabled', 'bizum_enabled', 'email_notifications_enabled',
+      'whatsapp_notifications_enabled', 'printer_enabled', 'auto_print_on_order'].includes(key)) {
+      if (typeof value !== 'boolean') throw new Error('invalid_settings');
+    } else if (key === 'delivery_fee_cents' || key === 'free_delivery_from_cents') {
+      if (!Number.isInteger(value) || Number(value) < 0 || Number(value) > 1_000_000) {
+        throw new Error('invalid_settings');
+      }
+    } else if (key === 'printer_paper_mm') {
+      if (value !== 58 && value !== 80) throw new Error('invalid_settings');
+    } else if (key === 'invoice_next_number') {
+      continue;
+    } else if (typeof value !== 'string' || value.trim().length > 250) {
+      throw new Error('invalid_settings');
+    }
+    (out as Record<string, unknown>)[key] = typeof value === 'string' ? value.trim() : value;
   }
   return out;
 }
@@ -167,8 +197,7 @@ export function canAccessOrder(
 ): boolean {
   if (user?.role === 'admin') return true;
   if (user) {
-    const email = user.email.toLowerCase();
-    if (order.customer.user_id === user.id || order.customer.email.toLowerCase() === email) return true;
+    if (order.customer.user_id === user.id) return true;
   }
   return Boolean(accessToken && verifyOrderAccessToken(order.id, accessToken));
 }

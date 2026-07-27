@@ -17,6 +17,24 @@ LIMITS
 proxy_locations() {
   local proto="$1"
   cat <<NGINX
+    client_max_body_size 2m;
+    proxy_connect_timeout 5s;
+    proxy_send_timeout 60s;
+    proxy_read_timeout 60s;
+
+    location = /api/events/orders {
+        limit_req zone=bocado_api burst=10 nodelay;
+        proxy_pass http://127.0.0.1:4321;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto ${proto};
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 1h;
+    }
+
     location /api/ {
         limit_req zone=bocado_api burst=30 nodelay;
         proxy_pass http://127.0.0.1:4321;
@@ -26,7 +44,6 @@ proxy_locations() {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto ${proto};
         proxy_buffering off;
-        proxy_read_timeout 86400;
     }
 
     location ~ ^/(login|admin/login|repartidor/login|admin/registro)$ {
@@ -49,7 +66,6 @@ proxy_locations() {
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_buffering off;
-        proxy_read_timeout 86400;
     }
 NGINX
 }
@@ -84,6 +100,7 @@ server {
     ssl_certificate_key ${CERT_DIR}/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
 $(proxy_locations 'https')
 }

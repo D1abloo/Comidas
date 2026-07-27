@@ -1,37 +1,51 @@
 import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
+import { randomUUID } from 'node:crypto';
 import type { AstroCookies } from 'astro';
 import { getStore } from './db.js';
 import { isDatabaseEnabled } from './env.js';
-import { pgFindUserByEmail } from './orders-db.js';
+import { pgFindUserByEmail, pgInsertUser } from './orders-db.js';
 import { getSessionSecretBytes } from './security.js';
 import type { Role, User } from './types.js';
+import { persistOperationalState } from './store-persistence.js';
 const COOKIE = 'bocado_session';
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 días
+const ISSUER = 'bocado-web';
+const AUDIENCE = 'bocado-session';
 
 export interface SessionUser {
   id: string;
   email: string;
   full_name: string;
   role: Role;
+  phone?: string;
 }
 
 export async function signSession(user: SessionUser): Promise<string> {
   return await new SignJWT({ ...user })
     .setProtectedHeader({ alg: 'HS256' })
-    .setExpirationTime('7d')
+    .setExpirationTime(user.role === 'customer' ? '7d' : '12h')
     .setIssuedAt()
+    .setIssuer(ISSUER)
+    .setAudience(AUDIENCE)
+    .setJti(randomUUID())
     .sign(getSessionSecretBytes());
 }
 
 export async function verifySession(token: string): Promise<SessionUser | null> {
   try {
-    const { payload } = await jwtVerify(token, getSessionSecretBytes());
+    const { payload } = await jwtVerify(token, getSessionSecretBytes(), {
+      algorithms: ['HS256'],
+      issuer: ISSUER,
+      audience: AUDIENCE,
+    });
+    if (!['admin', 'customer', 'courier'].includes(String(payload.role))) return null;
     return {
       id: String(payload.id),
       email: String(payload.email),
       full_name: String(payload.full_name),
       role: payload.role as Role,
+      phone: typeof payload.phone === 'string' ? payload.phone : undefined,
     };
   } catch {
     return null;
@@ -88,30 +102,45 @@ export async function registerUser(input: {
 }): Promise<User> {
   const store = getStore();
   const email = input.email.toLowerCase().trim();
-  if (store.users.some((u) => u.email === email)) {
+  const fullName = input.full_name.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+    throw new Error('Introduce un email válido.');
+  }
+  if (fullName.length < 2 || fullName.length > 100) {
+    throw new Error('Introduce un nombre válido.');
+  }
+  if (
+    store.users.some((u) => u.email === email) ||
+    (isDatabaseEnabled() && (await pgFindUserByEmail(email)))
+  ) {
     throw new Error('Ya existe una cuenta con ese email.');
   }
-  if (input.password.length < 6) {
-    throw new Error('La contraseña debe tener al menos 6 caracteres.');
+  if (input.password.length < 10 || input.password.length > 128) {
+    throw new Error('La contraseña debe tener entre 10 y 128 caracteres.');
   }
   const user: User = {
-    id: 'u-' + Math.random().toString(36).slice(2, 10),
+    id: randomUUID(),
     email,
-    full_name: input.full_name.trim(),
+    full_name: fullName,
     role: input.role,
     phone: input.phone,
     tax_id: input.tax_id ?? null,
-    password_hash: bcrypt.hashSync(input.password, 10),
+    password_hash: await bcrypt.hash(input.password, 12),
     created_at: new Date().toISOString(),
   };
-  store.users.push(user);
+  if (isDatabaseEnabled()) {
+    await pgInsertUser(user);
+  } else {
+    store.users.push(user);
+    await persistOperationalState(store);
+  }
   return user;
 }
 
 export async function loginUser(email: string, password: string): Promise<User> {
   if (isDatabaseEnabled()) {
     const row = await pgFindUserByEmail(email);
-    if (!row || !bcrypt.compareSync(password, row.password_hash)) {
+    if (!row || !(await bcrypt.compare(password, row.password_hash))) {
       throw new Error('Email o contraseña incorrectos.');
     }
     return {
@@ -127,7 +156,7 @@ export async function loginUser(email: string, password: string): Promise<User> 
   }
   const store = getStore();
   const user = store.users.find((u) => u.email === email.toLowerCase().trim());
-  if (!user || !bcrypt.compareSync(password, user.password_hash)) {
+  if (!user || !(await bcrypt.compare(password, user.password_hash))) {
     throw new Error('Email o contraseña incorrectos.');
   }
   return user;

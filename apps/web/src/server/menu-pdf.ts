@@ -106,7 +106,7 @@ async function drawDishEntry(ctx: PdfCtx, dish: Dish): Promise<void> {
 
   ensureSpace(rowH);
 
-  const embedded = await embedDishThumbnail(ctx.pdf, dish.images[0], ctx.siteOrigin);
+  const embedded = await embedDishThumbnail(ctx.pdf, dish.images[0]);
   const rowTop = y;
 
   if (embedded) {

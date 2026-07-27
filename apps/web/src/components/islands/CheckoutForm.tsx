@@ -5,11 +5,26 @@ const eur = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', c
 
 type PM = 'tpv' | 'cash' | 'bizum';
 
-interface Props { defaultName?: string; defaultEmail?: string }
+type PaymentAvailability = Record<PM, boolean>;
 
-export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Props) {
+interface Props {
+  defaultName?: string;
+  defaultEmail?: string;
+  deliveryFeeCents: number;
+  freeDeliveryFromCents: number;
+  paymentAvailability: PaymentAvailability;
+}
+
+export default function CheckoutForm({
+  defaultName = '',
+  defaultEmail = '',
+  deliveryFeeCents,
+  freeDeliveryFromCents,
+  paymentAvailability,
+}: Props) {
   const { lines, total, clear } = useCart();
-  const [payment, setPayment] = useState<PM>('tpv');
+  const availableMethods = (['tpv', 'bizum', 'cash'] as const).filter((method) => paymentAvailability[method]);
+  const [payment, setPayment] = useState<PM>(availableMethods[0] ?? 'cash');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bizum, setBizum] = useState<null | {
@@ -23,8 +38,8 @@ export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Pr
   }>(null);
 
   const subtotal = total();
-  const free = subtotal >= 2500;
-  const fee = free ? 0 : 199;
+  const free = subtotal >= freeDeliveryFromCents;
+  const fee = free ? 0 : deliveryFeeCents;
   const grand = subtotal + fee;
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -119,7 +134,11 @@ export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Pr
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({ order_id: bizum.order_id, payment_token: bizum.payment_token }),
               });
-              const data = await r.json();
+              const data = await r.json().catch(() => ({}));
+              if (!r.ok || !data.redirect_url) {
+                setError(data.error ?? 'No se pudo confirmar el pago.');
+                return;
+              }
               clear();
               const sep = data.redirect_url.includes('?') ? '&' : '?';
               location.href = `${data.redirect_url}${sep}token=${encodeURIComponent(bizum.access_token)}`;
@@ -136,34 +155,37 @@ export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Pr
   return (
     <form onSubmit={submit} className="grid md:grid-cols-[1.4fr_1fr] gap-8">
       <div className="space-y-8">
-        <section className="card p-8">
+        <section className="card p-5 sm:p-8">
           <h2 className="font-semibold tracking-tight">1. Datos del cliente</h2>
-          <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
-            <label className="col-span-2"><span className="label">Nombre completo</span><input required name="name" defaultValue={defaultName} className="input mt-1" /></label>
-            <label><span className="label">Email</span><input required type="email" name="email" defaultValue={defaultEmail} className="input mt-1" /></label>
-            <label><span className="label">Teléfono</span><input required name="phone" className="input mt-1" /></label>
-            <label className="col-span-2"><span className="label">CIF / NIF (opcional, para factura)</span><input name="tax_id" className="input mt-1" /></label>
+          <div className="mt-6 grid sm:grid-cols-2 gap-4 text-sm">
+            <label className="sm:col-span-2"><span className="label">Nombre completo</span><input required autoComplete="name" name="name" defaultValue={defaultName} className="input mt-1" /></label>
+            <label><span className="label">Email</span><input required autoComplete="email" type="email" name="email" defaultValue={defaultEmail} className="input mt-1" /></label>
+            <label><span className="label">Teléfono</span><input required autoComplete="tel" inputMode="tel" name="phone" className="input mt-1" /></label>
+            <label className="sm:col-span-2"><span className="label">CIF / NIF (opcional, para factura)</span><input name="tax_id" className="input mt-1" /></label>
           </div>
         </section>
 
-        <section className="card p-8">
+        <section className="card p-5 sm:p-8">
           <h2 className="font-semibold tracking-tight">2. Dirección de entrega</h2>
-          <div className="mt-6 grid grid-cols-6 gap-4 text-sm">
-            <label className="col-span-4"><span className="label">Calle</span><input required name="street" className="input mt-1" /></label>
-            <label className="col-span-2"><span className="label">Número</span><input required name="number" className="input mt-1" /></label>
-            <label className="col-span-2"><span className="label">Piso</span><input name="floor" className="input mt-1" /></label>
-            <label className="col-span-2"><span className="label">CP</span><input required name="postal_code" className="input mt-1" /></label>
-            <label className="col-span-2"><span className="label">Ciudad</span><input required name="city" defaultValue="Madrid" className="input mt-1" /></label>
-            <label className="col-span-6"><span className="label">Notas para el repartidor</span><textarea name="notes" rows={2} className="input mt-1" /></label>
+          <div className="mt-6 grid sm:grid-cols-6 gap-4 text-sm">
+            <label className="sm:col-span-4"><span className="label">Calle</span><input required autoComplete="address-line1" name="street" className="input mt-1" /></label>
+            <label className="sm:col-span-2"><span className="label">Número</span><input required name="number" className="input mt-1" /></label>
+            <label className="sm:col-span-2"><span className="label">Piso</span><input autoComplete="address-line2" name="floor" className="input mt-1" /></label>
+            <label className="sm:col-span-2"><span className="label">CP</span><input required autoComplete="postal-code" inputMode="numeric" name="postal_code" className="input mt-1" /></label>
+            <label className="sm:col-span-2"><span className="label">Ciudad</span><input required autoComplete="address-level2" name="city" defaultValue="Madrid" className="input mt-1" /></label>
+            <label className="sm:col-span-6"><span className="label">Notas para el repartidor</span><textarea name="notes" rows={2} className="input mt-1" /></label>
           </div>
         </section>
 
-        <section className="card p-8">
-          <h2 className="font-semibold tracking-tight">3. Método de pago</h2>
-          <div className="mt-6 grid sm:grid-cols-3 gap-3">
-            {(['tpv', 'bizum', 'cash'] as const).map((m) => (
+        <section className="card p-5 sm:p-8">
+          <h2 id="payment-method-title" className="font-semibold tracking-tight">3. Método de pago</h2>
+          {availableMethods.length ? (
+          <div className="mt-6 grid sm:grid-cols-3 gap-3" role="radiogroup" aria-labelledby="payment-method-title">
+            {availableMethods.map((m) => (
               <button
                 type="button" key={m}
+                role="radio"
+                aria-checked={payment === m}
                 onClick={() => setPayment(m)}
                 className={`rounded-2xl border p-4 text-left transition ${payment === m ? 'border-bocado-ink bg-bocado-ink/[0.04]' : 'border-bocado-line hover:border-bocado-ink/40'}`}
               >
@@ -176,10 +198,13 @@ export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Pr
               </button>
             ))}
           </div>
+          ) : (
+            <p className="mt-4 text-sm text-red-700" role="alert">No hay métodos de pago disponibles en este momento.</p>
+          )}
         </section>
       </div>
 
-      <aside className="card p-8 h-fit md:sticky md:top-24">
+      <aside className="card p-5 sm:p-8 h-fit md:sticky md:top-24">
         <h3 className="font-semibold tracking-tight">Resumen</h3>
         <ul className="mt-4 space-y-2 text-sm">
           {lines.map((l) => (
@@ -196,8 +221,8 @@ export default function CheckoutForm({ defaultName = '', defaultEmail = '' }: Pr
           <span>{free ? <span className="text-emerald-600">Gratis</span> : eur(fee)}</span>
         </div>
         <div className="flex justify-between mt-3 font-semibold"><span>Total</span><span>{eur(grand)}</span></div>
-        {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
-        <button disabled={loading || lines.length === 0} className="btn-primary w-full mt-6 disabled:opacity-40">
+        {error && <p className="text-red-700 text-sm mt-4" role="alert">{error}</p>}
+        <button disabled={loading || lines.length === 0 || availableMethods.length === 0} aria-busy={loading} className="btn-primary w-full mt-6 disabled:opacity-40">
           {loading ? 'Procesando…' : 'Pagar y confirmar pedido'}
         </button>
         <p className="text-xs text-bocado-mute mt-3 text-center">

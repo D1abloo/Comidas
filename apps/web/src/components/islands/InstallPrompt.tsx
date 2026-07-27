@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { hasConsentChoice } from '../../utils/cookie-consent';
 import { deleteCookie, getCookie, setCookie } from '../../utils/cookies';
+import { useDialogFocus } from './useDialogFocus';
 
 type Platform = 'ios' | 'android' | 'desktop';
 
@@ -88,6 +89,9 @@ export default function InstallPrompt() {
   const [tab, setTab] = useState<Platform>('android');
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  useDialogFocus(open, panelRef, close);
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -162,9 +166,9 @@ export default function InstallPrompt() {
 
   return (
     <div className="pwa-install-root" role="dialog" aria-modal="true" aria-labelledby="pwa-install-title">
-      <div className="pwa-install-backdrop" onClick={() => setOpen(false)} aria-hidden />
+      <div className="pwa-install-backdrop" onClick={close} aria-hidden />
 
-      <div className="pwa-install-panel animate-order-pop">
+      <div ref={panelRef} className="pwa-install-panel animate-order-pop">
         <div className="pwa-install-glow" aria-hidden />
 
         <header className="pwa-install-header">
@@ -177,7 +181,7 @@ export default function InstallPrompt() {
               </h2>
             </div>
           </div>
-          <button type="button" className="pwa-install-close shrink-0" onClick={() => setOpen(false)} aria-label="Cerrar">
+          <button type="button" className="pwa-install-close shrink-0" onClick={close} aria-label="Cerrar">
             ×
           </button>
         </header>

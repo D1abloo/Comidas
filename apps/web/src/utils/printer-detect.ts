@@ -70,16 +70,23 @@ export function openPrinterTestPrint(paperMm: 58 | 80): void {
   const w = window.open('', '_blank', 'noopener,noreferrer,width=360,height=640')
   if (!w) return;
   const width = paperMm === 58 ? '58mm' : '80mm';
-  w.document.write(`<!DOCTYPE html><html><head><title>Prueba BocadO</title>
-<style>
-@page { size: ${width} auto; margin: 4mm; }
-body { font: 12px/1.35 monospace; width: ${paperMm}mm; margin: 0 auto; }
-h1 { font-size: 14px; margin: 0 0 8px; }
-</style></head><body>
-<h1>BocadO · prueba</h1>
-<p>Impresora detectada correctamente.</p>
-<p>${new Date().toLocaleString('es-ES')}</p>
-<script>window.onload=function(){window.print();}</script>
-</body></html>`);
-  w.document.close();
+  w.document.title = 'Prueba BocadO';
+  const style = w.document.createElement('style');
+  style.textContent = `
+    @page { size: ${width} auto; margin: 4mm; }
+    body { font: 12px/1.35 monospace; width: ${paperMm}mm; margin: 0 auto; }
+    h1 { font-size: 14px; margin: 0 0 8px; }
+  `;
+  const title = w.document.createElement('h1');
+  title.textContent = 'BocadO · prueba';
+  const message = w.document.createElement('p');
+  message.textContent = 'Impresora detectada correctamente.';
+  const date = w.document.createElement('p');
+  date.textContent = new Date().toLocaleString('es-ES');
+  w.document.head.append(style);
+  w.document.body.replaceChildren(title, message, date);
+  window.setTimeout(() => {
+    w.focus();
+    w.print();
+  }, 100);
 }

@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { getSessionSecretRaw } from './security.js';
+import { getOrderTokenSecretRaw } from './security.js';
 
 type TokenScope = 'pay' | 'access';
 
@@ -11,7 +11,7 @@ const TTL: Record<TokenScope, number> = {
 function signToken(scope: TokenScope, orderId: string): string {
   const exp = Math.floor(Date.now() / 1000) + TTL[scope];
   const payload = `${scope}:${orderId}.${exp}`;
-  const sig = createHmac('sha256', getSessionSecretRaw()).update(payload).digest('base64url');
+  const sig = createHmac('sha256', getOrderTokenSecretRaw()).update(payload).digest('base64url');
   return `${exp}.${sig}`;
 }
 
@@ -23,7 +23,7 @@ function verifyToken(scope: TokenScope, orderId: string, token: string | undefin
   const sig = token.slice(dot + 1);
   const exp = Number(expStr);
   if (!Number.isFinite(exp) || exp < Math.floor(Date.now() / 1000)) return false;
-  const expected = createHmac('sha256', getSessionSecretRaw())
+  const expected = createHmac('sha256', getOrderTokenSecretRaw())
     .update(`${scope}:${orderId}.${expStr}`)
     .digest('base64url');
   try {

@@ -1,18 +1,24 @@
 import type { APIRoute } from 'astro';
-import { randomUUID } from 'node:crypto';
 import { pushAdminBizumPaidAlert } from '../../../server/admin-alerts';
 import { getStore } from '../../../server/db';
 import { createInvoiceForOrder } from '../../../server/invoices';
 import { verifyOrderPaymentToken } from '../../../server/order-tokens';
 import { getOrderById, saveOrder } from '../../../server/order-service';
+import { areSimulatedPaymentsEnabled } from '../../../server/env';
+import { queueNotification } from '../../../server/notification-service';
 
-export const POST: APIRoute = async ({ request }) => {
-  const { order_id, payment_token } = (await request.json()) as {
+export const POST: APIRoute = async ({ request, locals }) => {
+  const { order_id, payment_token } = (await request.json().catch(() => ({}))) as {
     order_id: string;
     payment_token?: string;
   };
-  if (!verifyOrderPaymentToken(order_id, payment_token)) {
-    return new Response(JSON.stringify({ error: 'invalid_payment_token' }), { status: 403 });
+  if (typeof order_id !== 'string') {
+    return new Response(JSON.stringify({ error: 'invalid_request' }), { status: 400 });
+  }
+  const isAdmin = locals.user?.role === 'admin';
+  const isLocalSimulation = areSimulatedPaymentsEnabled() && verifyOrderPaymentToken(order_id, payment_token);
+  if (!isAdmin && !isLocalSimulation) {
+    return new Response(JSON.stringify({ error: 'confirmation_not_authorized' }), { status: 403 });
   }
 
   const order = await getOrderById(order_id);
@@ -30,19 +36,18 @@ export const POST: APIRoute = async ({ request }) => {
   order.payment_status = 'paid';
   order.status = 'confirmed';
   const store = getStore();
-  const invoice = createInvoiceForOrder(store, order);
-  pushAdminBizumPaidAlert(store, order);
+  const invoice = await createInvoiceForOrder(store, order);
+  await pushAdminBizumPaidAlert(order);
   await saveOrder(order);
 
-  store.notifications.unshift({
-    id: randomUUID(),
-    order_id: order.id,
-    channel: 'email',
-    kind: 'bizum_paid',
-    recipient: store.company.contact_email,
-    status: 'sent',
-    created_at: new Date().toISOString(),
-  });
+  if (store.settings.email_notifications_enabled) {
+    await queueNotification({
+      orderId: order.id,
+      channel: 'email',
+      kind: 'bizum_paid',
+      recipient: store.company.contact_email,
+    });
+  }
 
   return new Response(JSON.stringify({ ok: true, redirect_url: `/checkout/ok?order=${order.id}`, invoice_id: invoice?.id }), {
     headers: { 'content-type': 'application/json' },

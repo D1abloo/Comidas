@@ -1,9 +1,9 @@
 ---
 import Admin from '../../layouts/Admin.astro';
 import UsersBoard from '../../components/islands/UsersBoard.tsx';
-import { getStore } from '../../server/db';
+import { listUsers } from '../../server/user-service';
 
-const users = getStore().users.map((u) => ({
+const users = (await listUsers()).map((u) => ({
   id: u.id, email: u.email, full_name: u.full_name, role: u.role, created_at: u.created_at,
 }));
 const self = Astro.locals.user!;

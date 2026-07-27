@@ -34,8 +34,8 @@ if (Astro.request.method === 'POST') {
         <label class="block"><span class="label">Nombre completo</span><input class="input mt-1" name="full_name" required /></label>
         <label class="block"><span class="label">Email corporativo</span><input class="input mt-1" type="email" name="email" required /></label>
         <label class="block"><span class="label">Teléfono</span><input class="input mt-1" name="phone" /></label>
-        <label class="block"><span class="label">Contraseña</span><input class="input mt-1" type="password" name="password" required minLength={6} /></label>
-        {error && <p class="text-sm text-red-600">{error}</p>}
+        <label class="block"><span class="label">Contraseña</span><input class="input mt-1" type="password" name="password" required minlength="10" maxlength="128" autocomplete="new-password" /></label>
+        {error && <p class="text-sm text-red-600" role="alert">{error}</p>}
         <button class="btn-primary w-full mt-2">Crear cuenta y entrar</button>
       </form>
       <p class="text-xs text-bocado-mute mt-6 text-center">

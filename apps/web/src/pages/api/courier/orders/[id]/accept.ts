@@ -1,20 +1,13 @@
 import type { APIRoute } from 'astro';
-import { getOrderById, saveOrder } from '../../../../../server/order-service';
-import { acceptOrderForCourier } from '../../../../../server/courier-orders';
+import { claimOrder } from '../../../../../server/courier-service';
 
 export const PATCH: APIRoute = async ({ params, locals }) => {
   if (!locals.user || locals.user.role !== 'courier') {
     return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
   }
 
-  const order = await getOrderById(String(params.id));
-  if (!order) {
-    return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
-  }
-
   try {
-    acceptOrderForCourier(order, locals.user);
-    const saved = await saveOrder(order);
+    const saved = await claimOrder(String(params.id), locals.user);
     return new Response(JSON.stringify({ order: saved }), {
       headers: { 'content-type': 'application/json' },
     });

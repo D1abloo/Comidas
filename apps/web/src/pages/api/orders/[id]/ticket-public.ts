@@ -4,6 +4,7 @@ import { getOrderById } from '../../../../server/order-service';
 import { buildPaymentQrForOrder } from '../../../../server/payment-qr';
 import { formatEUR } from '../../../../server/format';
 import { canAccessOrder, getAccessTokenFromRequest } from '../../../../server/security';
+import { getInvoiceById } from '../../../../server/invoices';
 
 export const GET: APIRoute = async ({ params, request, locals, url }) => {
   const order = await getOrderById(String(params.id));
@@ -14,7 +15,7 @@ export const GET: APIRoute = async ({ params, request, locals, url }) => {
   }
 
   const store = getStore();
-  const invoice = order.invoice_id ? store.invoices.find((i) => i.id === order.invoice_id) : null;
+  const invoice = order.invoice_id ? await getInvoiceById(store, order.invoice_id) : null;
   const payment = await buildPaymentQrForOrder(store, order, url.origin);
   const pdfToken = token ? `?token=${encodeURIComponent(token)}` : '';
 

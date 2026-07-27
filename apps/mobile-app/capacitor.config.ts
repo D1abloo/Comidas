@@ -1,6 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-const appUrl = 'https://comidas-web.vercel.app';
+const appUrl = process.env.BOCADO_APP_URL || 'https://example.invalid';
+const allowLocalCleartext = process.env.BOCADO_ALLOW_LOCAL_CLEARTEXT === 'true';
 
 const config: CapacitorConfig = {
   appId: 'app.bocado.mobile',
@@ -8,11 +9,11 @@ const config: CapacitorConfig = {
   webDir: 'www',
   server: {
     url: `${appUrl.replace(/\/$/, '')}/movil`,
-    cleartext: appUrl.startsWith('http://'),
+    cleartext: allowLocalCleartext && appUrl.startsWith('http://'),
     androidScheme: 'https',
   },
   android: {
-    allowMixedContent: true,
+    allowMixedContent: false,
     backgroundColor: '#1a2421',
   },
   plugins: {

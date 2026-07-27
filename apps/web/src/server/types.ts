@@ -169,6 +169,7 @@ export interface OrderLine {
   dish_name: string;
   unit_price_cents: number;
   quantity: number;
+  vat_rate?: number;
   notes?: string | null;
 }
 
@@ -231,8 +232,11 @@ export interface CourierLocation {
 export interface InvoiceLine {
   description: string;
   quantity: number;
+  /** Precio unitario sin IVA. */
   unit_price_cents: number;
   vat_rate: number;
+  vat_cents?: number;
+  /** Base imponible total de la línea. */
   total_cents: number;
 }
 
@@ -261,6 +265,7 @@ export interface NotificationEvent {
   kind: string;
   recipient: string;
   status: 'sent' | 'failed' | 'pending';
+  error_message?: string | null;
   created_at: ISODate;
 }
 

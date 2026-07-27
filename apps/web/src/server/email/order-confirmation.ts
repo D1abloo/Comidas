@@ -13,16 +13,25 @@ function formatAddress(a: Address): string {
   return `${a.street} ${a.number}${floor}\n${a.postal_code} ${a.city}, ${a.country}${notes}`;
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
 export function buildOrderConfirmationEmail(
   order: Order,
-  opts: { appUrl: string; deliveryEtaMin: number; companyName: string },
+  opts: { appUrl: string; deliveryEtaMin: number; companyName: string; accessToken: string },
 ): OrderEmailContent {
-  const ticketUrl = `${opts.appUrl}/pedido/ticket?order=${order.id}`;
-  const trackUrl = `${opts.appUrl}/pedidos`;
+  const ticketUrl = `${opts.appUrl}/pedido/ticket?order=${encodeURIComponent(order.id)}&token=${encodeURIComponent(opts.accessToken)}`;
+  const trackUrl = ticketUrl;
   const linesHtml = order.items
     .map(
       (l) =>
-        `<tr><td style="padding:6px 0">${l.quantity}× ${l.dish_name}</td><td style="text-align:right;padding:6px 0">${formatEUR(l.unit_price_cents * l.quantity)}</td></tr>`,
+        `<tr><td style="padding:6px 0">${l.quantity}× ${escapeHtml(l.dish_name)}</td><td style="text-align:right;padding:6px 0">${formatEUR(l.unit_price_cents * l.quantity)}</td></tr>`,
     )
     .join('');
   const linesText = order.items
@@ -30,13 +39,18 @@ export function buildOrderConfirmationEmail(
     .join('\n');
 
   const subject = `${opts.companyName} — Pedido ${order.number} recibido`;
+  const safeSubject = escapeHtml(subject);
+  const safeCustomer = escapeHtml(order.customer.full_name);
+  const safeOrderNumber = escapeHtml(order.number);
+  const safeAddress = escapeHtml(formatAddress(order.delivery_address));
+  const safeCompany = escapeHtml(opts.companyName);
 
   const html = `<!DOCTYPE html>
 <html lang="es">
-<head><meta charset="utf-8"><title>${subject}</title></head>
+<head><meta charset="utf-8"><title>${safeSubject}</title></head>
 <body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111;max-width:560px;margin:0 auto;padding:24px">
   <h1 style="font-size:20px;margin:0 0 8px">¡Pedido confirmado!</h1>
-  <p style="color:#555;margin:0 0 20px">Hola <strong>${order.customer.full_name}</strong>, hemos recibido tu pedido <strong>${order.number}</strong>.</p>
+  <p style="color:#555;margin:0 0 20px">Hola <strong>${safeCustomer}</strong>, hemos recibido tu pedido <strong>${safeOrderNumber}</strong>.</p>
 
   <h2 style="font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:#666">Tu ticket</h2>
   <table style="width:100%;border-collapse:collapse;margin-bottom:16px">${linesHtml}</table>
@@ -49,7 +63,7 @@ export function buildOrderConfirmationEmail(
   <p style="margin:0 0 16px">Aproximadamente <strong>${opts.deliveryEtaMin} minutos</strong> (puede variar según cocina y tráfico).</p>
 
   <h2 style="font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:#666">Dirección de entrega</h2>
-  <p style="margin:0 0 20px;white-space:pre-line">${formatAddress(order.delivery_address)}</p>
+  <p style="margin:0 0 20px;white-space:pre-line">${safeAddress}</p>
 
   <p style="margin:0 0 12px">Método de pago: <strong>${paymentLabel(order.payment_method)}</strong> · Estado: <strong>${paymentStatusLabel(order.payment_status)}</strong></p>
 
@@ -60,7 +74,7 @@ export function buildOrderConfirmationEmail(
   </p>
 
   <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
-  <p style="font-size:12px;color:#888">${opts.companyName} · Este correo es informativo. Si no hiciste este pedido, contacta con nosotros.</p>
+  <p style="font-size:12px;color:#888">${safeCompany} · Este correo es informativo. Si no hiciste este pedido, contacta con nosotros.</p>
 </body>
 </html>`;
 

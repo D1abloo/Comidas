@@ -1,233 +1,115 @@
 # BocadO Delivery
 
-Tienda online de comida a domicilio con panel admin, carta por secciones, pagos (TPV / Bizum / efectivo), facturas PDF y notificaciones por email.
+Tienda de comida a domicilio con catálogo, carrito, checkout, seguimiento,
+panel administrativo, reparto, facturas PDF y tres envoltorios Android
+Capacitor.
 
 ## Requisitos
 
-- Node.js **20+**
-- npm **10+**
+- Node.js 22.12 o superior
+- npm 10 o superior
+- Docker + Docker Compose para el entorno PostgreSQL
+- JDK 21 y Android SDK para compilar los APK
 
-## Arranque rápido (modo DEMO)
+## Desarrollo local
 
 ```bash
-cd /ruta/a/comidas
-npm install
-cp .env.example .env.local   # opcional: personaliza
+npm ci
+npm run check
 npm run dev
 ```
 
-Abre **http://localhost:4321**
+Abre `http://localhost:4321`. Sin `DATABASE_URL` se usa el modo demo local y
+los cambios se conservan en `.data/bocado-store.json` (ignorado por Git).
+
+Las cuentas de demostración existen únicamente en ese modo:
 
 | Rol | Email | Contraseña |
-|-----|-------|------------|
+| --- | --- | --- |
 | Cliente | `cliente@bocado.app` | `cliente1234` |
 | Admin | `admin@bocado.app` | `admin1234` |
+| Repartidor | `repartidor@bocado.app` | `repartidor1234` |
 
-En DEMO los datos viven **en memoria** (se pierden al reiniciar `npm run dev`), salvo lo que guardes en Supabase si lo tienes configurado.
+Los pagos TPV/Bizum simulados solo pueden habilitarse en desarrollo. En
+producción quedan desactivados hasta conectar un proveedor real; efectivo está
+habilitado por defecto.
 
----
+## Comandos
 
-## Variables de entorno
+| Comando | Acción |
+| --- | --- |
+| `npm run dev` | Servidor de desarrollo |
+| `npm run typecheck` | Diagnóstico Astro/TypeScript |
+| `npm test` | Pruebas unitarias |
+| `npm run build` | Build SSR Node |
+| `npm run check` | Typecheck + tests + build |
+| `npm run db:migrate` | Migraciones PostgreSQL aditivas |
+| `npm run docker:up` | Build y arranque Docker |
+| `npm run deploy:vps` | Despliegue Docker/nginx en el VPS configurado |
+| `npm run mobile:sync` | Sincroniza la app unificada con Android |
 
-Copia `.env.example` → `.env.local` (en la **raíz** del repo o en `apps/web/`).
+## Configuración
 
-| Variable | Uso |
-|----------|-----|
-| `PUBLIC_APP_URL` | URL pública (enlaces en emails y QR) |
-| `SESSION_SECRET` | Firma de cookies de sesión |
-| `BIZUM_COMPANY_PHONE` | Teléfono Bizum por defecto |
-| `PUBLIC_SUPABASE_URL` | URL del proyecto Supabase |
-| `PUBLIC_SUPABASE_ANON_KEY` | Clave anon (cliente futuro / RLS) |
-| `SUPABASE_SERVICE_ROLE_KEY` | **Solo servidor** — persistencia de pedidos |
-| `EMAIL_ENABLED` | `true` / `false` |
-| `EMAIL_PROVIDER` | `console` \| `resend` |
-| `EMAIL_FROM` | Remitente |
-| `EMAIL_API_KEY` | API key de Resend (si `provider=resend`) |
+Copia `.env.example` a `.env.local` para desarrollo. No subas secretos.
 
-**Nunca subas `.env.local` a Git.** Rota las claves si se han expuesto.
+Variables principales:
 
----
+- `PUBLIC_APP_URL`: origen público usado en enlaces.
+- `SESSION_SECRET`: firma de sesión; mínimo 32 caracteres en producción.
+- `ORDER_TOKEN_SECRET`: firma independiente de accesos a pedidos.
+- `DATABASE_URL`: activa PostgreSQL.
+- `EMAIL_ENABLED`, `EMAIL_PROVIDER`, `EMAIL_FROM`, `EMAIL_API_KEY`: correo.
+- `ALLOW_ADMIN_REGISTRATION`: desactivado en producción por defecto.
+- `APP_DEMO_MODE`, `ENABLE_SIMULATED_PAYMENTS`: solo desarrollo.
 
-## Email al hacer un pedido
+Docker exige `POSTGRES_PASSWORD`, `SESSION_SECRET`, `ORDER_TOKEN_SECRET` y
+`PUBLIC_APP_URL`. El despliegue genera los tres secretos en `.env.deploy` con
+permisos `600` y ejecuta las migraciones antes de iniciar la web.
 
-Cuando un cliente confirma un pedido (`POST /api/orders`), el sistema:
+## Arquitectura
 
-1. Calcula el **tiempo estimado de entrega** según los platos.
-2. Envía un **correo** con: número de pedido, líneas del ticket, totales, dirección, tiempo estimado y enlaces al **ticket** y a **Mis pedidos**.
-3. Registra el evento en `/admin/avisos` y en Supabase (`notification_events`) si está conectado.
-
-### Configuración por entorno
-
-| Entorno | `EMAIL_PROVIDER` | Comportamiento |
-|---------|------------------|----------------|
-| Desarrollo | `console` | El email se imprime en la terminal donde corre `npm run dev` |
-| Producción | `resend` | Envío real vía [Resend](https://resend.com) + `EMAIL_API_KEY` |
-
-Activa o desactiva emails globalmente en **Admin → Ajustes → Notificaciones por email**.
-
-Plantillas: `apps/web/src/server/email/order-confirmation.ts`  
-Orquestación: `apps/web/src/server/order-emails.ts`
-
----
-
-## Supabase
-
-### 1. Crear proyecto
-
-1. [supabase.com](https://supabase.com) → nuevo proyecto.
-2. **Project Settings → API**: copia URL, `anon` y `service_role` a `.env.local`.
-
-### 2. Ejecutar migración
-
-En el **SQL Editor** del dashboard, pega y ejecuta:
-
-`supabase/migrations/001_initial.sql`
-
-Crea tablas: `orders`, `order_items`, `notification_events`, `app_settings`.
-
-### 3. Comprobar conexión
-
-Con el servidor en marcha y sesión admin:
-
-```bash
-curl -s http://localhost:4321/api/health/supabase \
-  -H "Cookie: bocado_session=TU_COOKIE_ADMIN"
+```text
+apps/
+  web/           Astro 7 SSR + React + Tailwind + API
+  mobile-app/    app Android unificada (admin/repartidor)
+  admin-app/     envoltorio Android admin heredado
+  courier-app/   envoltorio Android repartidor heredado
+docker/
+  postgres/      esquema y migraciones
+scripts/         migración, smoke test y despliegue
+tests/           pruebas unitarias de entrada y seguridad
 ```
 
-Respuesta esperada: `{"ok":true,"configured":true,"orders_count":N}`
+La persistencia de producción usa PostgreSQL para usuarios, pedidos, líneas,
+facturas, avisos, catálogo y ajustes. El servidor recalcula precios, IVA y
+envío: el cliente nunca decide importes.
 
-Cada pedido nuevo se **upsert** en Supabase (además de memoria en DEMO).
+## Android
 
-### 4. Regenerar imágenes de carta (opcional)
-
-```bash
-bash apps/web/scripts/fetch-carta-images.sh
-```
-
----
-
-## Pasar de DEMO a PRO
-
-Checklist ordenada:
-
-### Datos y backend
-
-- [ ] Proyecto Supabase en producción con `001_initial.sql` ejecutado.
-- [ ] `.env.local` / variables en el hosting con `SUPABASE_SERVICE_ROLE_KEY` (secreto).
-- [ ] Sustituir `getStore()` en memoria por lectura/escritura Supabase en todas las APIs (`dishes`, `orders`, `users`, `settings`). Hoy: **pedidos y notificaciones** ya escriben en Supabase; el catálogo sigue en seed hasta completar migración.
-- [ ] Backups automáticos en Supabase.
-- [ ] RLS y policies por `company_id` / usuario (ver `docs/DATABASE.md`).
-
-### Auth
-
-- [ ] Migrar de JWT+cookie propia a **Supabase Auth** (o mantener JWT con usuarios en tabla `profiles`).
-- [ ] `SESSION_SECRET` fuerte y único por entorno.
-- [ ] HTTPS obligatorio en producción.
-
-### Pagos
-
-- [ ] TPV real (Stripe / Redsys) en lugar de simulación en `POST /api/payments/start`.
-- [ ] Bizum: validar pagos (webhook o confirmación manual admin).
-- [ ] No marcar `paid` hasta confirmación real.
-
-### Email y avisos
-
-- [ ] `EMAIL_PROVIDER=resend`, dominio verificado en Resend, `EMAIL_FROM` con tu dominio.
-- [ ] Probar pedido de prueba y revisar spam.
-- [ ] WhatsApp Business API si activas `whatsapp_notifications_enabled`.
-
-### Despliegue
-
-- [ ] `npm run build` sin errores.
-- [ ] `PUBLIC_APP_URL=https://tudominio.com`
-- [ ] **Vercel:** adaptador `@astrojs/vercel` (automático con `VERCEL=1`). Ver `docs/DEPLOY_VERCEL.md` si aparece `404 NOT_FOUND`.
-- [ ] **VPS/Node:** `npm run start` con adaptador `@astrojs/node` (sin variable `VERCEL`).
-- [ ] PWA / `manifest.webmanifest` con tu dominio.
-
-### Legal y operación
-
-- [ ] Páginas `/privacidad`, `/cookies`, `/terminos` revisadas por asesoría.
-- [ ] RGPD: base legal para emails transaccionales (pedido confirmado).
-- [ ] Rotar claves expuestas en chats o repos.
-
-### Seguridad post-configuración
-
-- [ ] **Borrar** claves del historial de chat y rotar en Supabase (Settings → API → regenerate).
-- [ ] Confirmar que `.env.local` no está en Git: `git status` no debe listarlo.
-
----
-
-## Scripts
-
-| Comando | Descripción |
-|---------|-------------|
-| `npm run dev` | Desarrollo en http://localhost:4321 |
-| `npm run build` | Build producción |
-| `npm run start` | Servidor Node tras build |
-| `bash apps/web/scripts/fetch-carta-images.sh` | Descarga fotos a `apps/web/public/carta/` |
-| `npm run courier:config:prod` | URL de producción en app Android repartidor |
-| `npm run courier:sync` | Sincronizar Capacitor → Android |
-| `npm run courier:android` | Abrir proyecto en Android Studio |
-| `npm run courier:apk` | Compilar APK debug repartidor |
-| `npm run admin:config:prod` | URL de producción en app Android admin |
-| `npm run admin:sync` | Sincronizar Capacitor admin → Android |
-| `npm run admin:android` | Abrir app admin en Android Studio |
-| `npm run admin:apk` | Compilar APK debug admin |
-| `npm run deploy:vps` | Despliegue Docker + nginx en VPS |
-| Ver [`docs/BBDD-OPERACIONES.md`](docs/BBDD-OPERACIONES.md) | Contraseñas en PostgreSQL y exportar facturas/ventas |
-
-### Apps Android (admin + repartidor)
-
-| App | Carpeta | Ruta web | Uso |
-|-----|---------|----------|-----|
-| **BocadO** (unificada) | `apps/mobile-app` | `/movil` | **Un APK** — login detecta admin o repartidor |
-| **BocadO Admin** | `apps/admin-app` | `/admin` | Solo panel admin (legacy) |
-| **BocadO Repartidor** | `apps/courier-app` | `/repartidor` | Solo repartidor (legacy) |
-
-Mismo backend en Vercel: ordenador y móvil ven los mismos pedidos y repartidores en tiempo real.
+Configura una URL HTTPS para producción:
 
 ```bash
-BOCADO_APP_URL=https://comidas-web.vercel.app npm run mobile:config:prod
-cd apps/mobile-app && npm install && npm run icons && npm run sync
+BOCADO_APP_URL=https://tu-dominio.example npm run mobile:config:prod
+npm run mobile:sync
 npm run mobile:apk
 ```
 
-APK listo: `apks/BocadO-debug.apk` (o `apps/mobile-app/android/.../app-debug.apk`).
+La URL local usa `10.0.2.2` y permite HTTP solo para el emulador. Las builds de
+producción bloquean tráfico en claro y copias de seguridad Android.
 
-Cuentas demo: admin `admin@bocado.app` / `admin1234` · repartidor `repartidor@bocado.app` / `repartidor1234`.
+## Producción
 
----
+El destino soportado es Node 22/Docker en VPS. Vercel no está habilitado porque
+la aplicación necesita SSR Node, sesiones y migraciones PostgreSQL; consulta
+`docs/DEPLOY_VERCEL.md`.
 
-## Estructura principal
+Antes de abrir tráfico real:
 
-```
-apps/web/src/
-  server/
-    db.ts                 # Store en memoria (DEMO)
-    supabase.ts           # Cliente admin
-    supabase-orders.ts    # Persistencia pedidos
-    order-emails.ts       # Email + Supabase tras pedido
-    email/                # Plantillas y envío
-  pages/api/
-    orders/               # Crear pedido → dispara email
-    health/supabase.ts    # Test conexión
-supabase/migrations/      # SQL inicial
-docs/                     # DATABASE, deploy, etc.
-```
+1. Sustituye datos fiscales y textos legales por los definitivos.
+2. Conecta y valida TPV/Bizum mediante proveedor/webhook.
+3. Configura el proveedor de email y verifica el dominio.
+4. Crea administradores y repartidores en PostgreSQL.
+5. Configura backups, restauración y monitorización.
 
----
-
-## Mapa de rutas (resumen)
-
-| Área | Rutas |
-|------|--------|
-| Tienda | `/`, `/carta/[slug]`, `/buscar`, `/platos/[slug]`, `/checkout` |
-| Cliente | `/login`, `/registro`, `/perfil`, `/pedidos`, `/pedido/ticket` |
-| Admin | `/admin`, `/admin/pedidos`, `/admin/platos`, `/admin/ajustes`, … |
-| API | `/api/orders`, `/api/payments/*`, `/api/health/supabase` |
-
----
-
-## Licencia y marcas
-
-Logos de refrescos en `/public/carta/` pueden provenir de Wikimedia Commons (uso informativo en demo). En producción verifica derechos de marca con tu asesoría legal.
+Consulta `docs/AUDIT-2026-07-27.md` para el resultado de la auditoría y los
+riesgos externos que aún requieren decisiones de negocio.

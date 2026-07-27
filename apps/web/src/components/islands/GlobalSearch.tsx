@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { DishGrid, type GridDish } from './DishGrid';
+import { DishGrid } from './DishGrid';
 import { filterDishes, uniqueCuisines, type SortKey, type SearchableDish } from '../../utils/menu-search';
 
 interface Section {
@@ -212,7 +212,7 @@ export default function GlobalSearch({
         <p className="text-sm text-bocado-mute">{filtered.length} resultados</p>
       </form>
 
-      <DishGrid dishes={filtered as GridDish[]} restaurants={restMap} />
+      <DishGrid dishes={filtered} restaurants={restMap} />
 
       {filtered.length > 0 && sectionId && (
         <p className="text-center text-sm text-bocado-mute">

@@ -4,7 +4,7 @@ import { loginUser, setSession } from '../../server/auth';
 import { isAdminRegistrationAllowed, safeRedirectPath } from '../../server/security';
 
 let error = '';
-const next = safeRedirectPath(Astro.url.searchParams.get('next'), '/admin');
+const safeNext = safeRedirectPath(Astro.url.searchParams.get('next'), '/admin');
 const allowRegister = isAdminRegistrationAllowed();
 
 if (Astro.request.method === 'POST') {
@@ -13,7 +13,7 @@ if (Astro.request.method === 'POST') {
     const user = await loginUser(String(fd.get('email')), String(fd.get('password')));
     if (user.role !== 'admin') throw new Error('Esta cuenta no es de administrador.');
     await setSession(Astro.cookies, { id: user.id, email: user.email, full_name: user.full_name, role: user.role }, Astro.request);
-    return Astro.redirect(next);
+    return Astro.redirect(safeRedirectPath(String(fd.get('_next') ?? ''), '/admin'));
   } catch (e: any) {
     error = e.message ?? 'Error';
   }
@@ -30,6 +30,7 @@ if (Astro.request.method === 'POST') {
         </div>
       </div>
       <form method="POST" class="space-y-4">
+        <input type="hidden" name="_next" value={safeNext} />
         <label class="block">
           <span class="label">Email</span>
           <input class="input mt-1.5" name="email" type="email" required autocomplete="username" />

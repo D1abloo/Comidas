@@ -110,16 +110,17 @@ export default function MenuCarousel({ dishes, restaurants, autoPlayMs = 6000 }:
             <article
               key={d.id}
               role="listitem"
-              className="carousel-card snap-start shrink-0 w-[min(260px,78vw)] food-card flex flex-col"
+              className="carousel-card menu-card group"
             >
-              <a href={`/platos/${d.slug}`} className="block relative aspect-[4/3] overflow-hidden bg-white">
+              <a href={`/platos/${d.slug}`} className="menu-card-link">
+                <div className="menu-card-image">
                 {img && (
                   <img
                     src={img}
                     alt={d.name}
                     loading="lazy"
-                    className={`w-full h-full transition-transform duration-500 group-hover:scale-105 ${
-                      drink ? 'object-contain p-5' : 'object-cover'
+                    className={`w-full h-full ${
+                      drink ? 'object-contain p-5 bg-white' : 'object-cover'
                     }`}
                     onError={(e) => {
                       const el = e.currentTarget
@@ -127,27 +128,21 @@ export default function MenuCarousel({ dishes, restaurants, autoPlayMs = 6000 }:
                     }}
                   />
                 )}
-                {!drink && <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />}
                 <div className="absolute top-2.5 left-2.5 z-10">
                   <AvailabilityBadge available={available} size="sm" />
                 </div>
-                <span className="absolute top-2.5 right-2.5 bg-bocado-lime text-bocado-ink text-sm font-bold px-2.5 py-1 rounded-full shadow-glow z-10">
-                  {eur(d.price_cents)}
-                </span>
-                <div className={`absolute bottom-0 left-0 right-0 p-3 z-10 ${drink ? 'bg-gradient-to-t from-white via-white/95 to-transparent' : ''}`}>
-                  <p className={`text-[10px] font-semibold uppercase tracking-wider ${drink ? 'text-bocado-mute' : 'text-white/80'}`}>
-                    {restaurant}
-                  </p>
-                  <h3 className={`font-display text-base leading-tight mt-0.5 ${drink ? 'text-bocado-ink' : 'text-white'}`}>
-                    {d.name}
-                  </h3>
+                </div>
+                <div className="menu-card-body">
+                  <p>{restaurant}</p>
+                  <h3>{d.name}</h3>
+                  <span>★ {d.rating.toFixed(1)} · {d.delivery_time_min} min</span>
                 </div>
               </a>
-              <div className="p-3 flex items-center justify-between gap-2 border-t border-bocado-line/50 mt-auto">
-                <span className="text-xs text-bocado-mute">★ {d.rating.toFixed(1)} · {d.delivery_time_min} min</span>
+              <div className="menu-card-footer">
+                <strong>{eur(d.price_cents)}</strong>
                 {available ? (
                   <AddToCart
-                    variant="pill"
+                    variant="circle"
                     line={{
                       dish_id: d.id,
                       dish_name: d.name,

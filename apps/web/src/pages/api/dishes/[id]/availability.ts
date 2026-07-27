@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../../../server/db';
+import { persistCatalog } from '../../../../server/store-service';
 
 export const PATCH: APIRoute = async ({ request, params, locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
@@ -10,5 +11,6 @@ export const PATCH: APIRoute = async ({ request, params, locals }) => {
   const dish = store.dishes.find((d) => d.id === params.id);
   if (!dish) return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
   dish.is_available = available;
+  await persistCatalog(store);
   return new Response(JSON.stringify({ dish }));
 };

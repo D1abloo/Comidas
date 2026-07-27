@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS company_settings (
   id TEXT PRIMARY KEY DEFAULT 'default',
   settings JSONB NOT NULL,
+  company JSONB,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -28,21 +29,21 @@ CREATE TABLE IF NOT EXISTS orders (
   number TEXT UNIQUE NOT NULL,
   customer JSONB NOT NULL,
   delivery_address JSONB NOT NULL,
-  subtotal_cents INT NOT NULL,
-  delivery_fee_cents INT NOT NULL,
-  vat_cents INT NOT NULL,
-  total_cents INT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending',
-  payment_method TEXT NOT NULL,
-  payment_status TEXT NOT NULL DEFAULT 'pending',
+  subtotal_cents INT NOT NULL CHECK (subtotal_cents >= 0),
+  delivery_fee_cents INT NOT NULL CHECK (delivery_fee_cents >= 0),
+  vat_cents INT NOT NULL CHECK (vat_cents >= 0),
+  total_cents INT NOT NULL CHECK (total_cents >= 0),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'preparing', 'delivering', 'delivered', 'cancelled')),
+  payment_method TEXT NOT NULL CHECK (payment_method IN ('tpv', 'cash', 'bizum')),
+  payment_status TEXT NOT NULL DEFAULT 'pending' CHECK (payment_status IN ('pending', 'awaiting_confirmation', 'paid', 'failed', 'refunded')),
   notes TEXT,
   invoice_id UUID,
   courier_id TEXT REFERENCES users(id),
   courier_name TEXT,
   courier_accepted_at TIMESTAMPTZ,
   delivered_at TIMESTAMPTZ,
-  courier_lat DOUBLE PRECISION,
-  courier_lng DOUBLE PRECISION,
+  courier_lat DOUBLE PRECISION CHECK (courier_lat BETWEEN -90 AND 90),
+  courier_lng DOUBLE PRECISION CHECK (courier_lng BETWEEN -180 AND 180),
   courier_location_at TIMESTAMPTZ,
   delivery_eta_min INT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -54,17 +55,18 @@ CREATE TABLE IF NOT EXISTS order_items (
   order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
   dish_id TEXT NOT NULL,
   dish_name TEXT NOT NULL,
-  unit_price_cents INT NOT NULL,
-  quantity INT NOT NULL CHECK (quantity > 0),
+  unit_price_cents INT NOT NULL CHECK (unit_price_cents >= 0),
+  quantity INT NOT NULL CHECK (quantity BETWEEN 1 AND 20),
+  vat_rate NUMERIC(5,4) NOT NULL DEFAULT 0.1 CHECK (vat_rate >= 0 AND vat_rate <= 1),
   notes TEXT
 );
 
 CREATE TABLE IF NOT EXISTS courier_locations (
   courier_id TEXT PRIMARY KEY REFERENCES users(id),
   courier_name TEXT NOT NULL,
-  lat DOUBLE PRECISION NOT NULL,
-  lng DOUBLE PRECISION NOT NULL,
-  accuracy_m DOUBLE PRECISION,
+  lat DOUBLE PRECISION NOT NULL CHECK (lat BETWEEN -90 AND 90),
+  lng DOUBLE PRECISION NOT NULL CHECK (lng BETWEEN -180 AND 180),
+  accuracy_m DOUBLE PRECISION CHECK (accuracy_m IS NULL OR accuracy_m >= 0),
   active_order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
   active_order_number TEXT,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -98,18 +100,31 @@ CREATE TABLE IF NOT EXISTS notification_events (
 CREATE TABLE IF NOT EXISTS invoices (
   id UUID PRIMARY KEY,
   number TEXT UNIQUE NOT NULL,
-  order_id UUID NOT NULL REFERENCES orders(id),
+  order_id UUID NOT NULL UNIQUE REFERENCES orders(id),
   order_number TEXT,
   customer_name TEXT NOT NULL,
   customer_tax_id TEXT,
   customer_address JSONB NOT NULL,
   lines JSONB NOT NULL,
-  subtotal_cents INT NOT NULL,
-  vat_cents INT NOT NULL,
-  total_cents INT NOT NULL,
-  payment_method TEXT NOT NULL,
-  payment_status TEXT NOT NULL,
+  subtotal_cents INT NOT NULL CHECK (subtotal_cents >= 0),
+  vat_cents INT NOT NULL CHECK (vat_cents >= 0),
+  total_cents INT NOT NULL CHECK (total_cents >= 0),
+  payment_method TEXT NOT NULL CHECK (payment_method IN ('tpv', 'cash', 'bizum')),
+  payment_status TEXT NOT NULL CHECK (payment_status IN ('pending', 'awaiting_confirmation', 'paid', 'failed', 'refunded')),
   issued_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS invoice_counters (
+  year INT NOT NULL,
+  prefix TEXT NOT NULL,
+  last_number INT NOT NULL DEFAULT 0 CHECK (last_number >= 0),
+  PRIMARY KEY (year, prefix)
+);
+
+CREATE TABLE IF NOT EXISTS application_state (
+  id TEXT PRIMARY KEY,
+  state JSONB NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS orders_status_idx ON orders(status);
@@ -119,24 +134,17 @@ CREATE INDEX IF NOT EXISTS order_items_order_id_idx ON order_items(order_id);
 CREATE INDEX IF NOT EXISTS order_items_dish_id_idx ON order_items(dish_id);
 CREATE INDEX IF NOT EXISTS admin_alerts_seen_idx ON admin_alerts(seen, created_at DESC);
 
--- Demo users (passwords: admin1234, repartidor1234, cliente1234)
-INSERT INTO users (id, email, full_name, role, phone, password_hash) VALUES
-  ('u-admin', 'admin@bocado.app', 'Equipo BocadO', 'admin', '+34911234567', '$2a$08$tqPcOt4hk3SuQYgPV2cC0u8iovwdYVqOeWMCBYJjtqYyQz6cvFiJu'),
-  ('u-courier', 'repartidor@bocado.app', 'Carlos Repartidor', 'courier', '+34600222333', '$2a$08$.liE8FJKiQBaiaIghJDVJ.wP0Qr2YUtVLC5dEWG/0YynFlOQ1U52W'),
-  ('u-cliente', 'cliente@bocado.app', 'Cliente Demo', 'customer', '+34600111222', '$2a$08$0qwGWr7tTg.ewPX.iGX50eQ2M4dMWT11OFLVRagMOnnVKNrwajAJW')
-ON CONFLICT (id) DO NOTHING;
-
 INSERT INTO company_settings (id, settings) VALUES ('default', '{
-  "bizum_phone": "+34600123456",
+  "bizum_phone": "",
   "bizum_concept_template": "BocadO {{order_number}}",
-  "tpv_enabled": true,
+  "tpv_enabled": false,
   "cash_enabled": true,
-  "bizum_enabled": true,
+  "bizum_enabled": false,
   "invoice_prefix": "BOC-FACT",
   "invoice_next_number": 1,
-  "email_notifications_enabled": true,
-  "whatsapp_notifications_enabled": true,
-  "whatsapp_business_phone": "+34600123456",
+  "email_notifications_enabled": false,
+  "whatsapp_notifications_enabled": false,
+  "whatsapp_business_phone": "",
   "delivery_fee_cents": 199,
   "free_delivery_from_cents": 2500,
   "printer_enabled": false,
@@ -144,8 +152,6 @@ INSERT INTO company_settings (id, settings) VALUES ('default', '{
   "printer_paper_mm": 80,
   "auto_print_on_order": false
 }'::jsonb) ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO order_counters (year, last_number) VALUES (2026, 1043) ON CONFLICT DO NOTHING;
 
 -- Notify channel for real-time SSE (LISTEN order_updates)
 -- App emits: SELECT pg_notify('order_updates', payload_json);

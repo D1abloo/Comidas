@@ -73,20 +73,20 @@ function seed(): Store {
   };
 
   const settings: CompanySettings = {
-    bizum_phone: process.env.BIZUM_COMPANY_PHONE ?? '+34600123456',
+    bizum_phone: process.env.BIZUM_COMPANY_PHONE ?? '',
     bizum_concept_template: 'BocadO {{order_number}}',
-    tpv_enabled: true,
+    tpv_enabled: false,
     cash_enabled: true,
-    bizum_enabled: true,
+    bizum_enabled: false,
     invoice_prefix: 'BOC-FACT',
     invoice_next_number: 1,
-    email_notifications_enabled: true,
+    email_notifications_enabled: false,
     whatsapp_notifications_enabled: false,
-    whatsapp_business_phone: '+34600123456',
+    whatsapp_business_phone: '',
     delivery_fee_cents: 199,
     free_delivery_from_cents: 2500,
-    printer_enabled: true,
-    printer_name: 'Ticket cocina',
+    printer_enabled: false,
+    printer_name: '',
     printer_paper_mm: 80,
     auto_print_on_order: false,
   };
@@ -504,9 +504,9 @@ function seed(): Store {
   assignMenuSections(dishes);
   const dishesSorted = sortDishesForMenu(dishes);
 
-  const adminHash = bcrypt.hashSync('admin1234', 8);
-  const customerHash = bcrypt.hashSync('cliente1234', 8);
-  const courierHash = bcrypt.hashSync('repartidor1234', 8);
+  const adminHash = bcrypt.hashSync('admin1234', 12);
+  const customerHash = bcrypt.hashSync('cliente1234', 12);
+  const courierHash = bcrypt.hashSync('repartidor1234', 12);
 
   const users: User[] = [
     {

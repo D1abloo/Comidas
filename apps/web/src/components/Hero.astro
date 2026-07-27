@@ -1,26 +1,21 @@
 ---
-const stats = [
-  { value: '4.9', label: 'Valoración media' },
-  { value: '25 min', label: 'Entrega media' },
-  { value: '30+', label: 'Platos en carta' },
-];
 ---
-<section class="container-bocado pt-8 md:pt-12 pb-2">
-  <div class="food-hero p-7 sm:p-10 md:p-14 lg:p-16 grid lg:grid-cols-[1.08fr_0.92fr] gap-10 lg:gap-12 items-center animate-fade-up">
-    <div class="relative z-10">
+<section class="home-hero">
+  <div class="container-bocado home-hero-grid">
+    <div class="home-hero-copy animate-fade-up">
       <p class="hero-kicker">
         <span class="hero-kicker-dot" aria-hidden="true"></span>
         Delivery premium · Madrid
       </p>
       <h1 class="hero-title">
         Comida de verdad,<br />
-        <em class="text-bocado-lime not-italic">en tu puerta.</em>
+        <em>en tu puerta.</em>
       </h1>
-      <p class="mt-5 text-white/72 text-base sm:text-lg max-w-lg leading-relaxed">
-        Pizzas al horno, cazuelas caseras y bowls frescos — fotos reales, seguimiento en vivo y factura al instante.
+      <p class="hero-description">
+        Pizzas al horno, cazuelas caseras y bowls frescos. Ingredientes de calidad, seguimiento en vivo y factura al instante.
       </p>
 
-      <form action="/buscar" method="get" class="hero-search mt-8" role="search">
+      <form action="/buscar" method="get" class="hero-search" role="search">
         <label for="hero-q" class="sr-only">Buscar platos</label>
         <span class="hero-search-icon" aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -29,31 +24,49 @@ const stats = [
           </svg>
         </span>
         <input id="hero-q" name="q" type="search" placeholder="¿Qué te apetece hoy? Pizza, ramen, postre…" autocomplete="off" />
-        <button type="submit" class="hero-search-btn">Buscar</button>
+        <button type="submit" class="hero-search-btn">
+          Buscar
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M5 12h14M14 7l5 5-5 5"></path>
+          </svg>
+        </button>
       </form>
 
-      <div class="mt-8 flex flex-wrap gap-3">
-        <a href="/api/carta.pdf" target="_blank" rel="noopener noreferrer" class="btn-lime text-sm sm:text-base px-6 py-3.5">Ver carta PDF</a>
-        <a href="#catalogo" class="btn-hero-ghost">Explorar carta</a>
+      <div class="hero-actions">
+        <a href="#catalogo" class="hero-cta-primary">
+          Pedir ahora
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 12h14M14 7l5 5-5 5"></path></svg>
+        </a>
+        <a href="#catalogo" class="btn-hero-ghost">Explorar la carta</a>
+        <a href="/api/carta.pdf" target="_blank" rel="noopener noreferrer" class="hero-pdf-link">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14"></path></svg>
+          Descargar carta PDF
+        </a>
       </div>
 
-      <ul class="mt-9 flex flex-wrap gap-2.5 text-sm">
-        <li class="premium-stat">
-          <span class="text-bocado-lime font-bold text-base sm:text-lg">20–40 min</span>
-          <span class="text-white/50 text-[11px] uppercase tracking-wider">entrega</span>
+      <ul class="hero-benefits">
+        <li>
+          <span class="hero-benefit-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"></circle><path d="M12 7v5l-3 2M5 4l-2 2M19 4l2 2"></path></svg>
+          </span>
+          <span><small>Entrega en</small><strong>20–40 min</strong></span>
         </li>
-        <li class="premium-stat">
-          <span class="text-white font-semibold text-sm">Bizum · TPV</span>
-          <span class="text-white/50 text-[11px] uppercase tracking-wider">y efectivo</span>
+        <li>
+          <span class="hero-benefit-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="12" rx="2"></rect><path d="M3 10h18M7 15h3"></path></svg>
+          </span>
+          <span><small>Pago seguro</small><strong>Bizum, tarjeta o efectivo</strong></span>
         </li>
-        <li class="premium-stat">
-          <span class="text-white font-semibold text-sm">Factura</span>
-          <span class="text-white/50 text-[11px] uppercase tracking-wider">automática</span>
+        <li>
+          <span class="hero-benefit-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 3h9l3 3v15H6zM14 3v4h4M9 12h6M9 16h6"></path></svg>
+          </span>
+          <span><small>Factura automática</small><strong>En todos los pedidos</strong></span>
         </li>
       </ul>
     </div>
 
-    <div class="relative hidden lg:block z-10">
+    <div class="home-hero-visual animate-fade-up stagger-1">
       <div class="hero-collage">
         <div class="hero-collage-main">
           <img
@@ -63,22 +76,38 @@ const stats = [
             height="560"
             class="w-full h-full object-cover"
             loading="eager"
+            fetchpriority="high"
           />
         </div>
         <div class="hero-collage-side">
-          <img src="/carta/ramen-tonkotsu.jpg" alt="Ramen tonkotsu" width="400" height="260" class="w-full h-[48%] object-cover rounded-2xl shadow-xl ring-1 ring-white/10" loading="lazy" />
-          <img src="/carta/cocido-madrileno.jpg" alt="Cocido madrileño" width="400" height="260" class="w-full h-[48%] object-cover rounded-2xl shadow-xl ring-1 ring-white/10" loading="lazy" />
+          <img src="/carta/ramen-tonkotsu.jpg" alt="Ramen tonkotsu con huevo marinado" width="400" height="260" loading="eager" />
+          <img src="/carta/gazpacho-andaluz.jpg" alt="Gazpacho andaluz con hierbas frescas" width="400" height="260" loading="lazy" />
         </div>
       </div>
-      <div class="absolute -bottom-5 left-4 right-4 flex justify-between items-end gap-3">
-        <div class="hero-badge-lime">★ 4.9 · Miles de pedidos</div>
-        <div class="hero-stats-float">
-          {stats.map((s) => (
-            <div class="text-center px-2 min-w-[4.5rem]">
-              <div class="text-bocado-lime font-display text-lg leading-none">{s.value}</div>
-              <div class="text-[9px] uppercase tracking-wider text-white/50 mt-1">{s.label}</div>
-            </div>
-          ))}
+      <div class="hero-stats-card" aria-label="Datos destacados">
+        <div class="hero-stat">
+          <span class="hero-stat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2.8 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"></path></svg>
+          </span>
+          <span><strong>4,9</strong><small>Valoración<br />media</small></span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 6h14v13H5zM8 3v6m8-6v6M8 13h8m-8 3h5"></path></svg>
+          </span>
+          <span><strong>+4.000</strong><small>Pedidos<br />servidos</small></span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+          </span>
+          <span><strong>25 min</strong><small>Entrega media<br />20–40 min</small></span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 20V9a6 6 0 0 1 12 0v11M4 20h16M9 6.5V4m6 2.5V4M9 13h6"></path></svg>
+          </span>
+          <span><strong>30+</strong><small>Platos en carta<br />Actualizada a diario</small></span>
         </div>
       </div>
     </div>

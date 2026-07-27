@@ -25,7 +25,6 @@ async function readPublicAsset(relativePath: string): Promise<Uint8Array | null>
 export async function embedDishThumbnail(
   pdf: PDFDocument,
   imageUrl: string | undefined,
-  baseOrigin?: string,
 ): Promise<PDFImage | null> {
   const raw = imageUrl?.trim() ?? '';
   if (!raw) return null;

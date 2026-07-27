@@ -14,9 +14,6 @@ const { title = 'BocadO' } = Astro.props as Props;
     <link rel="manifest" href="/mobile-manifest.webmanifest" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <title>{title}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body class="mobile-shell font-admin bg-bocado-paper2 text-bocado-ink min-h-screen">
     <MobileRouteGuard client:load />

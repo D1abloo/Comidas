@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getStore } from '../../../../server/db';
 import { dishImagePath } from '../../../../server/dish-images';
 import { sanitizeDishImageUrl } from '../../../../server/security';
+import { persistCatalog } from '../../../../server/store-service';
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
@@ -28,6 +29,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
   } else {
     return new Response(JSON.stringify({ error: 'invalid_images' }), { status: 400 });
   }
+  await persistCatalog(store);
 
   return new Response(JSON.stringify({ dish }), {
     headers: { 'content-type': 'application/json' },

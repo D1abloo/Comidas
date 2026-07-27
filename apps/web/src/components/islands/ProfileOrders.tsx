@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   OrderTimeline,
-  STATUS_LABEL,
   PAYMENT_LABEL,
   PAYMENT_STATUS_LABEL,
   customerOrderLabel,

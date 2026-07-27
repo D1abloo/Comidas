@@ -4,16 +4,19 @@ import { loginUser, setSession } from '../server/auth';
 import { safeRedirectPath } from '../server/security';
 
 let error = '';
-const next = safeRedirectPath(Astro.url.searchParams.get('next'), '/');
-
+const safeNext = safeRedirectPath(Astro.url.searchParams.get('next'), '/perfil');
 if (Astro.request.method === 'POST') {
   try {
     const fd = await Astro.request.formData();
     const user = await loginUser(String(fd.get('email')), String(fd.get('password')));
     await setSession(Astro.cookies, { id: user.id, email: user.email, full_name: user.full_name, role: user.role }, Astro.request);
-    const redirectTo =
-      user.role === 'admin' ? '/admin' : user.role === 'courier' ? '/repartidor' : safeRedirectPath(next, '/perfil');
-    return Astro.redirect(redirectTo);
+    return Astro.redirect(
+      user.role === 'admin'
+        ? '/admin'
+        : user.role === 'courier'
+          ? '/repartidor'
+          : safeRedirectPath(String(fd.get('_next') ?? ''), '/perfil'),
+    );
   } catch (e: any) {
     error = e.message ?? 'Error';
   }
@@ -34,6 +37,7 @@ if (Astro.request.method === 'POST') {
       <p class="text-sm text-bocado-mute mt-1">¿Aún no tienes? <a href="/registro" class="underline">Crear cuenta</a></p>
 
       <form method="POST" class="mt-6 space-y-3">
+        <input type="hidden" name="_next" value={safeNext} />
         <label class="block"><span class="label">Email</span>
           <input class="input mt-1" name="email" type="email" required autocomplete="username" />
         </label>

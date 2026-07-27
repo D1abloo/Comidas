@@ -5,7 +5,7 @@ services:
     mem_limit: 256m
     environment:
       POSTGRES_USER: bocado
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bocado}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: bocado
     volumes:
       - bocado_pg:/var/lib/postgresql/data
@@ -15,6 +15,23 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    security_opt:
+      - no-new-privileges:true
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://bocado:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/bocado
+    working_dir: /app
+    command: ["node", "/app/scripts/migrate-db.mjs"]
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
 
   web:
     build:
@@ -25,17 +42,25 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
       PORT: 4321
-      DATABASE_URL: postgres://bocado:${POSTGRES_PASSWORD:-bocado}@postgres:5432/bocado
-      SESSION_SECRET: ${SESSION_SECRET:-cambia-este-secreto-en-produccion}
-      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:4321}
+      DATABASE_URL: postgres://bocado:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/bocado
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET is required}
+      ORDER_TOKEN_SECRET: ${ORDER_TOKEN_SECRET:?ORDER_TOKEN_SECRET is required}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:?PUBLIC_APP_URL is required}
       ALLOW_ADMIN_REGISTRATION: ${ALLOW_ADMIN_REGISTRATION:-false}
-      BIZUM_COMPANY_PHONE: ${BIZUM_COMPANY_PHONE:-+34600123456}
+      APP_DEMO_MODE: "false"
+      ENABLE_SIMULATED_PAYMENTS: "false"
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+      BIZUM_COMPANY_PHONE: ${BIZUM_COMPANY_PHONE:-}
     ports:
       - "127.0.0.1:4321:4321"
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   bocado_pg:

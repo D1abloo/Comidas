@@ -2,7 +2,7 @@
 function read(key: string): string | undefined {
   const fromProcess = typeof process !== 'undefined' ? process.env[key] : undefined;
   if (typeof fromProcess === 'string' && fromProcess.length > 0) return fromProcess;
-  const v = import.meta.env[key];
+  const v = import.meta.env?.[key];
   if (typeof v === 'string' && v.length > 0) return v;
   return undefined;
 }
@@ -10,7 +10,7 @@ function read(key: string): string | undefined {
 export function getEmailConfig() {
   const provider = (read('EMAIL_PROVIDER') ?? 'console') as 'console' | 'resend' | 'smtp';
   return {
-    enabled: read('EMAIL_ENABLED') !== 'false',
+    enabled: read('EMAIL_ENABLED') === 'true',
     provider,
     from: read('EMAIL_FROM') ?? 'pedidos@bocado.app',
     apiKey: read('EMAIL_API_KEY'),
@@ -35,4 +35,12 @@ export function isDatabaseEnabled(): boolean {
 
 export function getDatabaseUrl(): string {
   return read('DATABASE_URL') ?? '';
+}
+
+export function isDemoMode(): boolean {
+  return !import.meta.env?.PROD && read('APP_DEMO_MODE') !== 'false';
+}
+
+export function areSimulatedPaymentsEnabled(): boolean {
+  return isDemoMode() && read('ENABLE_SIMULATED_PAYMENTS') !== 'false';
 }

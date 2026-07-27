@@ -17,15 +17,13 @@ if (dish.gluten_free) dietBadges.push('Sin gluten');
 <article class:list={['food-card group flex flex-col', !dish.is_available && 'opacity-90']}>
   <a href={`/platos/${dish.slug}`} class="block relative aspect-[4/3] overflow-hidden">
     <img src={img} alt={dish.name} loading="lazy"
-         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+         width="640" height="480"
+         class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-300" />
     <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-80" />
     <div class="absolute top-3 left-3 z-10">
       <AvailabilityBadge available={dish.is_available} size="md" />
     </div>
     <div class="absolute top-3 right-3 z-10"><FavoriteHeart client:idle id={dish.id} /></div>
-    <span class="absolute bottom-3 right-3 z-10 bg-bocado-lime text-bocado-ink text-sm font-bold px-3 py-1.5 rounded-full shadow-glow">
-      {formatEUR(dish.price_cents)}
-    </span>
     {dietBadges.length > 0 && (
       <div class="absolute bottom-3 left-3 flex gap-1.5 z-10">
         {dietBadges.map((b) => (
@@ -51,9 +49,10 @@ if (dish.gluten_free) dietBadges.push('Sin gluten');
       <span>{dish.nutrition.kcal} kcal</span>
     </div>
     <div class="mt-3"><AllergenBadges allergens={dish.allergens.slice(0, 3)} /></div>
-    <div class="mt-4 flex items-center justify-between gap-2">
+    <div class="mt-auto pt-4 flex items-center justify-between gap-2">
+      <strong class="font-display text-xl text-[#102019]">{formatEUR(dish.price_cents)}</strong>
       {dish.is_available ? (
-        <AddToCart client:idle variant="pill" line={{ dish_id: dish.id, dish_name: dish.name, restaurant_name: restaurant.name, unit_price_cents: dish.price_cents, image: img }} />
+        <AddToCart client:idle variant="circle" line={{ dish_id: dish.id, dish_name: dish.name, restaurant_name: restaurant.name, unit_price_cents: dish.price_cents, image: img }} />
       ) : (
         <span class="text-xs text-bocado-mute ml-auto">No disponible</span>
       )}

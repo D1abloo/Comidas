@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCart } from './cart-store';
 import CartDrawer from './CartDrawer';
+
+const eur = (cents: number) =>
+  new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
 interface User {
   id: string;
   full_name: string;
-  role: 'admin' | 'customer';
+  role: 'admin' | 'customer' | 'courier';
 }
 
 const NAV = [
@@ -18,8 +21,8 @@ const NAV = [
 function BurgerLogo({ compact }: { compact?: boolean }) {
   return (
     <svg
-      width={compact ? 28 : 32}
-      height={compact ? 28 : 32}
+      width={compact ? 32 : 36}
+      height={compact ? 32 : 36}
       viewBox="0 0 40 40"
       fill="none"
       aria-hidden
@@ -47,18 +50,30 @@ export default function SiteHeader({
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [promoHidden, setPromoHidden] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const count = useCart((s) => s.count());
+  const totalCents = useCart((s) => s.total());
   const setCartOpen = useCart((s) => s.setOpen);
+  const isHome = currentPath === '/';
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onScroll = () => setScrolled(window.scrollY > 48);
+    onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    if (!menuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setMenuOpen(false);
+      menuButtonRef.current?.focus();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.body.style.overflow = 'hidden';
     return () => {
+      document.removeEventListener('keydown', onKeyDown);
       document.body.style.overflow = '';
     };
   }, [menuOpen]);
@@ -70,11 +85,17 @@ export default function SiteHeader({
     <>
       <div className="site-header-wrap sticky top-0 z-50">
         {!promoHidden && (
-          <div className="bg-bocado-lime text-bocado-ink text-center text-xs sm:text-sm py-2 px-10 relative animate-slide-down">
-            <span className="font-medium">Envío gratis</span> en pedidos +25 € · Bizum, tarjeta o efectivo
+          <div className="delivery-promo animate-slide-down">
+            <span className="delivery-promo-content">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
+                <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"></path>
+                <circle cx="7" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle>
+              </svg>
+              <span><strong>Envío gratis</strong> en pedidos +25 € · Bizum, tarjeta o efectivo</span>
+            </span>
             <button
               type="button"
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full hover:bg-black/10 text-bocado-ink text-sm"
+              className="delivery-promo-close"
               aria-label="Cerrar aviso"
               onClick={() => setPromoHidden(true)}
             >
@@ -84,28 +105,34 @@ export default function SiteHeader({
         )}
 
         <header
-          className={`text-bocado-ink transition-all duration-300 ease-out border-b border-bocado-line/80 ${
-            scrolled ? 'bg-white/95 backdrop-blur-lg shadow-[0_4px_24px_-12px_rgba(0,0,0,.12)]' : 'bg-white'
+          className={`text-[#102019] transition-all duration-300 ease-out border-b border-[#E8E6DF] ${
+            scrolled ? 'bg-white/95 backdrop-blur-lg shadow-[0_8px_30px_-18px_rgba(16,32,25,.28)]' : 'bg-white'
           }`}
         >
           <div
-            className={`max-w-[1280px] mx-auto px-5 sm:px-6 md:px-10 flex items-center justify-between gap-4 transition-all duration-300 ${
-              scrolled ? 'h-[60px]' : 'h-[72px]'
+            className={`site-header-row transition-all duration-300 ${
+              scrolled ? 'h-[62px]' : 'h-[74px]'
             }`}
           >
-            <a href="/" className="inline-flex items-center gap-2.5 group shrink-0 text-bocado-ink">
+            <a href="/" className="site-brand group">
               <BurgerLogo compact={scrolled} />
               <span
-                className={`font-semibold tracking-[-0.03em] hidden sm:inline transition-all duration-300 ${
-                  scrolled ? 'text-[16px]' : 'text-[18px]'
+                className={`font-semibold tracking-[-0.04em] hidden sm:inline transition-all duration-300 ${
+                  scrolled ? 'text-[18px]' : 'text-[21px]'
                 }`}
               >
-                Bocad<span className="text-[#5a8f00]">O</span>
+                Bocad<span className="text-[#5F941C]">O</span>
               </span>
             </a>
 
-            <div className="hidden md:flex flex-1 max-w-md mx-4">
+            <div
+              className={`site-header-search hidden md:flex ${
+                isHome && !scrolled ? 'site-header-search--hidden' : 'site-header-search--visible'
+              }`}
+              aria-hidden={isHome && !scrolled}
+            >
               <form action="/buscar" method="get" className="w-full relative group">
+                <label htmlFor="site-search" className="sr-only">Buscar platos o restaurantes</label>
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-bocado-mute pointer-events-none">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                     <circle cx="11" cy="11" r="7" />
@@ -114,21 +141,23 @@ export default function SiteHeader({
                 </span>
                 <input
                   name="q"
+                  id="site-search"
                   type="search"
                   defaultValue={searchQuery}
                   placeholder="Buscar platos, restaurantes…"
-                  className="w-full h-10 pl-11 pr-4 rounded-full bg-bocado-paper2 border border-bocado-line text-sm text-bocado-ink placeholder:text-bocado-mute focus:bg-white focus:border-bocado-ink/30 focus:outline-none focus:ring-2 focus:ring-bocado-lime/40 transition-all"
+                  tabIndex={isHome && !scrolled ? -1 : undefined}
+                  className="w-full h-11 pl-11 pr-4 rounded-full bg-[#FBFAF6] border border-[#E8E6DF] text-sm text-[#102019] placeholder:text-[#706F68] focus:bg-white focus:border-[#5F941C] focus:ring-2 focus:ring-[#5F941C]/20 transition-all"
                 />
               </form>
             </div>
 
-            <nav className="hidden lg:flex items-center gap-6 text-sm text-bocado-ink">
+            <nav className="site-header-nav hidden lg:flex" aria-label="Navegación principal">
               {NAV.map((l) => (
                 <a
                   key={l.href}
                   href={l.href}
                   data-active={isActive(l.href)}
-                  className="relative py-1 text-bocado-mute hover:text-bocado-ink transition-all data-[active=true]:text-bocado-ink data-[active=true]:font-semibold after:absolute after:left-0 after:right-0 after:-bottom-0.5 after:h-0.5 after:scale-x-0 after:bg-bocado-lime after:transition-transform after:duration-300 hover:after:scale-x-100 data-[active=true]:after:scale-x-100"
+                  className="site-header-nav-link"
                 >
                   {l.label}
                 </a>
@@ -138,40 +167,47 @@ export default function SiteHeader({
             <div className="flex items-center gap-2 shrink-0">
               {user ? (
                 <a
-                  href={user.role === 'admin' ? '/admin' : '/perfil'}
-                  className="hidden sm:inline-flex h-10 px-4 items-center rounded-full border border-bocado-line text-bocado-ink text-sm hover:bg-bocado-paper2 transition-all duration-200"
+                  href={user.role === 'admin' ? '/admin' : user.role === 'courier' ? '/repartidor' : '/perfil'}
+                  className="site-account-btn"
                 >
-                  {user.role === 'admin' ? 'Panel admin' : user.full_name.split(' ')[0]}
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                    <circle cx="12" cy="8" r="3"></circle><path d="M6 20c0-4 2-7 6-7s6 3 6 7"></path>
+                  </svg>
+                  {user.role === 'admin' ? 'Panel admin' : user.role === 'courier' ? 'Repartos' : user.full_name.split(' ')[0]}
                 </a>
               ) : (
                 <a
                   href="/login"
-                  className="hidden sm:inline-flex h-10 px-4 items-center rounded-full border border-bocado-line text-bocado-ink text-sm hover:bg-bocado-paper2 transition-all"
+                  className="site-account-btn"
                 >
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                    <circle cx="12" cy="8" r="3"></circle><path d="M6 20c0-4 2-7 6-7s6 3 6 7"></path>
+                  </svg>
                   Acceder
                 </a>
               )}
               <button
                 type="button"
                 onClick={() => setCartOpen(true)}
-                className="relative inline-flex items-center gap-2 rounded-full bg-bocado-ink text-white h-10 px-3 sm:px-4 hover:opacity-90 transition-all active:scale-[0.97]"
-                aria-label="Abrir carrito"
+                className="site-cart-btn"
+                aria-label={`Abrir cesta con ${count} productos por ${eur(totalCents)}`}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                   <path d="M3 6h2l2 12h12l2-9H6" />
                   <circle cx="10" cy="20" r="1.4" />
                   <circle cx="17" cy="20" r="1.4" />
                 </svg>
-                <span className="text-sm font-medium hidden sm:inline">Cesta</span>
-                {count > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 grid place-items-center text-[10px] font-semibold bg-bocado-lime text-bocado-ink rounded-full">
-                    {count}
-                  </span>
-                )}
+                <span className="site-cart-label">
+                  Cesta <span aria-hidden="true">·</span> {count}
+                </span>
+                <span className="site-cart-mobile-count" aria-hidden="true">{count}</span>
+                <span className="site-cart-divider" aria-hidden="true"></span>
+                <span className="site-cart-total">{eur(totalCents)}</span>
               </button>
               <button
                 type="button"
-                className="lg:hidden w-10 h-10 grid place-items-center rounded-full border border-bocado-line text-bocado-ink hover:bg-bocado-paper2 transition"
+                ref={menuButtonRef}
+                className="lg:hidden w-11 h-11 grid place-items-center rounded-full border border-bocado-line text-bocado-ink hover:bg-bocado-paper2 transition"
                 aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
                 aria-expanded={menuOpen}
                 onClick={() => setMenuOpen((v) => !v)}
@@ -183,18 +219,16 @@ export default function SiteHeader({
             </div>
           </div>
 
-          <div
-            className={`lg:hidden overflow-hidden transition-all duration-300 ease-out border-t border-bocado-line bg-white ${
-              menuOpen ? 'max-h-[480px] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
-            }`}
-          >
+          {menuOpen && <div className="lg:hidden border-t border-bocado-line bg-white animate-fade-in">
             <form action="/buscar" method="get" className="px-5 py-3 md:hidden">
+              <label htmlFor="mobile-site-search" className="sr-only">Buscar platos</label>
               <input
                 name="q"
+                id="mobile-site-search"
                 type="search"
                 defaultValue={searchQuery}
                 placeholder="Buscar platos…"
-                className="w-full h-10 px-4 rounded-full bg-bocado-paper2 border border-bocado-line text-sm text-bocado-ink placeholder:text-bocado-mute"
+                className="w-full h-11 px-4 rounded-full bg-bocado-paper2 border border-bocado-line text-sm text-bocado-ink placeholder:text-bocado-mute"
               />
             </form>
             <nav className="px-5 pb-4 flex flex-col gap-1">
@@ -213,14 +247,14 @@ export default function SiteHeader({
               ))}
               <hr className="border-bocado-line my-2" />
               <a
-                href={user ? (user.role === 'admin' ? '/admin' : '/perfil') : '/login'}
+                href={user ? (user.role === 'admin' ? '/admin' : user.role === 'courier' ? '/repartidor' : '/perfil') : '/login'}
                 className="py-3 px-4 text-sm text-bocado-ink"
                 onClick={() => setMenuOpen(false)}
               >
                 {user ? 'Mi cuenta' : 'Iniciar sesión'}
               </a>
             </nav>
-          </div>
+          </div>}
         </header>
       </div>
       <CartDrawer />

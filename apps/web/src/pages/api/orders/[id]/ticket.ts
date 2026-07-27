@@ -3,6 +3,7 @@ import { getStore } from '../../../../server/db';
 import { getOrderById } from '../../../../server/order-service';
 import { buildPaymentQrForOrder } from '../../../../server/payment-qr';
 import { formatEUR } from '../../../../server/format';
+import { getInvoiceById } from '../../../../server/invoices';
 
 /** Datos del ticket con QR para cliente o impresión */
 export const GET: APIRoute = async ({ params, url, locals }) => {
@@ -13,13 +14,13 @@ export const GET: APIRoute = async ({ params, url, locals }) => {
   const isAdmin = locals.user?.role === 'admin';
   const isOwner =
     locals.user &&
-    (order.customer.user_id === locals.user.id || order.customer.email === locals.user.email);
+    order.customer.user_id === locals.user.id;
 
   if (!isAdmin && !isOwner) {
     return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
   }
 
-  const invoice = order.invoice_id ? store.invoices.find((i) => i.id === order.invoice_id) : null;
+  const invoice = order.invoice_id ? await getInvoiceById(store, order.invoice_id) : null;
   const payment = await buildPaymentQrForOrder(store, order, url.origin);
 
   return new Response(

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /repartidor/
+Disallow: /movil/
+Disallow: /api/
+
+Sitemap: /sitemap.xml

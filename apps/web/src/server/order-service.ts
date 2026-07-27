@@ -7,8 +7,10 @@ import {
   pgGetOrder,
   pgInsertAdminAlert,
   pgInsertOrder,
+  pgDishSalesCounts,
   pgListCourierLocations,
   pgListOrders,
+  pgListOrdersForUser,
   pgListUnseenAlerts,
   pgMarkAlertsSeen,
   pgNextOrderNumber,
@@ -21,6 +23,26 @@ import { emitOrderEvent } from './order-events.js';
 export async function listOrders(): Promise<Order[]> {
   if (isDatabaseEnabled()) return pgListOrders();
   return getStore().orders;
+}
+
+export async function listOrdersForUser(userId: string, activeOnly = false): Promise<Order[]> {
+  if (isDatabaseEnabled()) return pgListOrdersForUser(userId, activeOnly);
+  return getStore().orders
+    .filter((order) => order.customer.user_id === userId)
+    .filter((order) => !activeOnly || (order.status !== 'delivered' && order.status !== 'cancelled'))
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+
+export async function dishSalesCounts(): Promise<Map<string, number>> {
+  if (isDatabaseEnabled()) return pgDishSalesCounts();
+  const counts = new Map<string, number>();
+  for (const order of getStore().orders) {
+    if (order.status === 'cancelled') continue;
+    for (const line of order.items) {
+      counts.set(line.dish_id, (counts.get(line.dish_id) ?? 0) + line.quantity);
+    }
+  }
+  return counts;
 }
 
 export async function getOrderById(id: string): Promise<Order | null> {

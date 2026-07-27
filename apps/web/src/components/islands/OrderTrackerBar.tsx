@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { STATUS_LABEL, STATUS_STEPS, customerOrderLabel, type OrderStatus } from './order-shared';
+import { STATUS_STEPS, customerOrderLabel, type OrderStatus } from './order-shared';
 import CustomerLiveDelivery from './CustomerLiveDelivery';
 import {
   TRACK_ORDER_KEY,

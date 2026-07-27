@@ -9,6 +9,17 @@ import CookieConsent from '../components/islands/CookieConsent.tsx';
 import FloatingCartFab from '../components/islands/FloatingCartFab.tsx';
 interface Props { title?: string; description?: string; hideChrome?: boolean; manifestHref?: string }
 const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda online de comida a domicilio con fotos reales, tiempos verificados y entrega rápida.', hideChrome = false, manifestHref = '/manifest.webmanifest' } = Astro.props as Props;
+const origin = Astro.site ?? Astro.url.origin;
+const canonicalUrl = new URL(Astro.url.pathname, origin).toString();
+const previewImage = new URL('/icons/icon-512.png', origin).toString();
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'FoodEstablishment',
+  name: 'BocadO',
+  url: new URL('/', origin).toString(),
+  image: previewImage,
+  servesCuisine: ['Mediterránea', 'Española', 'Italiana', 'Asiática'],
+};
 ---
 <!doctype html>
 <html lang="es">
@@ -17,6 +28,18 @@ const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#FAF8F3" />
     <meta name="description" content={description} />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={previewImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={previewImage} />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -25,14 +48,13 @@ const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <title>{title}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500..700;1,9..144,500..700&family=Plus+Jakarta+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet" />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   </head>
   <body class="store-front bg-bocado-paper text-bocado-ink min-h-screen flex flex-col">
+    <a href="#main-content" class="skip-link">Saltar al contenido</a>
     <DemoBanner />
     {!hideChrome && <Header />}
-    <main class="flex-1">
+    <main id="main-content" tabindex="-1" class="flex-1">
       <slot />
     </main>
     {!hideChrome && <Footer />}

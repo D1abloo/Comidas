@@ -1,7 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
 import CheckoutForm from '../components/islands/CheckoutForm.tsx';
+import { getStore } from '../server/db.ts';
 const user = Astro.locals.user;
+const settings = getStore().settings;
 ---
 <Base title="Checkout · BocadO">
   <section class="page-hero-block mb-8">
@@ -14,6 +16,13 @@ const user = Astro.locals.user;
       <CheckoutForm client:load
         defaultName={user?.full_name ?? ''}
         defaultEmail={user?.email ?? ''}
+        deliveryFeeCents={settings.delivery_fee_cents}
+        freeDeliveryFromCents={settings.free_delivery_from_cents}
+        paymentAvailability={{
+          tpv: settings.tpv_enabled,
+          bizum: settings.bizum_enabled,
+          cash: settings.cash_enabled,
+        }}
       />
     </div>
   </section>

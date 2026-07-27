@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../../../server/db';
 import { randomUUID } from 'node:crypto';
+import { persistCatalog } from '../../../../server/store-service';
 
 export const POST: APIRoute = async ({ params, locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
@@ -18,5 +19,6 @@ export const POST: APIRoute = async ({ params, locals }) => {
     is_featured: false,
   };
   store.dishes.push(copy);
+  await persistCatalog(store);
   return new Response(JSON.stringify({ dish: copy }));
 };

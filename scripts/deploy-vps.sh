@@ -19,20 +19,21 @@ set -euo pipefail
 cd /root/comidas
 DOMAIN="${DOMAIN}"
 if [ ! -f .env.deploy ]; then
-  echo "SESSION_SECRET=\$(openssl rand -hex 32)" > .env.deploy
-  echo "ALLOW_ADMIN_REGISTRATION=false" >> .env.deploy
+  touch .env.deploy
+  chmod 600 .env.deploy
 fi
+grep -q '^POSTGRES_PASSWORD=' .env.deploy || echo "POSTGRES_PASSWORD=\$(openssl rand -hex 24)" >> .env.deploy
+grep -q '^SESSION_SECRET=' .env.deploy || echo "SESSION_SECRET=\$(openssl rand -hex 32)" >> .env.deploy
+grep -q '^ORDER_TOKEN_SECRET=' .env.deploy || echo "ORDER_TOKEN_SECRET=\$(openssl rand -hex 32)" >> .env.deploy
 grep -q '^ALLOW_ADMIN_REGISTRATION=' .env.deploy || echo "ALLOW_ADMIN_REGISTRATION=false" >> .env.deploy
 grep -q '^DOMAIN=' .env.deploy || echo "DOMAIN=\$DOMAIN" >> .env.deploy
 grep -q '^PUBLIC_APP_URL=' .env.deploy || echo "PUBLIC_APP_URL=https://\$DOMAIN" >> .env.deploy
 sed -i "s|^PUBLIC_APP_URL=.*|PUBLIC_APP_URL=https://\$DOMAIN|" .env.deploy
 sed -i "s|^DOMAIN=.*|DOMAIN=\$DOMAIN|" .env.deploy
-source .env.deploy
-export SESSION_SECRET PUBLIC_APP_URL DOMAIN BIZUM_COMPANY_PHONE='+34600123456'
 docker system prune -f --filter "until=72h" 2>/dev/null || true
-docker compose up -d --build
+docker compose --env-file .env.deploy up -d --build
 bash scripts/vps-nginx-ssl.sh
-docker compose ps
+docker compose --env-file .env.deploy ps
 echo "--- Memoria VPS ---"
 free -h
 swapon --show 2>/dev/null || true

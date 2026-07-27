@@ -4,10 +4,11 @@ import { pushAdminNewOrderAlert } from '../../../server/admin-alerts';
 import { onOrderCreated } from '../../../server/order-emails';
 import { geocodeAddress } from '../../../server/geo';
 import { createOrderAccessToken, createOrderPaymentToken } from '../../../server/order-tokens';
-import { parsePaymentMethod } from '../../../server/security';
-import { createOrder, getOrderById, listOrders, nextOrderNumber, saveOrder } from '../../../server/order-service';
+import { readOrderRequest } from '../../../server/order-input';
+import { createOrder, getOrderById, listOrders, listOrdersForUser, nextOrderNumber, saveOrder } from '../../../server/order-service';
 import type { Order } from '../../../server/types';
 import { randomUUID } from 'node:crypto';
+import { queueNotification } from '../../../server/notification-service';
 
 async function attachDeliveryCoords(orderId: string) {
   const order = await getOrderById(orderId);
@@ -21,23 +22,15 @@ async function attachDeliveryCoords(orderId: string) {
 }
 
 export const GET: APIRoute = async ({ locals, url }) => {
-  const allOrders = await listOrders();
-
   if (locals.user?.role === 'admin') {
+    const allOrders = await listOrders();
     return new Response(JSON.stringify({ orders: allOrders }), {
       headers: { 'content-type': 'application/json' },
     });
   }
 
   if (locals.user) {
-    let orders = allOrders.filter(
-      (o) =>
-        o.customer.user_id === locals.user!.id ||
-        o.customer.email.toLowerCase() === locals.user!.email.toLowerCase(),
-    );
-    if (url.searchParams.get('active') === '1') {
-      orders = orders.filter((o) => o.status !== 'delivered' && o.status !== 'cancelled');
-    }
+    const orders = await listOrdersForUser(locals.user.id, url.searchParams.get('active') === '1');
     return new Response(JSON.stringify({ orders }), {
       headers: { 'content-type': 'application/json' },
     });
@@ -47,20 +40,30 @@ export const GET: APIRoute = async ({ locals, url }) => {
 };
 
 export const POST: APIRoute = async ({ request, locals }) => {
-  const body = (await request.json()) as any;
+  let body;
+  try {
+    body = await readOrderRequest(request);
+  } catch (error) {
+    const code = error instanceof Error ? error.message : 'invalid_order';
+    return new Response(JSON.stringify({ error: code }), {
+      status: code === 'payload_too_large' ? 413 : 400,
+      headers: { 'content-type': 'application/json' },
+    });
+  }
   const store = getStore();
-  const paymentMethod = parsePaymentMethod(body.payment_method);
-  if (!paymentMethod) {
-    return new Response(JSON.stringify({ error: 'invalid_payment_method' }), { status: 400 });
+  const paymentEnabled = {
+    tpv: store.settings.tpv_enabled,
+    cash: store.settings.cash_enabled,
+    bizum: store.settings.bizum_enabled,
+  }[body.payment_method];
+  if (!paymentEnabled) {
+    return new Response(JSON.stringify({ error: 'payment_method_disabled' }), { status: 400 });
   }
 
   const items: Order['items'] = [];
   let subtotal = 0;
-  for (const it of body.items ?? []) {
-    const qty = Number(it.quantity);
-    if (!Number.isFinite(qty) || qty < 1 || qty > 99 || !Number.isInteger(qty)) {
-      return new Response(JSON.stringify({ error: 'invalid_quantity' }), { status: 400 });
-    }
+  for (const it of body.items) {
+    const qty = it.quantity;
     const dish = store.dishes.find((d) => d.id === it.dish_id);
     if (!dish || !dish.is_available) {
       return new Response(JSON.stringify({ error: `Plato no disponible: ${it.dish_id}` }), { status: 400 });
@@ -70,13 +73,19 @@ export const POST: APIRoute = async ({ request, locals }) => {
       dish_name: dish.name,
       unit_price_cents: dish.price_cents,
       quantity: qty,
+      vat_rate: dish.vat_rate,
     });
     subtotal += dish.price_cents * qty;
   }
   if (items.length === 0) return new Response(JSON.stringify({ error: 'Carrito vacío' }), { status: 400 });
 
-  const vat = Math.round(subtotal * 0.1);
   const fee = subtotal >= store.settings.free_delivery_from_cents ? 0 : store.settings.delivery_fee_cents;
+  const vat =
+    items.reduce(
+      (sum, item) =>
+        sum + Math.round((item.unit_price_cents * item.quantity * (item.vat_rate ?? 0.1)) / (1 + (item.vat_rate ?? 0.1))),
+      0,
+    ) + Math.round((fee * 0.1) / 1.1);
   const total = subtotal + fee;
   const number = await nextOrderNumber();
 
@@ -85,10 +94,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     number,
     customer: {
       user_id: locals.user?.id ?? null,
-      full_name: body.customer.full_name,
-      email: body.customer.email,
-      phone: body.customer.phone,
-      tax_id: body.customer.tax_id ?? null,
+      ...body.customer,
     },
     delivery_address: body.delivery_address,
     items,
@@ -97,26 +103,23 @@ export const POST: APIRoute = async ({ request, locals }) => {
     vat_cents: vat,
     total_cents: total,
     status: 'pending',
-    payment_method: paymentMethod,
+    payment_method: body.payment_method,
     payment_status: 'pending',
-    notes: body.notes ?? null,
+    notes: body.notes,
     created_at: new Date().toISOString(),
   };
 
   await createOrder(order);
   await pushAdminNewOrderAlert(order);
   void attachDeliveryCoords(order.id);
-  void onOrderCreated(store, order).catch((err) => console.error('[order] post-create:', err));
+  void onOrderCreated(store, order).catch(() => console.error('[order] No se pudo completar la notificación'));
 
   if (store.settings.whatsapp_notifications_enabled) {
-    store.notifications.unshift({
-      id: randomUUID(),
-      order_id: order.id,
+    await queueNotification({
+      orderId: order.id,
       channel: 'whatsapp',
       kind: 'order_created',
       recipient: order.customer.phone,
-      status: 'sent',
-      created_at: new Date().toISOString(),
     });
   }
 

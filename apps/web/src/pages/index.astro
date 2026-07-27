@@ -5,8 +5,9 @@ import CategoryStrip from '../components/CategoryStrip.astro';
 import DailyMenu from '../components/DailyMenu.astro';
 import BestsellerCarousel from '../components/islands/BestsellerCarousel.tsx';
 import MenuCatalog from '../components/islands/MenuCatalog.tsx';
+import SignupPromo from '../components/SignupPromo.astro';
 import { getStore } from '../server/db';
-import { listOrders } from '../server/order-service';
+import { dishSalesCounts } from '../server/order-service';
 import type { Dish } from '../server/types';
 
 const q = Astro.url.searchParams.get('q');
@@ -17,7 +18,6 @@ if (q?.trim()) {
 const store = getStore();
 const dishes = store.dishes;
 const dishesForOrder = store.dishes.filter((d) => d.is_available);
-const allOrders = await listOrders();
 
 const allSections = store.menu_sections.filter((s) => s.is_active).sort((a, b) => a.sort_order - b.sort_order);
 const catalogSections = allSections.filter((s) => s.id !== 'sec-menu-dia');
@@ -29,12 +29,7 @@ const dateLabel = new Intl.DateTimeFormat('es-ES', {
   month: 'long',
 }).format(new Date());
 
-const soldCount = new Map<string, number>();
-for (const o of allOrders) {
-  for (const line of o.items) {
-    soldCount.set(line.dish_id, (soldCount.get(line.dish_id) ?? 0) + line.quantity);
-  }
-}
+const soldCount = await dishSalesCounts();
 
 let bestsellers: (Dish & { sold_count?: number })[] = [...dishesForOrder]
   .map((d) => ({ ...d, sold_count: soldCount.get(d.id) ?? 0 }))
@@ -53,7 +48,12 @@ if (bestsellers.length < 4) {
   <Hero />
   <CategoryStrip />
 
-  <BestsellerCarousel client:load dishes={bestsellers} restaurants={restNames} />
+  <BestsellerCarousel client:load
+    dishes={bestsellers}
+    restaurants={restNames}
+    deliveryFeeCents={store.settings.delivery_fee_cents}
+  />
+  <SignupPromo />
   <DailyMenu dishes={dailyDishes} restaurants={store.restaurants} dateLabel={dateLabel} />
 
   <section id="catalogo" class="container-bocado mt-12 md:mt-16 pb-28 scroll-mt-28">

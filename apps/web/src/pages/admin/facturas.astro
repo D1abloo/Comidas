@@ -2,8 +2,9 @@
 import Admin from '../../layouts/Admin.astro';
 import { getStore } from '../../server/db';
 import { formatEUR, formatDateTime } from '../../server/format';
+import { listInvoices } from '../../server/invoices';
 
-const invoices = getStore().invoices;
+const invoices = await listInvoices(getStore());
 ---
 <Admin title="Facturas" crumb="Inicio / Facturas">
   <div class="card overflow-hidden">

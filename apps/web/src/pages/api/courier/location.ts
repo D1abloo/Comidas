@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getOrderById, listCourierLocations, listOrders, saveCourierLocation, saveOrder } from '../../../server/order-service';
+import { getOrderById, listCourierLocations, saveCourierLocation, saveOrder } from '../../../server/order-service';
 import type { SessionUser } from '../../../server/auth';
 
 export const PATCH: APIRoute = async ({ request, locals }) => {
@@ -24,7 +24,10 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
   const courier = locals.user as SessionUser;
   const now = new Date().toISOString();
   let activeOrder = body.active_order_id ? await getOrderById(body.active_order_id) : null;
-  if (activeOrder?.courier_id && activeOrder.courier_id !== courier.id) {
+  if (
+    activeOrder &&
+    (activeOrder.status !== 'delivering' || activeOrder.courier_id !== courier.id)
+  ) {
     activeOrder = null;
   }
 

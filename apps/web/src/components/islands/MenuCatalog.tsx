@@ -45,21 +45,34 @@ export default function MenuCatalog({ sections, dishes, restaurants, previewLimi
         <button
           type="button"
           onClick={() => setActiveSection('all')}
-          className={`premium-chip shrink-0 snap-start ${activeSection === 'all' ? '!bg-bocado-ink !text-white !border-bocado-ink' : ''}`}
+          aria-pressed={activeSection === 'all'}
+          className={`premium-chip shrink-0 snap-start ${activeSection === 'all' ? 'premium-chip--active' : ''}`}
         >
-          ✨ Todo
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+            <rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect>
+            <rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect>
+          </svg>
+          Todo
         </button>
         {sections.map((s) => (
           <button
             key={s.id}
             type="button"
+            aria-pressed={activeSection === s.id}
             onClick={() => {
               setActiveSection(s.id);
-              document.getElementById(`sec-${s.slug}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              document.getElementById(`sec-${s.slug}`)?.scrollIntoView({
+                behavior: reducedMotion ? 'auto' : 'smooth',
+                block: 'start',
+              });
             }}
-            className={`premium-chip shrink-0 snap-start ${activeSection === s.id ? '!bg-bocado-ink !text-white !border-bocado-ink' : ''}`}
+            className={`premium-chip shrink-0 snap-start ${activeSection === s.id ? 'premium-chip--active' : ''}`}
           >
-            {s.emoji} {s.title}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+              <path d="M5 11h14c0 5-3 8-7 8s-7-3-7-8ZM8 7c0-1 1-2 2-2m4 2c0-1 1-2 2-2"></path>
+            </svg>
+            {s.title}
           </button>
         ))}
         </div>
@@ -71,11 +84,13 @@ export default function MenuCatalog({ sections, dishes, restaurants, previewLimi
         const hasMore = list.length > previewLimit;
         const carouselDishes = list.slice(0, previewLimit);
         return (
-          <section key={sec.id} id={`sec-${sec.slug}`} className="scroll-mt-32 animate-fade-up" style={{ animationDelay: `${si * 0.04}s` }}>
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-4 border-b border-bocado-line/60">
+          <section key={sec.id} id={`sec-${sec.slug}`} className="catalog-section scroll-mt-32 animate-fade-up" style={{ animationDelay: `${si * 0.04}s` }}>
+            <div className="catalog-section-heading">
               <div className="flex items-center gap-4">
-                <span className="w-14 h-14 rounded-2xl bg-gradient-to-br from-bocado-lime/30 to-bocado-coral/20 grid place-items-center text-3xl shadow-sm">
-                  {sec.emoji}
+                <span className="catalog-section-icon" aria-hidden="true">
+                  <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                    <circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M4 12h5m6 0h5"></path>
+                  </svg>
                 </span>
                 <div>
                   <h2 className="font-display text-2xl md:text-3xl">{sec.title}</h2>

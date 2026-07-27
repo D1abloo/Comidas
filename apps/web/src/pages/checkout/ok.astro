@@ -3,12 +3,13 @@ import Base from '../../layouts/Base.astro';
 import OrderTrackInit from '../../components/islands/OrderTrackInit.tsx';
 import { getOrderById } from '../../server/order-service';
 import { getStore } from '../../server/db';
+import { getInvoiceById } from '../../server/invoices';
 
 const orderId = Astro.url.searchParams.get('order');
 const accessToken = Astro.url.searchParams.get('token') ?? undefined;
 const order = orderId ? await getOrderById(orderId) : null;
 const store = getStore();
-const invoice = order?.invoice_id ? store.invoices.find((i) => i.id === order.invoice_id) : null;
+const invoice = order?.invoice_id ? await getInvoiceById(store, order.invoice_id) : null;
 const pdfToken = accessToken ? `?token=${encodeURIComponent(accessToken)}` : '';
 ---
 <Base title="Pedido confirmado · BocadO">

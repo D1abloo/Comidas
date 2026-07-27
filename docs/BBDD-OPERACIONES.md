@@ -11,26 +11,31 @@ ssh root@31.70.114.94
 cd /root/comidas
 
 # Consola interactiva
-docker compose exec postgres psql -U bocado -d bocado
+docker compose --env-file .env.deploy exec postgres psql -U bocado -d bocado
 ```
 
-La contraseña está en `/root/comidas/.env.deploy` (`POSTGRES_PASSWORD`). Si no la definiste, el default del compose es `bocado`.
+La contraseña está en `/root/comidas/.env.deploy` (`POSTGRES_PASSWORD`). Docker
+Compose no acepta una contraseña por defecto.
 
 ### En local (Docker)
 
 ```bash
 cd /ruta/a/comidas
+POSTGRES_PASSWORD='elige-una-clave-local' \
+SESSION_SECRET='secreto-local-de-al-menos-32-caracteres' \
+ORDER_TOKEN_SECRET='otro-secreto-local-distinto-de-32-caracteres' \
+PUBLIC_APP_URL='http://localhost:4321' \
 docker compose up -d postgres
 docker compose exec postgres psql -U bocado -d bocado
 ```
 
-URL de conexión: `postgres://bocado:bocado@localhost:5432/bocado` (ajusta la contraseña si cambiaste `POSTGRES_PASSWORD`).
+URL de conexión: `postgres://bocado:<POSTGRES_PASSWORD>@localhost:5432/bocado`.
 
 ---
 
 ## Cambiar contraseñas de usuarios
 
-Las contraseñas se guardan en `users.password_hash` con **bcrypt** (coste 10 en runtime; los usuarios demo del `init.sql` usan coste 8).
+Las contraseñas se guardan en `users.password_hash` con **bcrypt** (coste 12).
 
 ### 1. Generar el hash de la nueva contraseña
 
@@ -101,7 +106,7 @@ VALUES (
 |------|--------|--------|
 | Pedidos completos | `orders` + `order_items` | **Siempre en PostgreSQL** en VPS |
 | Referencia a factura | `orders.invoice_id` | UUID si se generó factura en la app |
-| Facturas detalladas | `invoices` | Tabla creada en `init.sql`; la app puede tener líneas solo en memoria hasta reinicio del contenedor |
+| Facturas detalladas | `invoices` | Persistencia transaccional e idempotente por pedido |
 | Ajustes numeración | `company_settings.settings` | JSON con `invoice_prefix`, `invoice_next_number` |
 
 Para **informes fiables en producción**, usa **`orders` + `order_items`** (totales, IVA, cliente, líneas). Si la tabla `invoices` tiene filas, puedes cruzar con `orders.invoice_id = invoices.id`.

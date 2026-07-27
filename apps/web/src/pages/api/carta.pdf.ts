@@ -13,7 +13,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     siteOrigin,
   });
 
-  return new Response(pdf, {
+  return new Response(pdf.slice().buffer as ArrayBuffer, {
     headers: {
       'content-type': 'application/pdf',
       'content-disposition': 'inline; filename="bocado-carta-completa.pdf"',

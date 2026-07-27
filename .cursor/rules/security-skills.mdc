@@ -1,0 +1,7 @@
+---
+description: BocadO application security rules.
+globs:
+alwaysApply: true
+---
+
+Read and follow `SECURITY-SKILLS.md` before security-related work.

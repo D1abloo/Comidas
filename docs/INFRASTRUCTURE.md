@@ -1,55 +1,44 @@
-# Infrastructure — Bocado Delivery
+# Infraestructura — BocadO Delivery
 
-## Arquitectura
+## Arquitectura soportada
 
-```txt
-Cliente web
-   ↓
-Astro SSR + React Islands
-   ↓
-API backend
-   ↓
-Supabase Auth + PostgreSQL + Storage
-   ↓
-Redis cache / queues
-   ↓
-Worker: emails, WhatsApp, facturas y pagos
+```text
+Navegador / PWA / Capacitor
+            ↓ HTTPS
+nginx (TLS, límites y proxy)
+            ↓ 127.0.0.1:4321
+Astro 7 SSR + API Node
+            ↓ red privada Docker
+PostgreSQL 16
 ```
 
-## Carpetas principales
+El despliegue actual no usa Supabase, Redis, Vercel, Angular ni un worker
+independiente. Las referencias anteriores eran diseño aspiracional y no
+correspondían al código ejecutable.
 
-```txt
-apps/web       → tienda pública con Astro + React
-apps/admin     → panel admin con Angular
-apps/api       → backend de pedidos, pagos y facturas
-apps/worker    → procesos asíncronos
-packages       → código compartido
-supabase       → base de datos, storage y policies
-redis          → caché, colas y sesiones
-infrastructure → docker, vercel, supabase, redis y CI/CD
-docs           → documentación del proyecto
-```
+## Componentes
 
-## Redis
+- `apps/web`: tienda, paneles, API, sesiones, facturas y SSE.
+- `apps/mobile-app`: envoltorio Android unificado.
+- `apps/admin-app`, `apps/courier-app`: envoltorios heredados.
+- `docker/postgres`: esquema y migraciones.
+- `docker-compose.yml`: PostgreSQL, migrador one-shot y web.
+- `scripts/vps-nginx-ssl.sh`: TLS, rate limiting y proxy.
 
-Usos principales:
+## Persistencia y procesos
 
-- Caché de menú.
-- Caché de platos destacados.
-- Sesiones.
-- Colas de notificaciones.
-- Colas de generación de facturas.
+PostgreSQL conserva usuarios, pedidos, líneas, facturas, catálogo, ajustes,
+ubicaciones y eventos de notificación. `migrate` obtiene un advisory lock,
+aplica archivos nuevos y termina antes de iniciar `web`.
 
-## Supabase
+No existe una cola distribuida: el email inmediato se procesa en el proceso web
+y los demás eventos se guardan con estado `pending`. Para varias réplicas se
+requieren sesiones y rate limiting compartidos, además de un worker/outbox.
 
-Usos principales:
+## Red y seguridad
 
-- Autenticación.
-- Base de datos PostgreSQL.
-- Storage para imágenes de platos.
-- Policies RLS.
-- Edge Functions opcionales.
-
-## Vercel
-
-Se usa para el despliegue de pruebas de la web antes de conectar dominio.
+- PostgreSQL no publica puertos.
+- La web publica solo `127.0.0.1:4321`.
+- nginx termina TLS y separa el timeout largo de SSE.
+- Los contenedores usan `no-new-privileges`; la web se ejecuta como `node`.
+- Compose exige secretos de sesión, pedido y base de datos.

@@ -12,6 +12,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const order = await getOrderById(order_id);
   if (!order) return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
 
-  const invoice = createInvoiceForOrder(store, order);
+  const invoice = await createInvoiceForOrder(store, order);
   return new Response(JSON.stringify({ invoice }));
 };

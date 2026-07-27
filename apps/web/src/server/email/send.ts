@@ -21,11 +21,9 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   }
 
   if (cfg.provider === 'console') {
-    console.info('\n========== EMAIL (modo consola) ==========');
-    console.info('Para:', input.to);
-    console.info('Asunto:', input.subject);
-    console.info('--- Texto ---\n', input.text);
-    console.info('==========================================\n');
+    const [name, domain] = input.to.split('@');
+    const masked = domain ? `${name?.slice(0, 2) ?? ''}***@${domain}` : '[destinatario]';
+    console.info('[email:console] Simulación enviada', { to: masked, subject: input.subject });
     return { ok: true, provider: 'console', messageId: `console-${Date.now()}` };
   }
 
@@ -48,8 +46,15 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
           text: input.text,
           reply_to: cfg.replyTo,
         }),
+        signal: AbortSignal.timeout(10_000),
       });
-      const data = (await res.json()) as { id?: string; message?: string };
+      const raw = await res.text();
+      let data: { id?: string; message?: string } = {};
+      try {
+        data = JSON.parse(raw) as typeof data;
+      } catch {
+        data = {};
+      }
       if (!res.ok) {
         return { ok: false, provider: 'resend', error: data.message ?? res.statusText };
       }

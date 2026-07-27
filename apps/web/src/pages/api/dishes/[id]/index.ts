@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../../../server/db';
+import { persistCatalog } from '../../../../server/store-service';
 
 export const DELETE: APIRoute = async ({ params, locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
@@ -9,5 +10,6 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
   const idx = store.dishes.findIndex((d) => d.id === params.id);
   if (idx < 0) return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
   store.dishes.splice(idx, 1);
+  await persistCatalog(store);
   return new Response(JSON.stringify({ ok: true }));
 };

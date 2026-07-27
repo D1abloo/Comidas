@@ -51,7 +51,7 @@ function DishTile({ dish, restaurant, delay }: { dish: GridDish; restaurant?: st
   const available = dish.is_available !== false;
   return (
     <article
-      className={`food-card group flex flex-col ${!available ? 'opacity-85 ring-1 ring-red-200/60' : ''}`}
+      className={`food-card public-dish-card group flex flex-col ${!available ? 'opacity-85 ring-1 ring-red-200/60' : ''}`}
       style={{ animationDelay: `${delay ?? 0}s` }}
     >
       <a href={`/platos/${dish.slug}`} className={`block relative aspect-[4/3] overflow-hidden ${isBrandDrink ? 'bg-white' : ''}`}>
@@ -60,10 +60,10 @@ function DishTile({ dish, restaurant, delay }: { dish: GridDish; restaurant?: st
             src={img}
             alt={dish.name}
             loading="lazy"
-            className={`w-full h-full transition-transform duration-700 ease-out ${
+            className={`w-full h-full transition-transform duration-300 ease-out ${
               isBrandDrink
                 ? 'object-contain p-8 bg-white group-hover:scale-105'
-                : 'object-cover group-hover:scale-110'
+                : 'object-cover group-hover:scale-[1.04]'
             }`}
             onError={(e) => {
               const el = e.currentTarget;
@@ -96,7 +96,7 @@ function DishTile({ dish, restaurant, delay }: { dish: GridDish; restaurant?: st
           {eur(dish.price_cents)}
         </span>
       </a>
-      <div className="p-4 flex items-center justify-between gap-2 mt-auto border-t border-bocado-line/50 bg-gradient-to-b from-white to-bocado-cream/50">
+      <div className="p-4 flex items-center justify-between gap-2 mt-auto border-t border-bocado-line/50 bg-white">
         <span className="text-xs text-bocado-mute font-medium">
           ★ {dish.rating.toFixed(1)} · {dish.delivery_time_min} min
         </span>
@@ -104,7 +104,7 @@ function DishTile({ dish, restaurant, delay }: { dish: GridDish; restaurant?: st
           {dish.vegan && <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Vegano</span>}
           {available ? (
             <AddToCart
-              variant="pill"
+              variant="circle"
               line={{
                 dish_id: dish.id,
                 dish_name: dish.name,

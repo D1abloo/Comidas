@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   acceptAllCookies,
   acceptEssentialOnly,
@@ -6,14 +6,17 @@ import {
   saveConsent,
   type CookieConsentState,
 } from '../../utils/cookie-consent';
+import { useDialogFocus } from './useDialogFocus';
 
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
   const [customize, setCustomize] = useState(false);
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const close = useCallback(() => setVisible(false), []);
+  useDialogFocus(visible, dialogRef, close);
 
   const applyState = useCallback(
     (state: CookieConsentState) => {
@@ -53,7 +56,7 @@ export default function CookieConsent() {
 
   return (
     <div className="cookie-consent-root" role="dialog" aria-modal="true" aria-labelledby="cookie-consent-title">
-      <div className="cookie-consent-panel">
+      <div ref={dialogRef} className="cookie-consent-panel">
         <p className="cookie-consent-kicker">Cookies</p>
         <h2 id="cookie-consent-title" className="cookie-consent-title">
           Tu privacidad en BocadO
@@ -100,7 +103,7 @@ export default function CookieConsent() {
           <button type="button" className="btn-lime w-full justify-center py-3" onClick={() => applyState(acceptAllCookies())}>
             Aceptar todas
           </button>
-          <button type="button" className="cookie-consent-btn-secondary" onClick={() => applyState(acceptEssentialOnly())}>
+          <button type="button" className="btn-lime w-full justify-center py-3" onClick={() => applyState(acceptEssentialOnly())}>
             Solo necesarias
           </button>
           {customize ? (

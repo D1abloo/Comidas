@@ -1,8 +1,10 @@
-import { randomUUID } from 'node:crypto';
-import type { Dish, Order, Store } from './types.js';
+import type { Dish, Order } from './types.js';
+import type { Store } from './db.js';
 import { getAppUrl } from './env.js';
 import { buildOrderConfirmationEmail } from './email/order-confirmation.js';
 import { sendEmail } from './email/send.js';
+import { createOrderAccessToken } from './order-tokens.js';
+import { queueNotification, setNotificationResult } from './notification-service.js';
 
 const PREP_BUFFER_MIN = 8;
 
@@ -27,19 +29,14 @@ export async function onOrderCreated(store: Store, order: Order): Promise<void> 
     appUrl: getAppUrl(),
     deliveryEtaMin,
     companyName,
+    accessToken: createOrderAccessToken(order.id),
   });
 
-  const eventId = randomUUID();
-  const createdAt = new Date().toISOString();
-
-  store.notifications.unshift({
-    id: eventId,
-    order_id: order.id,
+  const event = await queueNotification({
+    orderId: order.id,
     channel: 'email',
     kind: 'order_confirmation',
     recipient: order.customer.email,
-    status: 'pending',
-    created_at: createdAt,
   });
 
   const result = await sendEmail({
@@ -49,12 +46,9 @@ export async function onOrderCreated(store: Store, order: Order): Promise<void> 
     text: content.text,
   });
 
-  const notif = store.notifications.find((n) => n.id === eventId);
-  if (notif) {
-    notif.status = result.ok ? 'sent' : 'failed';
-  }
+  await setNotificationResult(event.id, result.ok ? 'sent' : 'failed', result.error);
 
   if (!result.ok) {
-    console.warn('[email] No enviado:', result.error);
+    console.warn('[email] No se pudo enviar la notificación');
   }
 }

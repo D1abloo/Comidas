@@ -1,0 +1,7 @@
+---
+description: BocadO design and frontend quality rules.
+globs:
+alwaysApply: true
+---
+
+Read and follow `DESIGN-SKILLS.md` before UI or UX work.

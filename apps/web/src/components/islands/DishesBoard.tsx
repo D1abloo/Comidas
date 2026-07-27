@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import AvailabilityBadge from './AvailabilityBadge';
+import { useDialogFocus } from './useDialogFocus';
 
 const eur = (c: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(c / 100);
 
@@ -26,6 +27,14 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
   const [filter, setFilter] = useState<{ q: string; cat: string; avail: string }>({ q: '', cat: '', avail: '' });
   const [drawer, setDrawer] = useState(false);
   const [form, setForm] = useState<any>(emptyForm(restaurants[0]?.id, menuSections[0]?.id));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const drawerRef = useRef<HTMLElement>(null);
+  const closeDrawer = useCallback(() => {
+    setDrawer(false);
+    setError('');
+  }, []);
+  useDialogFocus(drawer, drawerRef, closeDrawer);
 
   const visible = dishes.filter((d) => {
     if (filter.q && !d.name.toLowerCase().includes(filter.q.toLowerCase())) return false;
@@ -37,25 +46,23 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
 
   async function toggle(d: any) {
     const v = !d.is_available;
+    setError('');
     setDishes((prev) => prev.map((x) => (x.id === d.id ? { ...x, is_available: v } : x)));
-    await fetch(`/api/dishes/${d.id}/availability`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ available: v }),
-    });
-  }
-  async function dup(d: any) {
-    const r = await fetch(`/api/dishes/${d.id}/duplicate`, { method: 'POST' });
-    const data = await r.json();
-    if (data.dish) setDishes((prev) => [data.dish, ...prev]);
-  }
-  async function del(d: any) {
-    if (!confirm(`¿Eliminar “${d.name}”?`)) return;
-    await fetch(`/api/dishes/${d.id}`, { method: 'DELETE' });
-    setDishes((prev) => prev.filter((x) => x.id !== d.id));
+    try {
+      const response = await fetch(`/api/dishes/${d.id}/availability`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ available: v }),
+      });
+      if (!response.ok) throw new Error('No se pudo actualizar la disponibilidad.');
+    } catch (cause) {
+      setDishes((prev) => prev.map((x) => (x.id === d.id ? { ...x, is_available: !v } : x)));
+      setError(cause instanceof Error ? cause.message : 'No se pudo actualizar la disponibilidad.');
+    }
   }
   function openNew() {
     setForm(emptyForm(restaurants[0]?.id, menuSections[0]?.id));
+    setError('');
     setDrawer(true);
   }
   function openEdit(d: any) {
@@ -66,34 +73,8 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
       _ingredients_str: d.ingredients.join(', '),
       content_sections: d.content_sections ?? [],
     });
+    setError('');
     setDrawer(true);
-  }
-
-  function readImageFile(file: File) {
-    return new Promise<string>((resolve, reject) => {
-      if (file.size > 2_000_000) {
-        reject(new Error('Máximo 2 MB por imagen'));
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error('No se pudo leer la imagen'));
-      reader.readAsDataURL(file);
-    });
-  }
-
-  async function onImageFiles(files: FileList | null) {
-    if (!files?.length) return;
-    try {
-      const urls: string[] = [];
-      for (const f of Array.from(files)) urls.push(await readImageFile(f));
-      const prev = String(form._images_str ?? form.images?.join('\n') ?? '')
-        .split(/\s+/)
-        .filter(Boolean);
-      setForm({ ...form, _images_str: [...prev, ...urls].join('\n') });
-    } catch (err: any) {
-      alert(err.message ?? 'Error al subir');
-    }
   }
 
   function addContentSection() {
@@ -111,6 +92,9 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
     setForm({ ...form, content_sections: (form.content_sections ?? []).filter((s: any) => s.id !== id) });
   }
   async function save() {
+    if (saving) return;
+    setSaving(true);
+    setError('');
     const payload = {
       ...form,
       price_cents: Math.round(parseFloat(form._price_eur ?? '0') * 100) || 0,
@@ -118,19 +102,26 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
       ingredients: String(form._ingredients_str ?? '').split(',').map((s: string) => s.trim()).filter(Boolean),
     };
     delete payload._price_eur; delete payload._images_str; delete payload._ingredients_str;
-    const r = await fetch('/api/dishes', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const data = await r.json();
-    if (data.dish) {
+    try {
+      const response = await fetch('/api/dishes', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.dish) {
+        throw new Error(data.error ?? 'No se pudo guardar el plato.');
+      }
       setDishes((prev) => {
         const i = prev.findIndex((x) => x.id === data.dish.id);
         if (i >= 0) { const c = [...prev]; c[i] = data.dish; return c; }
         return [data.dish, ...prev];
       });
-      setDrawer(false);
+      closeDrawer();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudo guardar el plato.');
+    } finally {
+      setSaving(false);
     }
   }
   function toggleAllergen(a: string) {
@@ -141,7 +132,10 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
   return (
     <section className="admin-content space-y-6 !py-0">
       <div className="flex flex-wrap items-center gap-2">
-        <input className="input w-72" placeholder="Buscar plato…" value={filter.q} onChange={(e) => setFilter({ ...filter, q: e.target.value })} />
+        <label className="w-full sm:w-72">
+          <span className="sr-only">Buscar platos</span>
+          <input className="input w-full" type="search" placeholder="Buscar plato…" value={filter.q} onChange={(e) => setFilter({ ...filter, q: e.target.value })} />
+        </label>
         <select className="chip" value={filter.cat} onChange={(e) => setFilter({ ...filter, cat: e.target.value })}>
           <option value="">Categoría: todas</option>
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -155,6 +149,7 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
           <span className="text-bocado-lime text-lg leading-none">+</span> Nuevo plato
         </button>
       </div>
+      {error && !drawer && <p className="text-sm text-red-700" role="alert">{error}</p>}
 
       <div className="admin-frame overflow-x-auto">
         <table className="admin-table">
@@ -189,13 +184,17 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
                     <button
                       type="button"
                       onClick={() => toggle(d)}
-                      className={`w-9 h-5 rounded-full relative transition ${d.is_available ? 'bg-bocado-lime' : 'bg-bocado-line'}`}
+                      role="switch"
+                      aria-checked={!!d.is_available}
+                      className="w-11 h-11 relative grid place-items-center rounded-full transition hover:bg-bocado-ink/5"
                       aria-label={d.is_available ? 'Marcar como no disponible' : 'Marcar como disponible'}
                       title={d.is_available ? 'Cambiar a no disponible' : 'Cambiar a disponible'}
                     >
-                      <span
-                        className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white border transition ${d.is_available ? 'left-[18px]' : 'left-0.5'}`}
-                      />
+                      <span className={`block w-9 h-5 rounded-full relative transition ${d.is_available ? 'bg-bocado-lime' : 'bg-bocado-line'}`}>
+                        <span
+                          className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white border transition ${d.is_available ? 'left-[18px]' : 'left-0.5'}`}
+                        />
+                      </span>
                     </button>
                   </div>
                 </td>
@@ -212,11 +211,17 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
 
       {drawer && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setDrawer(false)} />
-          <aside className="absolute right-0 top-0 h-full w-full max-w-[560px] bg-bocado-paper border-l border-bocado-line shadow-2xl flex flex-col">
+          <div className="absolute inset-0 bg-black/40" aria-hidden="true" onClick={closeDrawer} />
+          <aside
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dish-drawer-title"
+            className="absolute right-0 top-0 h-full w-full max-w-[560px] bg-bocado-paper border-l border-bocado-line shadow-2xl flex flex-col"
+          >
             <header className="h-[72px] flex items-center justify-between px-6 border-b border-bocado-line">
-              <h2 className="text-lg font-semibold tracking-tight">{form.id ? 'Editar plato' : 'Nuevo plato'}</h2>
-              <button onClick={() => setDrawer(false)} className="w-9 h-9 rounded-full hover:bg-bocado-ink/5">✕</button>
+              <h2 id="dish-drawer-title" className="text-lg font-semibold tracking-tight">{form.id ? 'Editar plato' : 'Nuevo plato'}</h2>
+              <button type="button" aria-label="Cerrar editor" onClick={closeDrawer} className="w-11 h-11 rounded-full hover:bg-bocado-ink/5">✕</button>
             </header>
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               <Section title="Información básica" open>
@@ -287,16 +292,6 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
               </Section>
 
               <Section title="Imágenes">
-                <Field label="Subir desde tu dispositivo">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="input text-sm file:mr-3 file:rounded-full file:border-0 file:bg-bocado-lime file:px-4 file:py-2 file:text-sm file:font-medium"
-                    onChange={(e) => onImageFiles(e.target.files)}
-                  />
-                  <p className="text-xs text-bocado-mute mt-1">Demo: se guardan en base64 (máx. 2 MB). También puedes pegar URLs.</p>
-                </Field>
                 {(form._images_str ?? form.images?.join('\n') ?? '').split(/\s+/).filter(Boolean).length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-2">
                     {String(form._images_str ?? form.images?.join('\n') ?? '')
@@ -308,9 +303,10 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
                       ))}
                   </div>
                 )}
-                <Field label="URLs (una por línea)">
+                <Field label="URLs HTTPS (una por línea)">
                   <textarea rows={3} className="input" value={form._images_str ?? form.images?.join('\n') ?? ''} onChange={(e) => setForm({ ...form, _images_str: e.target.value })} />
                 </Field>
+                <p className="text-xs text-bocado-mute">Usa imágenes HTTPS o rutas locales bajo /carta, /images o /uploads.</p>
               </Section>
 
               <Section title="Secciones del detalle (página del plato)">
@@ -369,9 +365,14 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
                 </div>
               </Section>
             </div>
-            <footer className="border-t border-bocado-line p-4 flex justify-end gap-2">
-              <button className="btn-ghost" onClick={() => setDrawer(false)}>Cancelar</button>
-              <button className="btn-lime" onClick={save}>Guardar plato</button>
+            <footer className="border-t border-bocado-line p-4">
+              {error && <p className="mb-3 text-sm text-red-700" role="alert">{error}</p>}
+              <div className="flex justify-end gap-2">
+                <button type="button" className="btn-ghost" onClick={closeDrawer} disabled={saving}>Cancelar</button>
+                <button type="button" className="btn-lime" onClick={save} disabled={saving} aria-busy={saving}>
+                  {saving ? 'Guardando…' : 'Guardar plato'}
+                </button>
+              </div>
             </footer>
           </aside>
         </div>

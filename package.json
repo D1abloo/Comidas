@@ -2,12 +2,18 @@
   "name": "bocado-delivery",
   "private": true,
   "version": "0.1.0",
-  "workspaces": ["apps/*"],
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "dev": "npm run dev -w @bocado/web",
     "build": "npm run build -w @bocado/web",
     "start": "npm run start -w @bocado/web",
     "preview": "npm run preview -w @bocado/web",
+    "typecheck": "npm run typecheck -w @bocado/web",
+    "test": "tsx --test tests/*.test.ts",
+    "check": "npm run typecheck && npm test && npm run build",
+    "db:migrate": "node scripts/migrate-db.mjs",
     "courier:config:prod": "npm run config:prod -w @bocado/courier-app",
     "courier:sync": "npm run sync -w @bocado/courier-app",
     "courier:android": "npm run open:android -w @bocado/courier-app",
@@ -31,7 +37,13 @@
     "apps:config:prod": "npm run mobile:config:prod && npm run courier:config:prod && npm run admin:config:prod"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12"
+  },
+  "overrides": {
+    "tar": "7.5.22"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6"
   },
   "packageManager": "npm@10.8.2"
 }

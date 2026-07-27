@@ -9,6 +9,8 @@ export interface SearchableDish {
   restaurant_id: string;
   price_cents: number;
   rating: number;
+  delivery_time_min: number;
+  images: string[];
   is_available?: boolean;
   vegan?: boolean;
   vegetarian?: boolean;

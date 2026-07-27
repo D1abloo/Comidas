@@ -5,6 +5,8 @@ export default function SettingsForm({ initialCompany, initialSettings }: { init
   const [company, setCompany] = useState(initialCompany);
   const [settings, setSettings] = useState(initialSettings);
   const [saved, setSaved] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onPrinterSelect = useCallback((name: string, enable?: boolean) => {
     setSettings((prev: typeof initialSettings) => ({
@@ -15,14 +17,24 @@ export default function SettingsForm({ initialCompany, initialSettings }: { init
   }, []);
 
   async function save() {
-    const r = await fetch('/api/settings', {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ company, settings }),
-    });
-    if (r.ok) {
+    if (saving) return;
+    setSaving(true);
+    setSaved(null);
+    setError(null);
+    try {
+      const response = await fetch('/api/settings', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ company, settings }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error ?? 'No se pudieron guardar los ajustes.');
       setSaved('Guardado correctamente.');
       setTimeout(() => setSaved(null), 2400);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudieron guardar los ajustes.');
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -128,8 +140,11 @@ export default function SettingsForm({ initialCompany, initialSettings }: { init
         </div>
 
         <div className="mt-8 flex items-center gap-3">
-          <button className="btn-lime" onClick={save}>Guardar todo</button>
-          {saved && <span className="text-sm text-emerald-600">{saved}</span>}
+          <button type="button" className="btn-lime" onClick={save} disabled={saving} aria-busy={saving}>
+            {saving ? 'Guardando…' : 'Guardar todo'}
+          </button>
+          {saved && <span className="text-sm text-emerald-700" role="status">{saved}</span>}
+          {error && <span className="text-sm text-red-700" role="alert">{error}</span>}
         </div>
       </div>
     </section>

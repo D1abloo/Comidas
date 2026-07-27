@@ -6,14 +6,21 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const mode = process.argv[2] || 'prod';
 
 const urls = {
-  prod: process.env.BOCADO_APP_URL || 'https://comidas-web.vercel.app',
+  prod: process.env.BOCADO_APP_URL,
   local: process.env.BOCADO_APP_URL || 'http://10.0.2.2:4321',
 };
 
 const appUrl = urls[mode] ?? urls.prod;
+if (!appUrl) throw new Error('BOCADO_APP_URL es obligatorio para la configuración de producción');
+const parsedUrl = new URL(appUrl);
+if (mode === 'prod' && parsedUrl.protocol !== 'https:') {
+  throw new Error('BOCADO_APP_URL debe usar HTTPS en producción');
+}
+const allowLocalCleartext = mode === 'local' && parsedUrl.protocol === 'http:';
 const content = `import type { CapacitorConfig } from '@capacitor/cli';
 
 const appUrl = '${appUrl.replace(/'/g, "\\'")}';
+const allowLocalCleartext = ${allowLocalCleartext};
 
 const config: CapacitorConfig = {
   appId: 'app.bocado.mobile',
@@ -21,11 +28,11 @@ const config: CapacitorConfig = {
   webDir: 'www',
   server: {
     url: \`\${appUrl.replace(/\\/$/, '')}/movil\`,
-    cleartext: appUrl.startsWith('http://'),
+    cleartext: allowLocalCleartext,
     androidScheme: 'https',
   },
   android: {
-    allowMixedContent: true,
+    allowMixedContent: false,
     backgroundColor: '#1a2421',
   },
   plugins: {

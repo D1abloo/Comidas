@@ -24,20 +24,19 @@ Variables opcionales:
 ## Arranque manual
 
 ```bash
-cp apps/web/.env.example apps/web/.env.local
-# Edita SESSION_SECRET y PUBLIC_APP_URL (https://tu-dominio)
+touch .env.deploy
+chmod 600 .env.deploy
+# Define POSTGRES_PASSWORD, SESSION_SECRET, ORDER_TOKEN_SECRET y PUBLIC_APP_URL.
 
-docker compose up -d --build
+docker compose --env-file .env.deploy up -d --build
 bash scripts/vps-nginx-ssl.sh
 ```
 
-## Credenciales demo
+## Usuarios
 
-| Rol | Email | Password |
-|-----|-------|----------|
-| Admin | admin@bocado.app | admin1234 |
-| Repartidor | repartidor@bocado.app | repartidor1234 |
-| Cliente | cliente@bocado.app | cliente1234 |
+PostgreSQL no crea credenciales demo. Crea las cuentas operativas de forma
+explícita siguiendo `BBDD-OPERACIONES.md`. Las credenciales publicadas en el
+README pertenecen solo al store local sin `DATABASE_URL`.
 
 ## APK apuntando a la VPS
 
@@ -53,8 +52,9 @@ npm run mobile:sync && npm run mobile:apk
 
 ## Seguridad
 
-- Cambia `POSTGRES_PASSWORD` y `SESSION_SECRET` en `.env.deploy` en producción real.
-- `npm audit` periódico en `apps/web`.
+- Mantén distintos `POSTGRES_PASSWORD`, `SESSION_SECRET` y
+  `ORDER_TOKEN_SECRET` en `.env.deploy`.
+- Ejecuta `npm audit` y `npm run check` en CI.
 - Web escucha solo en `127.0.0.1:4321`; nginx termina TLS en :443.
 
 ## Tablas PostgreSQL

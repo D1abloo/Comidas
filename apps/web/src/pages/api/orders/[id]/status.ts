@@ -3,7 +3,16 @@ import { getOrderById, saveOrder } from '../../../../server/order-service';
 import { createInvoiceForOrder } from '../../../../server/invoices';
 import { getStore } from '../../../../server/db';
 import { parseOrderStatus } from '../../../../server/security';
-import { randomUUID } from 'node:crypto';
+import { queueNotification } from '../../../../server/notification-service';
+
+const ALLOWED_TRANSITIONS = {
+  pending: new Set(['confirmed', 'cancelled']),
+  confirmed: new Set(['preparing', 'cancelled']),
+  preparing: new Set(['delivering', 'cancelled']),
+  delivering: new Set(['delivered', 'cancelled']),
+  delivered: new Set<string>(),
+  cancelled: new Set<string>(),
+} as const;
 
 export const PATCH: APIRoute = async ({ request, params, locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
@@ -16,32 +25,38 @@ export const PATCH: APIRoute = async ({ request, params, locals }) => {
   }
   const order = await getOrderById(String(params.id));
   if (!order) return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+  if (!ALLOWED_TRANSITIONS[order.status].has(status)) {
+    return new Response(JSON.stringify({ error: 'invalid_status_transition' }), { status: 409 });
+  }
+  if (
+    status === 'confirmed' &&
+    order.payment_method !== 'cash' &&
+    order.payment_status !== 'paid'
+  ) {
+    return new Response(JSON.stringify({ error: 'payment_required' }), { status: 409 });
+  }
 
   order.status = status;
 
   if (status === 'confirmed') {
-    createInvoiceForOrder(getStore(), order);
+    await createInvoiceForOrder(getStore(), order);
   }
 
   const store = getStore();
-  store.notifications.unshift({
-    id: randomUUID(),
-    order_id: order.id,
-    channel: 'email',
-    kind: `order_${status}`,
-    recipient: order.customer.email,
-    status: 'sent',
-    created_at: new Date().toISOString(),
-  });
+  if (store.settings.email_notifications_enabled) {
+    await queueNotification({
+      orderId: order.id,
+      channel: 'email',
+      kind: `order_${status}`,
+      recipient: order.customer.email,
+    });
+  }
   if (store.settings.whatsapp_notifications_enabled) {
-    store.notifications.unshift({
-      id: randomUUID(),
-      order_id: order.id,
+    await queueNotification({
+      orderId: order.id,
       channel: 'whatsapp',
       kind: `order_${status}`,
       recipient: order.customer.phone,
-      status: 'sent',
-      created_at: new Date().toISOString(),
     });
   }
 
