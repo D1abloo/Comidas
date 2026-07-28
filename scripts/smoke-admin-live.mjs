@@ -240,7 +240,9 @@ if (testOrderId) {
 }
 
 const anonymous = new Session();
-assert.equal((await anonymous.request('/admin')).status, 302);
+const adminRedirect = await anonymous.request('/admin');
+assert.equal(adminRedirect.status, 302);
+assert.match(adminRedirect.headers.get('cache-control') ?? '', /no-store/);
 await jsonRequest(anonymous, '/api/admin/orders', 401);
 
 console.log(

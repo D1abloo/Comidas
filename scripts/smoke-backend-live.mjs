@@ -57,13 +57,11 @@ async function expectResponse(response, status, label, contentType) {
   if (contentType) {
     assert.match(response.headers.get('content-type') ?? '', contentType, `${label}: content-type`);
   }
-  if (!label.includes('/api/auth/logout')) {
-    assert.match(
-      response.headers.get('cache-control') ?? '',
-      /no-store|no-cache/,
-      `${label}: cache-control`,
-    );
-  }
+  assert.match(
+    response.headers.get('cache-control') ?? '',
+    /no-store|no-cache/,
+    `${label}: cache-control`,
+  );
   return response;
 }
 
@@ -345,6 +343,7 @@ const logout = await customer.request('/api/auth/logout', {
   body: new URLSearchParams({ next: '/' }),
 });
 assert.ok([302, 303].includes(logout.status), `Logout: HTTP ${logout.status}`);
+assert.match(logout.headers.get('cache-control') ?? '', /no-store/, 'Logout: cache-control');
 
 console.log(
   JSON.stringify({

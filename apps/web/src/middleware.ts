@@ -20,6 +20,11 @@ import { hydrateCatalog } from './server/store-service.js';
 
 let databaseHydration: Promise<void> | null = null;
 
+function noStore(response: Response): Response {
+  response.headers.set('Cache-Control', 'no-store');
+  return response;
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
   assertProductionSecrets();
   assertRuntimeConfig();
@@ -123,39 +128,42 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
   if (path === '/admin/registro' && !isAdminRegistrationAllowed()) {
-    return context.redirect('/admin/login');
+    return noStore(context.redirect('/admin/login'));
   }
   if (path.startsWith('/admin') && !['/admin/login', '/admin/registro'].includes(path)) {
     if (!context.locals.user || context.locals.user.role !== 'admin') {
-      return context.redirect('/admin/login?next=' + encodeURIComponent(path));
+      return noStore(context.redirect('/admin/login?next=' + encodeURIComponent(path)));
     }
   }
   if (path.startsWith('/repartidor') && path !== '/repartidor/login') {
     if (!context.locals.user || context.locals.user.role !== 'courier') {
-      return context.redirect('/repartidor/login?next=' + encodeURIComponent(path));
+      return noStore(context.redirect('/repartidor/login?next=' + encodeURIComponent(path)));
     }
   }
   if (path.startsWith('/movil/admin')) {
     if (!context.locals.user || context.locals.user.role !== 'admin') {
-      return context.redirect('/movil');
+      return noStore(context.redirect('/movil'));
     }
   }
   if (path.startsWith('/movil/repartidor')) {
     if (!context.locals.user || context.locals.user.role !== 'courier') {
-      return context.redirect('/movil');
+      return noStore(context.redirect('/movil'));
     }
   }
   if (path.startsWith('/perfil')) {
     if (!context.locals.user) {
-      return context.redirect('/login?next=' + encodeURIComponent(path));
+      return noStore(context.redirect('/login?next=' + encodeURIComponent(path)));
     }
   }
 
   const response = await next();
-  if (path.startsWith('/api/') && (response.status < 300 || response.status >= 400)) {
+  if (path.startsWith('/api/')) {
     if (!response.headers.has('cache-control')) response.headers.set('Cache-Control', 'no-store');
     const contentType = response.headers.get('content-type');
-    if (!contentType || contentType.startsWith('text/plain')) {
+    if (
+      (response.status < 300 || response.status >= 400) &&
+      (!contentType || contentType.startsWith('text/plain'))
+    ) {
       response.headers.set('Content-Type', 'application/json; charset=utf-8');
     }
   }
