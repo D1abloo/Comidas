@@ -25,15 +25,11 @@ const eur = (c: number) =>
 export default function BestsellerCarousel({ dishes, restaurants, deliveryFeeCents }: Props) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
-  const [canLeft, setCanLeft] = useState(false)
-  const [canRight, setCanRight] = useState(true)
   const pausedRef = useRef(false)
 
   const updateState = useCallback(() => {
     const el = trackRef.current
     if (!el) return
-    setCanLeft(el.scrollLeft > 8)
-    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 8)
 
     const cards = Array.from(el.children) as HTMLElement[]
     const mid = el.scrollLeft + el.clientWidth / 2
@@ -80,10 +76,6 @@ export default function BestsellerCarousel({ dishes, restaurants, deliveryFeeCen
     return () => window.clearInterval(id)
   }, [dishes.length])
 
-  function scrollBy(dx: number) {
-    trackRef.current?.scrollBy({ left: dx, behavior: 'smooth' })
-  }
-
   if (!dishes.length) return null
 
   const pageCount = Math.min(dishes.length, 5)
@@ -109,28 +101,8 @@ export default function BestsellerCarousel({ dishes, restaurants, deliveryFeeCen
           </p>
           <h2 className="premium-title mt-1">Platos más pedidos</h2>
           <p className="premium-sub mt-1.5 text-sm md:text-base">
-            Favoritos de la semana — desliza o deja que avance solo
+            Favoritos de la semana — avanza solo
           </p>
-        </div>
-        <div className="hidden sm:flex gap-2">
-          <button
-            type="button"
-            disabled={!canLeft}
-            onClick={() => scrollBy(-340)}
-            className="carousel-nav-btn"
-            aria-label="Anterior"
-          >
-            ←
-          </button>
-          <button
-            type="button"
-            disabled={!canRight}
-            onClick={() => scrollBy(340)}
-            className="carousel-nav-btn"
-            aria-label="Siguiente"
-          >
-            →
-          </button>
         </div>
       </div>
 

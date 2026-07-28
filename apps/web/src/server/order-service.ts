@@ -5,6 +5,7 @@ import {
   pgCourierCompleted,
   pgCourierOrders,
   pgGetOrder,
+  pgGetDashboardSnapshot,
   pgInsertAdminAlert,
   pgInsertOrder,
   pgDishSalesCounts,
@@ -16,6 +17,7 @@ import {
   pgNextOrderNumber,
   pgUpdateOrder,
   pgUpsertCourierLocation,
+  type DashboardSnapshot,
 } from './orders-db.js';
 import { persistOperationalState } from './store-persistence.js';
 import { emitOrderEvent } from './order-events.js';
@@ -23,6 +25,88 @@ import { emitOrderEvent } from './order-events.js';
 export async function listOrders(): Promise<Order[]> {
   if (isDatabaseEnabled()) return pgListOrders();
   return getStore().orders;
+}
+
+export async function getDashboardSnapshot(): Promise<DashboardSnapshot> {
+  if (isDatabaseEnabled()) return pgGetDashboardSnapshot();
+
+  const allOrders = getStore().orders;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const ordersToday = allOrders.filter((o) => new Date(o.created_at) >= today);
+  const paidToday = ordersToday.filter((o) => o.payment_status === 'paid');
+  const salesToday = paidToday.reduce((s, o) => s + o.total_cents, 0);
+  const paidMonth = allOrders.filter(
+    (o) => new Date(o.created_at) >= monthStart && o.payment_status === 'paid',
+  );
+  const salesMonth = paidMonth.reduce((s, o) => s + o.total_cents, 0);
+  const activeStatuses = ['pending', 'confirmed', 'preparing', 'delivering'] as const;
+  const pipeline = {
+    pending: allOrders.filter((o) => o.status === 'pending').length,
+    confirmed: allOrders.filter((o) => o.status === 'confirmed').length,
+    preparing: allOrders.filter((o) => o.status === 'preparing').length,
+    delivering: allOrders.filter((o) => o.status === 'delivering').length,
+  };
+  const payments = { bizum: 0, tpv: 0, cash: 0 };
+  for (const o of paidMonth) {
+    if (o.payment_method === 'bizum') payments.bizum++;
+    else if (o.payment_method === 'tpv') payments.tpv++;
+    else if (o.payment_method === 'cash') payments.cash++;
+  }
+  const dishStats = new Map<string, { name: string; qty: number; revenue_cents: number }>();
+  for (const o of allOrders) {
+    if (o.status === 'cancelled') continue;
+    for (const line of o.items) {
+      const cur = dishStats.get(line.dish_id) ?? { name: line.dish_name, qty: 0, revenue_cents: 0 };
+      cur.qty += line.quantity;
+      cur.revenue_cents += line.unit_price_cents * line.quantity;
+      dishStats.set(line.dish_id, cur);
+    }
+  }
+  const series: DashboardSnapshot['series'] = [];
+  for (let i = 6; i >= 0; i--) {
+    const dt = new Date();
+    dt.setHours(0, 0, 0, 0);
+    dt.setDate(dt.getDate() - i);
+    const next = new Date(dt);
+    next.setDate(dt.getDate() + 1);
+    const total = allOrders
+      .filter((o) => new Date(o.created_at) >= dt && new Date(o.created_at) < next)
+      .reduce((s, o) => s + o.total_cents, 0);
+    series.push({
+      d: ['D', 'L', 'M', 'X', 'J', 'V', 'S'][dt.getDay()]!,
+      total,
+      label: dt.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' }),
+      day: dt.toISOString().slice(0, 10),
+    });
+  }
+  return {
+    salesToday,
+    salesMonth,
+    ordersToday: ordersToday.length,
+    activeOrders: allOrders.filter((o) => activeStatuses.includes(o.status as (typeof activeStatuses)[number])).length,
+    avgTicket: paidToday.length ? Math.round(salesToday / paidToday.length) : 0,
+    pendingBizum: allOrders.filter(
+      (o) => o.payment_method === 'bizum' && o.payment_status === 'awaiting_confirmation',
+    ).length,
+    pipeline,
+    payments,
+    topDishes: [...dishStats.values()].sort((a, b) => b.qty - a.qty).slice(0, 6),
+    series,
+    recentOrders: [...allOrders]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 6)
+      .map((o) => ({
+        id: o.id,
+        number: o.number,
+        customer_name: o.customer.full_name,
+        total_cents: o.total_cents,
+        status: o.status,
+        payment_method: o.payment_method,
+        created_at: o.created_at,
+      })),
+  };
 }
 
 export async function listOrdersForUser(userId: string, activeOnly = false): Promise<Order[]> {

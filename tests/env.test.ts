@@ -20,6 +20,7 @@ const keys = [
   'EMAIL_API_KEY',
   'APP_DEMO_MODE',
   'ENABLE_SIMULATED_PAYMENTS',
+  'ENABLE_MANUAL_BIZUM',
 ] as const;
 
 const original = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
@@ -56,6 +57,7 @@ test('los pagos simulados requieren activación explícita y modo no productivo'
   process.env.NODE_ENV = 'development';
   process.env.APP_DEMO_MODE = 'true';
   delete process.env.ENABLE_SIMULATED_PAYMENTS;
+  delete process.env.ENABLE_MANUAL_BIZUM;
   assert.equal(areSimulatedPaymentsEnabled(), false);
 
   process.env.ENABLE_SIMULATED_PAYMENTS = 'true';
@@ -64,6 +66,10 @@ test('los pagos simulados requieren activación explícita y modo no productivo'
 
   process.env.NODE_ENV = 'production';
   assert.equal(areSimulatedPaymentsEnabled(), false);
+  // Bizum manual (QR + confirmación admin) sigue disponible en producción.
+  assert.equal(areManualBizumPaymentsEnabled(), true);
+
+  process.env.ENABLE_MANUAL_BIZUM = 'false';
   assert.equal(areManualBizumPaymentsEnabled(), false);
 });
 

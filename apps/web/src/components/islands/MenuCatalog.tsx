@@ -101,15 +101,13 @@ export default function MenuCatalog({ sections, dishes, restaurants, previewLimi
                 <span className="text-xs font-semibold text-bocado-mute bg-bocado-paper2 px-3 py-1.5 rounded-full">
                   {list.length} platos
                 </span>
-                {hasMore && (
-                  <a
-                    href={`/carta/${sec.slug}`}
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-bocado-ink hover:text-bocado-coral transition-colors"
-                  >
-                    Ver todos los platos
-                    <span aria-hidden>→</span>
-                  </a>
-                )}
+                <a
+                  href={hasMore ? `/carta/${sec.slug}` : `/carta?seccion=${encodeURIComponent(sec.id)}`}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-bocado-ink hover:text-bocado-coral transition-colors"
+                >
+                  Ver todos
+                  <span aria-hidden>→</span>
+                </a>
               </div>
             </div>
             <MenuCarousel dishes={carouselDishes} restaurants={restaurants} />

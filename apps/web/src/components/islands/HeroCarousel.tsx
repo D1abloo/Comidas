@@ -151,12 +151,6 @@ export default function HeroCarousel() {
       </a>
 
       <div className="hero-carousel-controls">
-        <button type="button" className="hero-carousel-arrow" onClick={previous} aria-label="Mostrar plato anterior">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
-
         <div className="hero-carousel-tabs" aria-label={`Imagen ${active + 1} de ${slides.length}`}>
           {slides.map((item, index) => (
             <button
@@ -167,7 +161,7 @@ export default function HeroCarousel() {
               aria-label={`Mostrar imagen ${index + 1}: ${item.alt}`}
               aria-current={index === active ? 'true' : undefined}
             >
-              <span>{String(index + 1).padStart(2, '0')}</span>
+              <span className="sr-only">{String(index + 1).padStart(2, '0')}</span>
               <i aria-hidden="true">
                 {index === active && (
                   <b
@@ -179,12 +173,6 @@ export default function HeroCarousel() {
             </button>
           ))}
         </div>
-
-        <button type="button" className="hero-carousel-arrow" onClick={next} aria-label="Mostrar plato siguiente">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-        </button>
         <button
           type="button"
           className="hero-carousel-pause"

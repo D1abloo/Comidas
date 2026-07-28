@@ -106,7 +106,7 @@ async function drawDishEntry(ctx: PdfCtx, dish: Dish): Promise<void> {
 
   ensureSpace(rowH);
 
-  const embedded = await embedDishThumbnail(ctx.pdf, dish.images[0]);
+  const embedded = await embedDishThumbnail(ctx.pdf, dish.images[0] ?? `/carta/${dish.slug}.jpg`);
   const rowTop = y;
 
   if (embedded) {
@@ -264,19 +264,31 @@ export async function renderMenuPDF(input: MenuPdfInput): Promise<Uint8Array> {
     .sort((a, b) => a.sort_order - b.sort_order);
 
   const dishes = [...input.dishes].sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  // Incluye todas las secciones activas + cualquier plato huérfano (nunca se omite un plato).
+  const claimed = new Set<string>();
 
-  const sectionIds = new Set(activeSections.map((s) => s.id));
-  const orphans = dishes.filter((d) => !d.menu_section_id || !sectionIds.has(d.menu_section_id));
+  const blocks: { title: string; subtitle?: string; items: Dish[]; daily?: boolean }[] = [];
+  for (const sec of activeSections) {
+    const items = dishes.filter((d) => d.menu_section_id === sec.id);
+    for (const d of items) claimed.add(d.id);
+    blocks.push({
+      title: sec.title,
+      subtitle: sec.description,
+      items,
+      daily: sec.id === DAILY_SECTION_ID,
+    });
+  }
 
-  const blocks: { title: string; subtitle?: string; items: Dish[]; daily?: boolean }[] = activeSections.map((sec) => ({
-    title: sec.title,
-    subtitle: sec.description,
-    items: dishes.filter((d) => d.menu_section_id === sec.id),
-    daily: sec.id === DAILY_SECTION_ID,
-  }));
-
+  const orphans = dishes.filter((d) => !claimed.has(d.id));
   if (orphans.length) {
     blocks.push({ title: 'Otros platos', items: orphans });
+  }
+
+  // Seguridad: si quedara algún plato fuera (p. ej. sección vacía mal filtrada), listarlo.
+  const listed = new Set(blocks.flatMap((b) => b.items.map((d) => d.id)));
+  const missing = dishes.filter((d) => !listed.has(d.id));
+  if (missing.length) {
+    blocks.push({ title: 'Carta adicional', items: missing });
   }
 
   for (const block of blocks) {

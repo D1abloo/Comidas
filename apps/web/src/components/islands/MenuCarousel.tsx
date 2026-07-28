@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useEffect } from 'react'
 import AddToCart from './AddToCart'
 import AvailabilityBadge from './AvailabilityBadge'
 import type { GridDish } from './DishGrid'
@@ -20,28 +20,7 @@ interface Props {
 
 export default function MenuCarousel({ dishes, restaurants, autoPlayMs = 6000 }: Props) {
   const trackRef = useRef<HTMLDivElement>(null)
-  const [canLeft, setCanLeft] = useState(false)
-  const [canRight, setCanRight] = useState(true)
   const pausedRef = useRef(false)
-
-  const updateState = useCallback(() => {
-    const el = trackRef.current
-    if (!el) return
-    setCanLeft(el.scrollLeft > 8)
-    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 8)
-  }, [])
-
-  useEffect(() => {
-    updateState()
-    const el = trackRef.current
-    if (!el) return
-    el.addEventListener('scroll', updateState, { passive: true })
-    window.addEventListener('resize', updateState)
-    return () => {
-      el.removeEventListener('scroll', updateState)
-      window.removeEventListener('resize', updateState)
-    }
-  }, [dishes, updateState])
 
   useEffect(() => {
     if (dishes.length < 2 || !autoPlayMs) return
@@ -58,10 +37,6 @@ export default function MenuCarousel({ dishes, restaurants, autoPlayMs = 6000 }:
     return () => window.clearInterval(id)
   }, [dishes.length, autoPlayMs])
 
-  function scrollBy(dx: number) {
-    trackRef.current?.scrollBy({ left: dx, behavior: 'smooth' })
-  }
-
   if (!dishes.length) return null
 
   return (
@@ -72,29 +47,6 @@ export default function MenuCarousel({ dishes, restaurants, autoPlayMs = 6000 }:
       onFocusCapture={() => { pausedRef.current = true }}
       onBlurCapture={() => { pausedRef.current = false }}
     >
-      {dishes.length > 2 && (
-        <div className="hidden sm:flex gap-2 absolute -top-14 right-0 z-10">
-          <button
-            type="button"
-            disabled={!canLeft}
-            onClick={() => scrollBy(-300)}
-            className="carousel-nav-btn"
-            aria-label="Anterior"
-          >
-            ←
-          </button>
-          <button
-            type="button"
-            disabled={!canRight}
-            onClick={() => scrollBy(300)}
-            className="carousel-nav-btn"
-            aria-label="Siguiente"
-          >
-            →
-          </button>
-        </div>
-      )}
-
       <div
         ref={trackRef}
         className="carousel-track flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 scrollbar-hide -mx-1 px-1"

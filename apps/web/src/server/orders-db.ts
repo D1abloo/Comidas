@@ -98,7 +98,9 @@ async function hydrateOrders(rows: OrderRow[]): Promise<Order[]> {
 }
 
 export async function pgListOrders(): Promise<Order[]> {
-  const { rows } = await pgQuery<OrderRow>('SELECT * FROM orders ORDER BY created_at DESC');
+  const { rows } = await pgQuery<OrderRow>(
+    'SELECT * FROM orders ORDER BY created_at DESC LIMIT 500',
+  );
   return hydrateOrders(rows);
 }
 
@@ -430,4 +432,157 @@ export async function pgUpdateUserRole(id: string, role: User['role']): Promise<
 export async function pgDeleteUser(id: string): Promise<boolean> {
   const { rowCount } = await pgQuery('DELETE FROM users WHERE id = $1', [id]);
   return rowCount === 1;
+}
+
+export type DashboardSnapshot = {
+  salesToday: number;
+  salesMonth: number;
+  ordersToday: number;
+  activeOrders: number;
+  avgTicket: number;
+  pendingBizum: number;
+  pipeline: { pending: number; confirmed: number; preparing: number; delivering: number };
+  payments: { bizum: number; tpv: number; cash: number };
+  topDishes: { name: string; qty: number; revenue_cents: number }[];
+  series: { d: string; total: number; label: string; day: string }[];
+  recentOrders: {
+    id: string;
+    number: string;
+    customer_name: string;
+    total_cents: number;
+    status: string;
+    payment_method: string;
+    created_at: string;
+  }[];
+};
+
+export async function pgGetDashboardSnapshot(): Promise<DashboardSnapshot> {
+  const [{ rows: kpi }, { rows: pipelineRows }, { rows: payRows }, { rows: topRows }, { rows: seriesRows }, { rows: recentRows }] =
+    await Promise.all([
+      pgQuery<{
+        sales_today: string;
+        sales_month: string;
+        orders_today: string;
+        active_orders: string;
+        avg_ticket: string;
+        pending_bizum: string;
+      }>(`
+        SELECT
+          COALESCE(SUM(total_cents) FILTER (
+            WHERE payment_status = 'paid'
+              AND created_at >= date_trunc('day', now())
+          ), 0)::text AS sales_today,
+          COALESCE(SUM(total_cents) FILTER (
+            WHERE payment_status = 'paid'
+              AND created_at >= date_trunc('month', now())
+          ), 0)::text AS sales_month,
+          COUNT(*) FILTER (WHERE created_at >= date_trunc('day', now()))::text AS orders_today,
+          COUNT(*) FILTER (WHERE status IN ('pending','confirmed','preparing','delivering'))::text AS active_orders,
+          COALESCE(ROUND(AVG(total_cents) FILTER (
+            WHERE payment_status = 'paid' AND created_at >= date_trunc('day', now())
+          )), 0)::text AS avg_ticket,
+          COUNT(*) FILTER (
+            WHERE payment_method = 'bizum' AND payment_status = 'awaiting_confirmation'
+          )::text AS pending_bizum
+        FROM orders
+      `),
+      pgQuery<{ status: string; c: string }>(`
+        SELECT status, COUNT(*)::text AS c
+        FROM orders
+        WHERE status IN ('pending','confirmed','preparing','delivering')
+        GROUP BY status
+      `),
+      pgQuery<{ payment_method: string; c: string }>(`
+        SELECT payment_method, COUNT(*)::text AS c
+        FROM orders
+        WHERE payment_status = 'paid'
+          AND created_at >= date_trunc('month', now())
+          AND payment_method IN ('bizum','tpv','cash')
+        GROUP BY payment_method
+      `),
+      pgQuery<{ name: string; qty: string; revenue_cents: string }>(`
+        SELECT oi.dish_name AS name,
+               SUM(oi.quantity)::text AS qty,
+               SUM(oi.unit_price_cents * oi.quantity)::text AS revenue_cents
+        FROM order_items oi
+        JOIN orders o ON o.id = oi.order_id
+        WHERE o.status <> 'cancelled'
+        GROUP BY oi.dish_name
+        ORDER BY SUM(oi.quantity) DESC
+        LIMIT 6
+      `),
+      pgQuery<{ day: string; total: string }>(`
+        SELECT to_char(d.day, 'YYYY-MM-DD') AS day,
+               COALESCE(SUM(o.total_cents), 0)::text AS total
+        FROM generate_series(
+          date_trunc('day', now()) - interval '6 days',
+          date_trunc('day', now()),
+          interval '1 day'
+        ) AS d(day)
+        LEFT JOIN orders o
+          ON o.created_at >= d.day AND o.created_at < d.day + interval '1 day'
+        GROUP BY d.day
+        ORDER BY d.day
+      `),
+      pgQuery<{
+        id: string;
+        number: string;
+        customer: { full_name?: string };
+        total_cents: number;
+        status: string;
+        payment_method: string;
+        created_at: string | Date;
+      }>(`
+        SELECT id, number, customer, total_cents, status, payment_method, created_at
+        FROM orders
+        ORDER BY created_at DESC
+        LIMIT 6
+      `),
+    ]);
+
+  const k = kpi[0];
+  const pipeline = { pending: 0, confirmed: 0, preparing: 0, delivering: 0 };
+  for (const row of pipelineRows) {
+    if (row.status in pipeline) pipeline[row.status as keyof typeof pipeline] = Number(row.c);
+  }
+  const payments = { bizum: 0, tpv: 0, cash: 0 };
+  for (const row of payRows) {
+    if (row.payment_method in payments) payments[row.payment_method as keyof typeof payments] = Number(row.c);
+  }
+  const weekdays = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
+  const series = seriesRows.map((row) => {
+    const dt = new Date(row.day + 'T12:00:00');
+    return {
+      d: weekdays[dt.getDay()]!,
+      total: Number(row.total),
+      label: dt.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' }),
+      day: row.day,
+    };
+  });
+
+  return {
+    salesToday: Number(k?.sales_today ?? 0),
+    salesMonth: Number(k?.sales_month ?? 0),
+    ordersToday: Number(k?.orders_today ?? 0),
+    activeOrders: Number(k?.active_orders ?? 0),
+    avgTicket: Number(k?.avg_ticket ?? 0),
+    pendingBizum: Number(k?.pending_bizum ?? 0),
+    pipeline,
+    payments,
+    topDishes: topRows.map((r) => ({
+      name: r.name,
+      qty: Number(r.qty),
+      revenue_cents: Number(r.revenue_cents),
+    })),
+    series,
+    recentOrders: recentRows.map((o) => ({
+      id: o.id,
+      number: o.number,
+      customer_name: o.customer?.full_name ?? 'Cliente',
+      total_cents: o.total_cents,
+      status: o.status,
+      payment_method: o.payment_method,
+      created_at: isoTimestamp(o.created_at),
+    })),
+  };
 }

@@ -81,8 +81,9 @@ export function areSimulatedPaymentsEnabled(): boolean {
   return isDemoMode() && booleanEnv('ENABLE_SIMULATED_PAYMENTS');
 }
 
+/** Bizum real: QR + confirmación admin. Independiente del TPV simulado de demo. */
 export function areManualBizumPaymentsEnabled(): boolean {
-  return areSimulatedPaymentsEnabled();
+  return booleanEnv('ENABLE_MANUAL_BIZUM', true) || areSimulatedPaymentsEnabled();
 }
 
 export function isEmailDeliveryConfigured(): boolean {
