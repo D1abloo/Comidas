@@ -4,6 +4,7 @@ import { getStore } from './server/db.js';
 import {
   areSimulatedPaymentsEnabled,
   assertRuntimeConfig,
+  getAppUrl,
   getBizumCompanyPhone,
   isDatabaseEnabled,
   isEmailDeliveryConfigured,
@@ -26,7 +27,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
     const fetchSite = context.request.headers.get('sec-fetch-site');
     const origin = context.request.headers.get('origin');
-    if (fetchSite === 'cross-site' || (origin && origin !== context.url.origin)) {
+    const trustedOrigins = new Set([context.url.origin, new URL(getAppUrl()).origin]);
+    if (fetchSite === 'cross-site' || (origin && !trustedOrigins.has(origin))) {
       return new Response(
         path.startsWith('/api/') ? JSON.stringify({ error: 'cross_site_request' }) : 'Solicitud no permitida.',
         {
