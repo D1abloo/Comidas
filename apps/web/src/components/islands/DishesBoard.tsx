@@ -28,7 +28,9 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
   const [drawer, setDrawer] = useState(false);
   const [form, setForm] = useState<any>(emptyForm(restaurants[0]?.id, menuSections[0]?.id));
   const [saving, setSaving] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const drawerRef = useRef<HTMLElement>(null);
   const closeDrawer = useCallback(() => {
     setDrawer(false);
@@ -45,8 +47,11 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
   });
 
   async function toggle(d: any) {
+    if (busyId) return;
     const v = !d.is_available;
+    setBusyId(d.id);
     setError('');
+    setNotice('');
     setDishes((prev) => prev.map((x) => (x.id === d.id ? { ...x, is_available: v } : x)));
     try {
       const response = await fetch(`/api/dishes/${d.id}/availability`, {
@@ -55,14 +60,18 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
         body: JSON.stringify({ available: v }),
       });
       if (!response.ok) throw new Error('No se pudo actualizar la disponibilidad.');
+      setNotice(`${d.name} ahora está ${v ? 'disponible' : 'agotado'}.`);
     } catch (cause) {
       setDishes((prev) => prev.map((x) => (x.id === d.id ? { ...x, is_available: !v } : x)));
       setError(cause instanceof Error ? cause.message : 'No se pudo actualizar la disponibilidad.');
+    } finally {
+      setBusyId(null);
     }
   }
   function openNew() {
     setForm(emptyForm(restaurants[0]?.id, menuSections[0]?.id));
     setError('');
+    setNotice('');
     setDrawer(true);
   }
   function openEdit(d: any) {
@@ -74,6 +83,7 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
       content_sections: d.content_sections ?? [],
     });
     setError('');
+    setNotice('');
     setDrawer(true);
   }
 
@@ -95,6 +105,7 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
     if (saving) return;
     setSaving(true);
     setError('');
+    setNotice('');
     const payload = {
       ...form,
       price_cents: Math.round(parseFloat(form._price_eur ?? '0') * 100) || 0,
@@ -117,11 +128,48 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
         if (i >= 0) { const c = [...prev]; c[i] = data.dish; return c; }
         return [data.dish, ...prev];
       });
+      setNotice(`${data.dish.name} guardado correctamente.`);
       closeDrawer();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'No se pudo guardar el plato.');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function duplicate(d: any) {
+    if (busyId) return;
+    setBusyId(d.id);
+    setError('');
+    setNotice('');
+    try {
+      const response = await fetch(`/api/dishes/${d.id}/duplicate`, { method: 'POST' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.dish) throw new Error(data.error ?? 'No se pudo duplicar el plato.');
+      setDishes((prev) => [data.dish, ...prev]);
+      setNotice(`Copia de ${d.name} creada como borrador agotado.`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudo duplicar el plato.');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function removeDish(d: any) {
+    if (busyId || !window.confirm(`¿Eliminar «${d.name}» de la carta?`)) return;
+    setBusyId(d.id);
+    setError('');
+    setNotice('');
+    try {
+      const response = await fetch(`/api/dishes/${d.id}`, { method: 'DELETE' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error ?? 'No se pudo eliminar el plato.');
+      setDishes((prev) => prev.filter((dish) => dish.id !== d.id));
+      setNotice(`${d.name} eliminado de la carta.`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudo eliminar el plato.');
+    } finally {
+      setBusyId(null);
     }
   }
   function toggleAllergen(a: string) {
@@ -145,11 +193,18 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
           <option value="yes">Disponibles</option>
           <option value="no">Agotados</option>
         </select>
-        <button className="btn-primary ml-auto" onClick={openNew}>
+        <button type="button" className="btn-primary ml-auto" onClick={openNew}>
           <span className="text-bocado-lime text-lg leading-none">+</span> Nuevo plato
         </button>
       </div>
-      {error && !drawer && <p className="text-sm text-red-700" role="alert">{error}</p>}
+      {!drawer && (error || notice) && (
+        <p
+          className={`admin-action-message ${error ? 'admin-action-message--error' : 'admin-action-message--success'}`}
+          role={error ? 'alert' : 'status'}
+        >
+          {error || notice}
+        </p>
+      )}
 
       <div className="admin-frame overflow-x-auto">
         <table className="admin-table">
@@ -189,6 +244,8 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
                       className="w-11 h-11 relative grid place-items-center rounded-full transition hover:bg-bocado-ink/5"
                       aria-label={d.is_available ? 'Marcar como no disponible' : 'Marcar como disponible'}
                       title={d.is_available ? 'Cambiar a no disponible' : 'Cambiar a disponible'}
+                      disabled={busyId === d.id}
+                      aria-busy={busyId === d.id}
                     >
                       <span className={`block w-9 h-5 rounded-full relative transition ${d.is_available ? 'bg-bocado-lime' : 'bg-bocado-line'}`}>
                         <span
@@ -200,7 +257,23 @@ export default function DishesBoard({ initialDishes, restaurants, menuSections }
                 </td>
                 <td className="text-right whitespace-nowrap">
                   <button type="button" className="btn-ghost text-[11px]" onClick={() => openEdit(d)}>Editar</button>
+                  <button
+                    type="button"
+                    className="btn-ghost text-[11px]"
+                    onClick={() => void duplicate(d)}
+                    disabled={busyId === d.id}
+                  >
+                    Duplicar
+                  </button>
                   <a className="btn-ghost text-[11px]" href={`/platos/${d.slug}`} target="_blank" rel="noreferrer">Ver</a>
+                  <button
+                    type="button"
+                    className="btn-ghost text-[11px] text-red-700"
+                    onClick={() => void removeDish(d)}
+                    disabled={busyId === d.id}
+                  >
+                    Eliminar
+                  </button>
                 </td>
               </tr>
             ))}

@@ -32,6 +32,7 @@ export async function completeOrderDelivery(order: Order, courier: SessionUser, 
   order.courier_name = courier.full_name;
   order.status = 'delivered';
   order.delivered_at = new Date().toISOString();
+  if (order.payment_method === 'cash') order.payment_status = 'paid';
 
   await pushAdminOrderDeliveredAlert(order, courier.full_name);
 

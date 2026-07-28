@@ -16,7 +16,7 @@ export default function PrinterDetect({ paperMm, printerName, onSelect }: Props)
   const [consent, setConsent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [printers, setPrinters] = useState<DetectedPrinter[] | null>(null)
-  const [source, setSource] = useState<'browser' | 'suggestions' | null>(null)
+  const [source, setSource] = useState<'browser' | 'unsupported' | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [browserEnum, setBrowserEnum] = useState(false)
 
@@ -35,10 +35,8 @@ export default function PrinterDetect({ paperMm, printerName, onSelect }: Props)
       if (preferred && result.source === 'browser') {
         onSelect(preferred.name, true);
         setMessage(`Impresora «${preferred.name}» seleccionada automáticamente.`);
-      } else if (result.source === 'suggestions') {
-        setMessage(
-          'Tu navegador no expone la lista de impresoras. Elige un modelo habitual o imprime la prueba y selecciona la tuya en el diálogo del sistema.',
-        );
+      } else {
+        setMessage('El navegador no permite enumerar impresoras. Usa la prueba y elige la impresora real en el diálogo del sistema.');
       }
     } finally {
       setLoading(false);
@@ -49,6 +47,8 @@ export default function PrinterDetect({ paperMm, printerName, onSelect }: Props)
     setConsent(true)
     if (!browserEnum) {
       openPrinterTestPrint(paperMm)
+      setMessage('Se abrió una prueba. Selecciona la impresora real en el diálogo del sistema.')
+      return
     }
     void runDetect()
   }
@@ -68,18 +68,20 @@ export default function PrinterDetect({ paperMm, printerName, onSelect }: Props)
           className="mt-3 w-full rounded-lg border border-bocado-violet/30 bg-white px-3 py-2 text-sm font-semibold text-bocado-violet hover:bg-bocado-violet/5 transition"
           onClick={handleAcceptDetect}
         >
-          Buscar impresoras (acepto)
+          {browserEnum ? 'Buscar impresoras (acepto)' : 'Abrir prueba de impresión'}
         </button>
       ) : (
         <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            className="rounded-lg bg-bocado-violet px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
-            disabled={loading}
-            onClick={() => void runDetect()}
-          >
-            {loading ? 'Buscando…' : 'Volver a buscar'}
-          </button>
+          {browserEnum && (
+            <button
+              type="button"
+              className="rounded-lg bg-bocado-violet px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
+              disabled={loading}
+              onClick={() => void runDetect()}
+            >
+              {loading ? 'Buscando…' : 'Volver a buscar'}
+            </button>
+          )}
           <button
             type="button"
             className="rounded-lg border border-black/10 px-3 py-2 text-xs font-semibold hover:bg-white transition"
@@ -90,7 +92,7 @@ export default function PrinterDetect({ paperMm, printerName, onSelect }: Props)
         </div>
       )}
 
-      {message && <p className="mt-2 text-xs text-emerald-700">{message}</p>}
+      {message && <p className="mt-2 text-xs text-emerald-700" role="status">{message}</p>}
 
       {printers && printers.length > 0 && (
         <ul className="mt-3 max-h-40 overflow-y-auto space-y-1" role="listbox" aria-label="Impresoras detectadas">

@@ -4,6 +4,8 @@ import { isDatabaseEnabled } from './env.js';
 import { getOrderById, saveOrder } from './order-service.js';
 import { pgClaimOrderForCourier, pgCompleteOrderForCourier } from './orders-db.js';
 import type { Order } from './types.js';
+import { getStore } from './db.js';
+import { syncInvoicePaymentStatus } from './invoices.js';
 
 export async function claimOrder(orderId: string, courier: SessionUser): Promise<Order> {
   if (isDatabaseEnabled()) {
@@ -23,10 +25,13 @@ export async function completeCourierOrder(orderId: string, courier: SessionUser
     const completed = await pgCompleteOrderForCourier(orderId, courier.id);
     if (!completed) throw new Error('El pedido no está asignado a este repartidor.');
     await completeOrderDelivery(completed, courier, true);
+    await syncInvoicePaymentStatus(getStore(), completed);
     return completed;
   }
   const order = await getOrderById(orderId);
   if (!order) throw new Error('Pedido no encontrado.');
   await completeOrderDelivery(order, courier);
-  return saveOrder(order);
+  const saved = await saveOrder(order);
+  await syncInvoicePaymentStatus(getStore(), saved);
+  return saved;
 }

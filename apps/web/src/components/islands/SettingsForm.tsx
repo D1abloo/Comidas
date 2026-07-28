@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import PrinterDetect from './PrinterDetect.tsx';
 
-type Capabilities = { tpv: boolean; email: boolean; whatsapp: boolean };
+type Capabilities = { tpv: boolean; bizum: boolean; email: boolean; whatsapp: boolean };
 
 export default function SettingsForm({
   initialCompany,
@@ -16,6 +16,7 @@ export default function SettingsForm({
   const [settings, setSettings] = useState({
     ...initialSettings,
     tpv_enabled: capabilities.tpv && initialSettings.tpv_enabled,
+    bizum_enabled: capabilities.bizum && initialSettings.bizum_enabled,
     email_notifications_enabled: capabilities.email && initialSettings.email_notifications_enabled,
     whatsapp_notifications_enabled: capabilities.whatsapp && initialSettings.whatsapp_notifications_enabled,
   });
@@ -74,7 +75,10 @@ export default function SettingsForm({
 
       <div className="card p-6">
         <h3 className="font-semibold tracking-tight">Bizum</h3>
-        <p className="text-sm text-bocado-mute">Este número se usa para generar el QR de pago Bizum en el checkout.</p>
+        <p className="text-sm text-bocado-mute">
+          El cobro manual por QR solo está disponible en el modo de demostración. En producción debe conectarse un
+          proveedor que confirme el pago.
+        </p>
         <div className="mt-5 grid gap-3 text-sm">
           <F label="Número Bizum (E.164)"><input className="input" placeholder="+34600000000" value={settings.bizum_phone ?? ''} onChange={(e) => setSettings({ ...settings, bizum_phone: e.target.value })} /></F>
           <F label="Concepto del QR"><input className="input" value={settings.bizum_concept_template} onChange={(e) => setSettings({ ...settings, bizum_concept_template: e.target.value })} /></F>
@@ -87,9 +91,10 @@ export default function SettingsForm({
             Tarjeta (TPV)
           </label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={settings.cash_enabled} onChange={(e) => setSettings({ ...settings, cash_enabled: e.target.checked })} /> Efectivo</label>
-          <label className="flex items-center gap-2"><input type="checkbox" checked={settings.bizum_enabled} onChange={(e) => setSettings({ ...settings, bizum_enabled: e.target.checked })} /> Bizum</label>
+          <label className="flex items-center gap-2"><input type="checkbox" disabled={!capabilities.bizum} checked={settings.bizum_enabled} onChange={(e) => setSettings({ ...settings, bizum_enabled: e.target.checked })} /> Bizum</label>
         </div>
         {!capabilities.tpv && <p className="mt-2 text-xs text-bocado-mute">TPV oculto en checkout hasta conectar un proveedor real. La simulación solo puede activarse explícitamente en desarrollo.</p>}
+        {!capabilities.bizum && <p className="mt-1 text-xs text-bocado-mute">Bizum oculto en checkout hasta conectar un proveedor real que verifique el cobro.</p>}
 
         <h3 className="font-semibold tracking-tight mt-8">Avisos automáticos</h3>
         <div className="mt-3 grid gap-3 text-sm">

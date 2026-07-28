@@ -19,13 +19,20 @@ type OrderRow = {
   invoice_id: string | null;
   courier_id: string | null;
   courier_name: string | null;
-  courier_accepted_at: string | null;
-  delivered_at: string | null;
+  courier_accepted_at: string | Date | null;
+  delivered_at: string | Date | null;
   courier_lat: number | null;
   courier_lng: number | null;
-  courier_location_at: string | null;
-  created_at: string;
+  courier_location_at: string | Date | null;
+  created_at: string | Date;
 };
+
+function isoTimestamp(value: string | Date): string;
+function isoTimestamp(value: string | Date | null): string | null;
+function isoTimestamp(value: string | Date | null): string | null {
+  if (value == null) return null;
+  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+}
 
 function rowToOrder(row: OrderRow, items: OrderLine[]): Order {
   return {
@@ -45,12 +52,12 @@ function rowToOrder(row: OrderRow, items: OrderLine[]): Order {
     invoice_id: row.invoice_id,
     courier_id: row.courier_id,
     courier_name: row.courier_name,
-    courier_accepted_at: row.courier_accepted_at,
-    delivered_at: row.delivered_at,
+    courier_accepted_at: isoTimestamp(row.courier_accepted_at),
+    delivered_at: isoTimestamp(row.delivered_at),
     courier_lat: row.courier_lat,
     courier_lng: row.courier_lng,
-    courier_location_at: row.courier_location_at,
-    created_at: row.created_at,
+    courier_location_at: isoTimestamp(row.courier_location_at),
+    created_at: isoTimestamp(row.created_at),
   };
 }
 
@@ -240,7 +247,10 @@ export async function pgCompleteOrderForCourier(
   const deliveredAt = new Date().toISOString();
   const { rowCount } = await pgQuery(
     `UPDATE orders
-     SET status = 'delivered', delivered_at = $3, updated_at = NOW()
+     SET status = 'delivered',
+         payment_status = CASE WHEN payment_method = 'cash' THEN 'paid' ELSE payment_status END,
+         delivered_at = $3,
+         updated_at = NOW()
      WHERE id = $1 AND status = 'delivering' AND courier_id = $2`,
     [orderId, courierId, deliveredAt],
   );
@@ -319,8 +329,10 @@ export async function pgUpsertCourierLocation(loc: CourierLocation) {
 }
 
 export async function pgListCourierLocations(): Promise<CourierLocation[]> {
-  const { rows } = await pgQuery<CourierLocation>('SELECT * FROM courier_locations ORDER BY updated_at DESC');
-  return rows;
+  const { rows } = await pgQuery<CourierLocation & { updated_at: string | Date }>(
+    'SELECT * FROM courier_locations ORDER BY updated_at DESC',
+  );
+  return rows.map((row) => ({ ...row, updated_at: isoTimestamp(row.updated_at) }));
 }
 
 export async function pgInsertAdminAlert(alert: AdminAlert) {
@@ -344,10 +356,10 @@ export async function pgInsertAdminAlert(alert: AdminAlert) {
 }
 
 export async function pgListUnseenAlerts(): Promise<AdminAlert[]> {
-  const { rows } = await pgQuery<AdminAlert>(
+  const { rows } = await pgQuery<AdminAlert & { created_at: string | Date }>(
     'SELECT * FROM admin_alerts WHERE seen = false ORDER BY created_at DESC LIMIT 50',
   );
-  return rows;
+  return rows.map((row) => ({ ...row, created_at: isoTimestamp(row.created_at) }));
 }
 
 export async function pgMarkAlertsSeen(ids: string[]) {
@@ -364,9 +376,9 @@ export async function pgFindUserByEmail(email: string) {
     phone: string | null;
     tax_id: string | null;
     password_hash: string;
-    created_at: string;
+    created_at: string | Date;
   }>('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
-  return rows[0] ?? null;
+  return rows[0] ? { ...rows[0], created_at: isoTimestamp(rows[0].created_at) } : null;
 }
 
 export async function pgFindUserById(id: string) {
@@ -399,20 +411,20 @@ export async function pgInsertUser(user: User): Promise<User> {
 }
 
 export async function pgListUsers(): Promise<User[]> {
-  const { rows } = await pgQuery<User>(
+  const { rows } = await pgQuery<User & { created_at: string | Date }>(
     `SELECT id, email, full_name, role, phone, tax_id, password_hash, created_at
      FROM users ORDER BY created_at DESC`,
   );
-  return rows;
+  return rows.map((row) => ({ ...row, created_at: isoTimestamp(row.created_at) }));
 }
 
 export async function pgUpdateUserRole(id: string, role: User['role']): Promise<User | null> {
-  const { rows } = await pgQuery<User>(
+  const { rows } = await pgQuery<User & { created_at: string | Date }>(
     `UPDATE users SET role = $2 WHERE id = $1
      RETURNING id, email, full_name, role, phone, tax_id, password_hash, created_at`,
     [id, role],
   );
-  return rows[0] ?? null;
+  return rows[0] ? { ...rows[0], created_at: isoTimestamp(rows[0].created_at) } : null;
 }
 
 export async function pgDeleteUser(id: string): Promise<boolean> {

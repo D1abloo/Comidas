@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
     return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
   }
-  const body = (await request.json()) as { ids?: string[]; all?: boolean };
+  const body = (await request.json().catch(() => ({}))) as { ids?: string[]; all?: boolean };
   if (body.all) {
     const all = await listUnseenAlerts();
     await markAlertsSeen(all.map((a) => a.id));

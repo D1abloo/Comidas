@@ -1,9 +1,9 @@
 ---
 import Admin from '../../layouts/Admin.astro';
-import { getStore } from '../../server/db';
 import { formatDateTime } from '../../server/format';
+import { listNotifications } from '../../server/notification-service';
 
-const events = getStore().notifications;
+const events = await listNotifications(100);
 const kindLabel: Record<string, string> = {
   order_created: 'Pedido recibido',
   order_confirmed: 'Pedido confirmado',
@@ -13,6 +13,11 @@ const kindLabel: Record<string, string> = {
   order_cancelled: 'Cancelado',
   invoice_issued: 'Factura emitida',
   payment_received: 'Pago recibido',
+};
+const statusLabel: Record<string, string> = {
+  pending: 'Pendiente',
+  sent: 'Enviado',
+  failed: 'Fallido',
 };
 ---
 <Admin title="Avisos" crumb="Inicio / Avisos">
@@ -32,7 +37,7 @@ const kindLabel: Record<string, string> = {
             </div>
             <div class="text-xs text-bocado-mute mt-1">{formatDateTime(e.created_at)}</div>
           </div>
-          <span class="chip" style={`background:${e.status === 'sent' ? '#DCFCE7' : e.status === 'failed' ? '#FECACA' : '#FEF3C7'}`}>{e.status}</span>
+          <span class="chip" style={`background:${e.status === 'sent' ? '#DCFCE7' : e.status === 'failed' ? '#FECACA' : '#FEF3C7'}`}>{statusLabel[e.status] ?? e.status}</span>
         </li>
       ))}
     </ul>

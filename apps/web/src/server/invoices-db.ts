@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { pgQuery, withPgTransaction } from './pg.js';
-import type { Invoice } from './types.js';
+import type { Invoice, PaymentStatus } from './types.js';
 
 function normalizeInvoice(row: Invoice): Invoice {
   return {
@@ -74,4 +74,14 @@ export async function pgCreateInvoice(
     ]);
     return invoice;
   });
+}
+
+export async function pgUpdateInvoicePaymentStatus(
+  orderId: string,
+  paymentStatus: PaymentStatus,
+): Promise<void> {
+  await pgQuery('UPDATE invoices SET payment_status = $2 WHERE order_id = $1', [
+    orderId,
+    paymentStatus,
+  ]);
 }

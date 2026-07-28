@@ -15,12 +15,35 @@ import { useOrderStream, onOrdersChanged } from '../../lib/order-stream';
 import { onMobileSync } from '../../lib/mobile-sync';
 
 const STATUS = ['pending', 'confirmed', 'preparing', 'delivering', 'delivered', 'cancelled'] as const;
+const NEXT_STATUS: Record<OrderStatus, OrderStatus[]> = {
+  pending: ['confirmed', 'cancelled'],
+  confirmed: ['preparing', 'cancelled'],
+  preparing: ['delivering', 'cancelled'],
+  delivering: ['delivered', 'cancelled'],
+  delivered: [],
+  cancelled: [],
+};
+
+const ACTION_ERROR: Record<string, string> = {
+  invalid_status_transition: 'Ese cambio de estado no está permitido.',
+  payment_required: 'Confirma el pago antes de aceptar el pedido.',
+  not_found: 'El pedido ya no existe.',
+  unauthorized: 'Tu sesión ha caducado. Vuelve a iniciar sesión.',
+};
+
+function statusOptions(current: OrderStatus): OrderStatus[] {
+  return [current, ...NEXT_STATUS[current]];
+}
 
 export default function OrdersBoard({ initialOrders }: { initialOrders: any[] }) {
   const [orders, setOrders] = useState(initialOrders);
   const [filter, setFilter] = useState('');
   const [selected, setSelected] = useState<any | null>(null);
   const [mobileDetail, setMobileDetail] = useState(false);
+  const [busyOrderId, setBusyOrderId] = useState<string | null>(null);
+  const [invoiceOrderId, setInvoiceOrderId] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   useOrderStream(true);
 
@@ -85,28 +108,57 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
 
   const filtered = filter ? orders.filter((o) => o.status === filter) : orders;
 
-  async function setStatus(id: string, status: string) {
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
-    if (selected?.id === id) setSelected((s: any) => (s ? { ...s, status } : s));
-    await fetch(`/api/orders/${id}/status`, {
-      method: 'PATCH',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
+  async function setStatus(id: string, status: OrderStatus) {
+    const current = orders.find((order) => order.id === id);
+    if (!current || current.status === status || busyOrderId) return;
+    if (status === 'cancelled' && !window.confirm(`¿Cancelar el pedido ${current.number}?`)) return;
+    setBusyOrderId(id);
+    setError('');
+    setNotice('');
+    try {
+      const response = await fetch(`/api/orders/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.order) {
+        throw new Error(ACTION_ERROR[data.error] ?? 'No se pudo actualizar el pedido.');
+      }
+      const patch = (order: any) => (order.id === id ? { ...order, ...data.order } : order);
+      setOrders((prev) => prev.map(patch));
+      setSelected((value: any) => (value?.id === id ? patch(value) : value));
+      setNotice(`${current.number} actualizado a ${STATUS_LABEL[status] ?? status}.`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudo actualizar el pedido.');
+    } finally {
+      setBusyOrderId(null);
+    }
   }
 
   async function genInvoice(id: string) {
-    const r = await fetch('/api/invoices/generate', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ order_id: id }),
-    });
-    const data = await r.json();
-    if (data.invoice) {
+    if (invoiceOrderId) return;
+    setInvoiceOrderId(id);
+    setError('');
+    setNotice('');
+    try {
+      const response = await fetch('/api/invoices/generate', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ order_id: id }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.invoice) {
+        throw new Error(ACTION_ERROR[data.error] ?? 'No se pudo generar la factura.');
+      }
       const patch = (o: any) => (o.id === id ? { ...o, invoice_id: data.invoice.id } : o);
       setOrders((prev) => prev.map(patch));
-      if (selected?.id === id) setSelected(patch(selected));
-      window.open(`/api/invoices/${data.invoice.id}.pdf`, '_blank');
+      setSelected((value: any) => (value?.id === id ? patch(value) : value));
+      setNotice(`Factura ${data.invoice.number} generada. Ya puedes descargar el PDF.`);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudo generar la factura.');
+    } finally {
+      setInvoiceOrderId(null);
     }
   }
 
@@ -132,6 +184,14 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
           );
         })}
       </div>
+      {(error || notice) && (
+        <p
+          className={`admin-action-message ${error ? 'admin-action-message--error' : 'admin-action-message--success'}`}
+          role={error ? 'alert' : 'status'}
+        >
+          {error || notice}
+        </p>
+      )}
 
       <div className="grid xl:grid-cols-[1fr_380px] gap-6 items-start">
         <div className="admin-frame">
@@ -166,8 +226,14 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
                       <span className={`chip text-[10px] ${statusChipClass(o.status)}`}>{STATUS_LABEL[o.status]}</span>
                     </td>
                     <td className="text-right pr-5" onClick={(e) => e.stopPropagation()}>
-                      <select value={o.status} onChange={(e) => setStatus(o.id, e.target.value)} className="chip text-xs">
-                        {STATUS.map((s) => (
+                      <select
+                        value={o.status}
+                        onChange={(e) => void setStatus(o.id, e.target.value as OrderStatus)}
+                        className="chip text-xs"
+                        disabled={busyOrderId === o.id || statusOptions(o.status as OrderStatus).length === 1}
+                        aria-label={`Estado de ${o.number}`}
+                      >
+                        {statusOptions(o.status as OrderStatus).map((s) => (
                           <option key={s} value={s}>
                             {STATUS_LABEL[s]}
                           </option>
@@ -275,15 +341,27 @@ export default function OrdersBoard({ initialOrders }: { initialOrders: any[] })
               <p className="text-right font-semibold">{eur(selected.total_cents)}</p>
 
               <div className="flex flex-col gap-2 pt-2">
-                <select value={selected.status} onChange={(e) => setStatus(selected.id, e.target.value)} className="input text-sm">
-                  {STATUS.map((s) => (
+                <select
+                  value={selected.status}
+                  onChange={(e) => void setStatus(selected.id, e.target.value as OrderStatus)}
+                  className="input text-sm"
+                  disabled={busyOrderId === selected.id || statusOptions(selected.status as OrderStatus).length === 1}
+                  aria-label={`Estado de ${selected.number}`}
+                >
+                  {statusOptions(selected.status as OrderStatus).map((s) => (
                     <option key={s} value={s}>
                       {STATUS_LABEL[s]}
                     </option>
                   ))}
                 </select>
-                <button type="button" className="btn-lime w-full text-sm" onClick={() => genInvoice(selected.id)}>
-                  Generar factura (con QR si pendiente)
+                <button
+                  type="button"
+                  className="btn-lime w-full text-sm"
+                  onClick={() => void genInvoice(selected.id)}
+                  disabled={invoiceOrderId === selected.id}
+                  aria-busy={invoiceOrderId === selected.id}
+                >
+                  {invoiceOrderId === selected.id ? 'Generando factura…' : selected.invoice_id ? 'Comprobar factura' : 'Generar factura'}
                 </button>
                 {selected.invoice_id && (
                   <a href={`/api/invoices/${selected.invoice_id}.pdf`} target="_blank" rel="noreferrer" className="btn-ghost text-sm text-center">

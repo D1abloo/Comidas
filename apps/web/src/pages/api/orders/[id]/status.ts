@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getOrderById, saveOrder } from '../../../../server/order-service';
-import { createInvoiceForOrder } from '../../../../server/invoices';
+import { createInvoiceForOrder, syncInvoicePaymentStatus } from '../../../../server/invoices';
 import { getStore } from '../../../../server/db';
 import { parseOrderStatus } from '../../../../server/security';
 import { queueNotification } from '../../../../server/notification-service';
@@ -18,7 +18,7 @@ export const PATCH: APIRoute = async ({ request, params, locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
     return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
   }
-  const { status: rawStatus } = (await request.json()) as { status: string };
+  const { status: rawStatus } = (await request.json().catch(() => ({}))) as { status?: string };
   const status = parseOrderStatus(rawStatus);
   if (!status) {
     return new Response(JSON.stringify({ error: 'invalid_status' }), { status: 400 });
@@ -37,6 +37,9 @@ export const PATCH: APIRoute = async ({ request, params, locals }) => {
   }
 
   order.status = status;
+  if (status === 'delivered' && order.payment_method === 'cash') {
+    order.payment_status = 'paid';
+  }
 
   if (status === 'confirmed') {
     await createInvoiceForOrder(getStore(), order);
@@ -61,5 +64,6 @@ export const PATCH: APIRoute = async ({ request, params, locals }) => {
   }
 
   const saved = await saveOrder(order);
+  await syncInvoicePaymentStatus(store, saved);
   return new Response(JSON.stringify({ order: saved }), { headers: { 'content-type': 'application/json' } });
 };

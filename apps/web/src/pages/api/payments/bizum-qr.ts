@@ -1,11 +1,18 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../../server/db';
 import { generateBizumQR } from '../../../server/bizum';
+import { areManualBizumPaymentsEnabled } from '../../../server/env';
 
 /** Genera o regenera el QR Bizum de la empresa (admin). */
 export const POST: APIRoute = async ({ request, locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
     return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
+  }
+  if (!areManualBizumPaymentsEnabled()) {
+    return new Response(JSON.stringify({ error: 'bizum_not_configured' }), {
+      status: 503,
+      headers: { 'content-type': 'application/json' },
+    });
   }
   const body = (await request.json().catch(() => ({}))) as { amount_cents?: number; concept?: string };
   const store = getStore();

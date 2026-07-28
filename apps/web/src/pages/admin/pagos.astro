@@ -4,21 +4,38 @@ import BizumQRPanel from '../../components/islands/BizumQRPanel.tsx';
 import { getStore } from '../../server/db';
 import { listOrders } from '../../server/order-service';
 import { formatEUR, statusLabel } from '../../server/format';
+import { areManualBizumPaymentsEnabled } from '../../server/env';
 
 const store = getStore();
 const orders = await listOrders();
 const byMethod: Record<string, number> = { tpv: 0, bizum: 0, cash: 0 };
 orders.forEach((o) => (byMethod[o.payment_method] = (byMethod[o.payment_method] ?? 0) + 1));
 const total = orders.length || 1;
+const manualBizumAvailable =
+  areManualBizumPaymentsEnabled() &&
+  store.settings.bizum_enabled &&
+  Boolean(store.settings.bizum_phone);
 ---
 <Admin title="Pagos" crumb="Inicio / Pagos">
   <section class="admin-content space-y-5 !py-0">
-    <BizumQRPanel
-      client:load
-      phone={store.settings.bizum_phone}
-      conceptTemplate={store.settings.bizum_concept_template}
-      updatedAt={store.settings.bizum_qr_updated_at}
-    />
+    {manualBizumAvailable ? (
+      <BizumQRPanel
+        client:load
+        phone={store.settings.bizum_phone}
+        conceptTemplate={store.settings.bizum_concept_template}
+        updatedAt={store.settings.bizum_qr_updated_at}
+      />
+    ) : (
+      <div class="admin-frame p-5 sm:p-8">
+        <p class="label">Bizum</p>
+        <h2 class="mt-1 text-xl font-semibold">Proveedor no conectado</h2>
+        <p class="mt-2 max-w-2xl text-sm text-bocado-mute">
+          Bizum no se ofrece en el checkout porque todavía no existe una integración que confirme el cobro. Un número
+          o un QR por sí solos no verifican un pago.
+        </p>
+        <a class="btn-secondary mt-4 inline-flex" href="/admin/ajustes">Revisar métodos de pago</a>
+      </div>
+    )}
 
     <div class="grid md:grid-cols-3 gap-3">
       {(['tpv', 'bizum', 'cash'] as const).map((m) => (

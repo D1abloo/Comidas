@@ -8,16 +8,6 @@ type NavigatorWithPrinters = Navigator & {
   getPrinters?: () => Promise<DetectedPrinter[]>;
 };
 
-const COMMON_THERMAL_PRINTERS = [
-  'EPSON TM-T20',
-  'EPSON TM-T88',
-  'Star TSP100',
-  'Star TSP143',
-  'Bixolon SRP-350',
-  'Zebra ZD220',
-  'Predeterminada del sistema',
-];
-
 export function supportsPrinterEnumeration(): boolean {
   if (typeof navigator === 'undefined') return false
   return typeof (navigator as NavigatorWithPrinters).getPrinters === 'function'
@@ -25,16 +15,10 @@ export function supportsPrinterEnumeration(): boolean {
 
 export async function detectPrinters(): Promise<{
   printers: DetectedPrinter[]
-  source: 'browser' | 'suggestions'
+  source: 'browser' | 'unsupported'
 }> {
   if (typeof navigator === 'undefined') {
-    return {
-      printers: COMMON_THERMAL_PRINTERS.map((name) => ({
-        name,
-        isDefault: name === 'Predeterminada del sistema',
-      })),
-      source: 'suggestions',
-    }
+    return { printers: [], source: 'unsupported' };
   }
 
   const nav = navigator as NavigatorWithPrinters
@@ -56,13 +40,7 @@ export async function detectPrinters(): Promise<{
     }
   }
 
-  return {
-    printers: COMMON_THERMAL_PRINTERS.map((name) => ({
-      name,
-      isDefault: name === 'Predeterminada del sistema',
-    })),
-    source: 'suggestions',
-  };
+  return { printers: [], source: 'unsupported' };
 }
 
 export function openPrinterTestPrint(paperMm: 58 | 80): void {
@@ -80,7 +58,7 @@ export function openPrinterTestPrint(paperMm: 58 | 80): void {
   const title = w.document.createElement('h1');
   title.textContent = 'BocadO · prueba';
   const message = w.document.createElement('p');
-  message.textContent = 'Impresora detectada correctamente.';
+  message.textContent = 'Si puedes leer este texto, la impresión desde BocadO funciona.';
   const date = w.document.createElement('p');
   date.textContent = new Date().toLocaleString('es-ES');
   w.document.head.append(style);

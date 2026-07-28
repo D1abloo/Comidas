@@ -2,10 +2,15 @@
 import Admin from '../../layouts/Admin.astro';
 import SettingsForm from '../../components/islands/SettingsForm.tsx';
 import { getStore } from '../../server/db';
-import { areSimulatedPaymentsEnabled, isEmailDeliveryConfigured } from '../../server/env';
+import {
+  areManualBizumPaymentsEnabled,
+  areSimulatedPaymentsEnabled,
+  isEmailDeliveryConfigured,
+} from '../../server/env';
 const { company, settings } = getStore();
 const capabilities = {
   tpv: areSimulatedPaymentsEnabled(),
+  bizum: areManualBizumPaymentsEnabled(),
   email: isEmailDeliveryConfigured(),
   whatsapp: false,
 };

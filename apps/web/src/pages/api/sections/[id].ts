@@ -8,6 +8,9 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
   }
   const store = getStore();
   const id = params.id!;
+  if (!store.menu_sections.some((section) => section.id === id)) {
+    return new Response(JSON.stringify({ error: 'not_found' }), { status: 404 });
+  }
   store.menu_sections = store.menu_sections.filter((s) => s.id !== id);
   store.dishes.forEach((d) => {
     if (d.menu_section_id === id) d.menu_section_id = null;

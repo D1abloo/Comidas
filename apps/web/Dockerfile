@@ -23,7 +23,7 @@ RUN npm ci --omit=dev -w @bocado/web --include-workspace-root
 COPY --from=build /app/apps/web/dist apps/web/dist
 COPY scripts/migrate-db.mjs scripts/migrate-db.mjs
 COPY docker/postgres/migrations docker/postgres/migrations
-RUN chown -R node:node /app
+RUN mkdir -p /app/apps/web/dist/client/uploads && chown -R node:node /app
 USER node
 WORKDIR /app/apps/web
 EXPOSE 4321

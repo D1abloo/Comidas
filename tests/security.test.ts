@@ -9,6 +9,7 @@ import {
   createOrderAccessToken,
   verifyOrderAccessToken,
 } from '../apps/web/src/server/order-tokens.ts';
+import { ticketUrlForOrder } from '../apps/web/src/server/payment-qr.ts';
 
 process.env.SESSION_SECRET = 'test-session-secret-that-is-long-enough';
 process.env.ORDER_TOKEN_SECRET = 'test-order-secret-that-is-distinct-and-long';
@@ -25,6 +26,14 @@ test('los tokens de acceso quedan ligados al pedido', () => {
   assert.equal(verifyOrderAccessToken('order-a', token), true);
   assert.equal(verifyOrderAccessToken('order-b', token), false);
   assert.equal(verifyOrderAccessToken('order-a', `${token}x`), false);
+});
+
+test('el QR del ticket incluye acceso firmado y utilizable', () => {
+  const url = new URL(ticketUrlForOrder('https://bocado.example/', 'order qr'));
+  const token = url.searchParams.get('token') ?? '';
+  assert.equal(url.origin, 'https://bocado.example');
+  assert.equal(url.searchParams.get('order'), 'order qr');
+  assert.equal(verifyOrderAccessToken('order qr', token), true);
 });
 
 test('las rutas y las imágenes bloquean escapes y protocolos inseguros', () => {

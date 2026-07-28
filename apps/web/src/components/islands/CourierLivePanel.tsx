@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { formatLocationAge, isLocationStale } from '../../lib/courier-location-utils';
 import { CourierLocationMap } from './CourierLocationMap';
 import { onMobileSync } from '../../lib/mobile-sync';
@@ -30,21 +30,27 @@ interface OrderLoc {
 export default function CourierLivePanel() {
   const [locations, setLocations] = useState<CourierLoc[]>([]);
   const [orders, setOrders] = useState<OrderLoc[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useOrderStream(true);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const r = await fetch('/api/admin/courier-locations', { credentials: 'include' });
-        if (!r.ok) return;
-        const data = await r.json();
-        setLocations(data.locations ?? []);
-        setOrders(data.orders ?? []);
-      } catch {
-        /* ignore */
-      }
+  const load = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/courier-locations', { credentials: 'include' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error ?? 'No se pudo cargar el mapa.');
+      setLocations(data.locations ?? []);
+      setOrders(data.orders ?? []);
+      setError('');
+    } catch {
+      setError('No se pudo actualizar la ubicación. Reintenta.');
+    } finally {
+      setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
     void load();
     const id = window.setInterval(load, POLL_MS);
     const offSync = onMobileSync(() => void load());
@@ -54,14 +60,23 @@ export default function CourierLivePanel() {
       offSync();
       offStream();
     };
-  }, []);
+  }, [load]);
 
   const active = locations.length > 0 || orders.length > 0;
   if (!active) {
     return (
       <div className="admin-frame p-4 text-sm text-bocado-mute">
         <span className="font-semibold text-bocado-ink">📍 Repartidores en vivo</span>
-        <p className="mt-1">Ningún repartidor con GPS activo. La ubicación aparece cuando abren la app de repartidor.</p>
+        <p className="mt-1">
+          {loading
+            ? 'Consultando ubicaciones…'
+            : error || 'Ningún repartidor con GPS activo. La ubicación aparece cuando abren la app de repartidor.'}
+        </p>
+        {!loading && error && (
+          <button type="button" className="btn-ghost text-xs mt-3" onClick={() => void load()}>
+            Reintentar
+          </button>
+        )}
       </div>
     );
   }
@@ -77,6 +92,14 @@ export default function CourierLivePanel() {
           {locations.length} en línea
         </span>
       </div>
+      {error && (
+        <div className="mx-4 mt-4 admin-action-message admin-action-message--error" role="alert">
+          {error}{' '}
+          <button type="button" className="underline font-semibold" onClick={() => void load()}>
+            Reintentar
+          </button>
+        </div>
+      )}
       <div className="p-4 grid gap-4 lg:grid-cols-2">
         {locations.map((loc) => {
           const stale = isLocationStale(loc.updated_at);

@@ -66,8 +66,11 @@ services:
       BIZUM_COMPANY_PHONE: ${BIZUM_COMPANY_PHONE:-}
     ports:
       - "127.0.0.1:4321:4321"
+    volumes:
+      - bocado_uploads:/app/apps/web/dist/client/uploads
     security_opt:
       - no-new-privileges:true
 
 volumes:
   bocado_pg:
+  bocado_uploads:

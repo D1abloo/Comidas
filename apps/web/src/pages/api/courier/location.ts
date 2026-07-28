@@ -7,7 +7,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
   }
 
-  const body = (await request.json()) as {
+  const body = (await request.json().catch(() => ({}))) as {
     lat?: number;
     lng?: number;
     accuracy_m?: number | null;

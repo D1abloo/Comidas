@@ -2,7 +2,12 @@ import { randomUUID } from 'node:crypto';
 import type { Invoice, Order } from './types.js';
 import type { Store } from './db.js';
 import { isDatabaseEnabled } from './env.js';
-import { pgCreateInvoice, pgGetInvoice, pgListInvoices } from './invoices-db.js';
+import {
+  pgCreateInvoice,
+  pgGetInvoice,
+  pgListInvoices,
+  pgUpdateInvoicePaymentStatus,
+} from './invoices-db.js';
 import { persistOperationalState } from './store-persistence.js';
 import { queueNotification } from './notification-service.js';
 
@@ -96,4 +101,15 @@ export async function getInvoiceById(store: Store, id: string): Promise<Invoice 
 export async function listInvoices(store: Store): Promise<Invoice[]> {
   if (isDatabaseEnabled()) return pgListInvoices();
   return store.invoices;
+}
+
+export async function syncInvoicePaymentStatus(store: Store, order: Order): Promise<void> {
+  if (!order.invoice_id) return;
+  if (isDatabaseEnabled()) {
+    await pgUpdateInvoicePaymentStatus(order.id, order.payment_status);
+    return;
+  }
+  const invoice = store.invoices.find((candidate) => candidate.id === order.invoice_id);
+  if (invoice) invoice.payment_status = order.payment_status;
+  await persistOperationalState(store);
 }

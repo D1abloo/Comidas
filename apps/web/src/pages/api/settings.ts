@@ -1,7 +1,12 @@
 import type { APIRoute } from 'astro';
 import { getStore } from '../../server/db';
 import { pickCompanyPatch, pickSettingsPatch } from '../../server/security';
-import { areSimulatedPaymentsEnabled, isDatabaseEnabled, isEmailDeliveryConfigured } from '../../server/env';
+import {
+  areManualBizumPaymentsEnabled,
+  areSimulatedPaymentsEnabled,
+  isDatabaseEnabled,
+  isEmailDeliveryConfigured,
+} from '../../server/env';
 import { pgSaveCompanyConfig } from '../../server/company-config-db';
 import { persistOperationalState } from '../../server/store-persistence';
 
@@ -31,6 +36,9 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     if (nextSettings.bizum_enabled && !nextSettings.bizum_phone) {
       throw new Error('bizum_phone_required');
     }
+    if (nextSettings.bizum_enabled && !areManualBizumPaymentsEnabled()) {
+      throw new Error('bizum_not_configured');
+    }
     if (nextSettings.tpv_enabled && !areSimulatedPaymentsEnabled()) {
       throw new Error('tpv_not_configured');
     }
@@ -51,6 +59,7 @@ export const PATCH: APIRoute = async ({ request, locals }) => {
     const allowed = new Set([
       'payment_method_required',
       'bizum_phone_required',
+      'bizum_not_configured',
       'tpv_not_configured',
       'email_not_configured',
       'whatsapp_not_configured',

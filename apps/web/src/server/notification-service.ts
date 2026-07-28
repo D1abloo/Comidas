@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { getStore } from './db.js';
 import { isDatabaseEnabled } from './env.js';
-import { pgInsertNotification, pgUpdateNotification } from './notifications-db.js';
+import { pgInsertNotification, pgListNotifications, pgUpdateNotification } from './notifications-db.js';
 import { persistOperationalState } from './store-persistence.js';
 import type { NotificationEvent } from './types.js';
 import { getOrderById } from './order-service.js';
@@ -51,6 +51,11 @@ export async function queueNotification(input: {
     event.error_message = result.error;
   }
   return event;
+}
+
+export async function listNotifications(limit = 100): Promise<NotificationEvent[]> {
+  if (isDatabaseEnabled()) return pgListNotifications(limit);
+  return getStore().notifications.slice(0, limit);
 }
 
 function notificationLabel(kind: string): string {

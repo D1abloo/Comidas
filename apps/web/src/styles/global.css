@@ -95,6 +95,15 @@
   .admin-frame-sub {
     @apply text-xs text-bocado-mute mt-0.5;
   }
+  .admin-action-message {
+    @apply rounded-xl border px-4 py-3 text-sm font-medium;
+  }
+  .admin-action-message--success {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-800;
+  }
+  .admin-action-message--error {
+    @apply border-red-200 bg-red-50 text-red-800;
+  }
   .admin-brand {
     @apply px-4 pt-4 pb-3 border-b border-bocado-line/80;
   }

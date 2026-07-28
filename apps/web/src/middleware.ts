@@ -2,6 +2,7 @@ import { defineMiddleware } from 'astro:middleware';
 import { clearSession, getSessionFromCookies } from './server/auth.js';
 import { getStore } from './server/db.js';
 import {
+  areManualBizumPaymentsEnabled,
   areSimulatedPaymentsEnabled,
   assertRuntimeConfig,
   getAppUrl,
@@ -50,7 +51,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
       if (config.company) store.company = config.company;
       if (config.settings) store.settings = { ...store.settings, ...config.settings };
       if (!store.settings.bizum_phone) store.settings.bizum_phone = getBizumCompanyPhone();
-      store.settings.bizum_enabled = store.settings.bizum_enabled && Boolean(store.settings.bizum_phone);
+      store.settings.bizum_enabled =
+        store.settings.bizum_enabled &&
+        Boolean(store.settings.bizum_phone) &&
+        areManualBizumPaymentsEnabled();
       store.settings.tpv_enabled = store.settings.tpv_enabled && areSimulatedPaymentsEnabled();
       store.settings.email_notifications_enabled =
         store.settings.email_notifications_enabled && isEmailDeliveryConfigured();

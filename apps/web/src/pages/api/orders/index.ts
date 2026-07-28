@@ -9,7 +9,7 @@ import { createOrder, getOrderById, listOrders, listOrdersForUser, nextOrderNumb
 import type { Order } from '../../../server/types';
 import { randomUUID } from 'node:crypto';
 import { queueNotification } from '../../../server/notification-service';
-import { areSimulatedPaymentsEnabled } from '../../../server/env';
+import { areManualBizumPaymentsEnabled, areSimulatedPaymentsEnabled } from '../../../server/env';
 
 async function attachDeliveryCoords(orderId: string) {
   const order = await getOrderById(orderId);
@@ -55,7 +55,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const paymentEnabled = {
     tpv: store.settings.tpv_enabled && areSimulatedPaymentsEnabled(),
     cash: store.settings.cash_enabled,
-    bizum: store.settings.bizum_enabled && Boolean(store.settings.bizum_phone),
+    bizum:
+      store.settings.bizum_enabled &&
+      Boolean(store.settings.bizum_phone) &&
+      areManualBizumPaymentsEnabled(),
   }[body.payment_method];
   if (!paymentEnabled) {
     return new Response(JSON.stringify({ error: 'payment_method_disabled' }), { status: 400 });

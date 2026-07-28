@@ -65,7 +65,9 @@ export default function OrderTicketView({
 
       {!paid && qrUrl && (
         <div className="premium-panel text-center border-2 border-bocado-lime/40 shadow-glow">
-          <p className="text-sm font-bold text-bocado-ink">Escanea para pagar</p>
+          <p className="text-sm font-bold text-bocado-ink">
+            {data.payment.kind === 'bizum' ? 'Escanea para pagar' : 'Escanea para consultar el pedido'}
+          </p>
           {data.payment.kind === 'bizum' && (
             <p className="text-xs text-bocado-mute mt-1">
               Bizum a {data.payment.phone} · {data.payment.amount} €
@@ -74,7 +76,7 @@ export default function OrderTicketView({
             </p>
           )}
           <img src={qrUrl} alt="QR de pago" className="mx-auto mt-4 w-52 h-52 rounded-2xl border border-bocado-line" />
-          <p className="text-lg font-bold mt-4">{data.formatted_total}</p>
+          {data.payment.kind === 'bizum' && <p className="text-lg font-bold mt-4">{data.formatted_total}</p>}
         </div>
       )}
 

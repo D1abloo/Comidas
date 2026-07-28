@@ -81,6 +81,10 @@ export function areSimulatedPaymentsEnabled(): boolean {
   return isDemoMode() && booleanEnv('ENABLE_SIMULATED_PAYMENTS');
 }
 
+export function areManualBizumPaymentsEnabled(): boolean {
+  return areSimulatedPaymentsEnabled();
+}
+
 export function isEmailDeliveryConfigured(): boolean {
   const email = getEmailConfig();
   return email.enabled && email.provider === 'resend' && Boolean(email.apiKey);

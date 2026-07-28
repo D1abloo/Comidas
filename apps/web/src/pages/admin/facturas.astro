@@ -7,7 +7,7 @@ import { listInvoices } from '../../server/invoices';
 const invoices = await listInvoices(getStore());
 ---
 <Admin title="Facturas" crumb="Inicio / Facturas">
-  <div class="card overflow-hidden">
+  <div class="admin-frame overflow-x-auto">
     <table class="w-full text-sm">
       <thead class="bg-bocado-paper2 text-bocado-mute">
         <tr class="text-left">
@@ -29,7 +29,7 @@ const invoices = await listInvoices(getStore());
             <td>{formatDateTime(i.issued_at)}</td>
             <td class="text-right pr-5 space-x-2">
               <a href={`/api/invoices/${i.id}.pdf`} target="_blank" class="btn-lime text-xs">PDF</a>
-              <a href={`/pedido/ticket?order=${i.order_id}`} target="_blank" class="btn-ghost text-xs">Ticket QR</a>
+              <a href={`/admin/impresion/ticket?order=${i.order_id}`} target="_blank" class="btn-ghost text-xs">Ticket</a>
               <a href={`/admin/impresion/ticket?order=${i.order_id}`} target="_blank" class="btn-ghost text-xs" aria-label={`Imprimir ticket ${i.order_number}`}>
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                   <path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5h18v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z"></path>

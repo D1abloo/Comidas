@@ -29,6 +29,8 @@ export default function DishImagesBoard({ dishes: initial, sections }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [urlDraft, setUrlDraft] = useState('');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   const selected = dishes.find((d) => d.id === selectedId) ?? null;
 
@@ -48,11 +50,15 @@ export default function DishImagesBoard({ dishes: initial, sections }: Props) {
   function selectDish(d: DishRow) {
     setSelectedId(d.id);
     setUrlDraft(d.images[0] ?? '');
+    setError('');
+    setNotice('');
   }
 
   async function saveImages(payload: { images?: string[]; use_default?: boolean }) {
     if (!selected) return;
     setSaving(true);
+    setError('');
+    setNotice('');
     try {
       const r = await fetch(`/api/dishes/${selected.id}/images`, {
         method: 'PATCH',
@@ -63,8 +69,9 @@ export default function DishImagesBoard({ dishes: initial, sections }: Props) {
       if (!r.ok) throw new Error(data.error ?? 'Error al guardar');
       setDishes((prev) => prev.map((d) => (d.id === data.dish.id ? { ...d, images: data.dish.images } : d)));
       setUrlDraft(data.dish.images[0] ?? '');
+      setNotice('Imagen guardada y publicada en la carta.');
     } catch (e: unknown) {
-      alert(e instanceof Error ? e.message : 'No se pudo guardar');
+      setError(e instanceof Error ? e.message : 'No se pudo guardar la imagen.');
     } finally {
       setSaving(false);
     }
@@ -74,16 +81,36 @@ export default function DishImagesBoard({ dishes: initial, sections }: Props) {
     if (!files?.[0] || !selected) return;
     const file = files[0];
     if (file.size > 2_000_000) {
-      alert('Máximo 2 MB por imagen');
+      setError('La imagen supera el máximo de 2 MB.');
       return;
     }
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
-      reader.readAsDataURL(file);
-    });
-    await saveImages({ images: [dataUrl] });
+    setSaving(true);
+    setError('');
+    setNotice('');
+    try {
+      const form = new FormData();
+      form.set('image', file);
+      const response = await fetch(`/api/dishes/${selected.id}/images`, {
+        method: 'POST',
+        body: form,
+      });
+      const data = await response.json().catch(() => ({}));
+      const errors: Record<string, string> = {
+        image_too_large: 'La imagen supera el máximo de 2 MB.',
+        invalid_image_type: 'Usa una imagen JPEG, PNG o WebP válida.',
+        missing_image: 'Selecciona una imagen.',
+      };
+      if (!response.ok || !data.dish) {
+        throw new Error(errors[data.error] ?? 'No se pudo subir la imagen.');
+      }
+      setDishes((prev) => prev.map((dish) => (dish.id === data.dish.id ? { ...dish, images: data.dish.images } : dish)));
+      setUrlDraft(data.dish.images[0] ?? '');
+      setNotice('Archivo subido y publicado en la carta.');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudo subir la imagen.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -127,6 +154,14 @@ export default function DishImagesBoard({ dishes: initial, sections }: Props) {
           <span className="text-sm text-bocado-mute self-center ml-auto">{visible.length} platos</span>
         </div>
       </div>
+      {(error || notice) && (
+        <p
+          className={`admin-action-message ${error ? 'admin-action-message--error' : 'admin-action-message--success'}`}
+          role={error ? 'alert' : 'status'}
+        >
+          {error || notice}
+        </p>
+      )}
 
       <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
         <div className="admin-frame p-4">
@@ -193,8 +228,9 @@ export default function DishImagesBoard({ dishes: initial, sections }: Props) {
               <label className="block text-xs font-medium text-bocado-mute">Subir archivo</label>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp"
                 className="input text-sm file:mr-2 file:rounded-full file:border-0 file:bg-bocado-lime file:px-3 file:py-1.5 file:text-xs"
+                disabled={saving}
                 onChange={(e) => onFile(e.target.files)}
               />
               <button

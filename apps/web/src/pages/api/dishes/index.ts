@@ -9,6 +9,21 @@ function slugify(s: string) {
   return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
+export const GET: APIRoute = async ({ locals }) => {
+  if (!locals.user || locals.user.role !== 'admin') {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
+  }
+  const store = getStore();
+  return new Response(
+    JSON.stringify({
+      dishes: store.dishes,
+      restaurants: store.restaurants,
+      sections: store.menu_sections,
+    }),
+    { headers: { 'content-type': 'application/json' } },
+  );
+};
+
 export const POST: APIRoute = async ({ request, locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
     return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
@@ -43,7 +58,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     id: 'd-' + randomUUID().slice(0, 8),
     slug: slugify(patch.name!),
     created_at: new Date().toISOString(),
-    rating: 4.7,
+    rating: 0,
     tags: [],
     allergens: [],
     ingredients: [],
@@ -67,7 +82,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     name: patch.name!,
     images: patch.images?.length
       ? patch.images
-      : ['https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80'],
+      : ['/carta/placeholder.jpg'],
   };
   store.dishes.push(dish);
   await persistCatalog(store);

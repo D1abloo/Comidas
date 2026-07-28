@@ -123,7 +123,9 @@ export default function TicketPrint({
 
         {qr && (
           <section className="ticket-section ticket-center">
-            <p className="ticket-bold">PAGAR CON QR</p>
+            <p className="ticket-bold">
+              {data.payment.kind === 'bizum' ? 'PAGAR CON QR' : 'CONSULTAR PEDIDO'}
+            </p>
             {data.payment.kind === 'bizum' && (
               <p className="ticket-sm">
                 Bizum {data.payment.phone}

@@ -2,6 +2,8 @@ import QRCode from 'qrcode';
 import type { Order } from './types.js';
 import type { Store } from './db.js';
 import { generateBizumQR } from './bizum.js';
+import { areManualBizumPaymentsEnabled } from './env.js';
+import { createOrderAccessToken } from './order-tokens.js';
 
 export type PaymentQrResult =
   | { kind: 'paid' }
@@ -18,7 +20,8 @@ export type PaymentQrResult =
 
 export function ticketUrlForOrder(origin: string, orderId: string) {
   const base = origin.replace(/\/$/, '');
-  return `${base}/pedido/ticket?order=${orderId}`;
+  const token = createOrderAccessToken(orderId);
+  return `${base}/pedido/ticket?order=${encodeURIComponent(orderId)}&token=${encodeURIComponent(token)}`;
 }
 
 export async function buildPaymentQrForOrder(
@@ -32,7 +35,11 @@ export async function buildPaymentQrForOrder(
     return { kind: 'paid' };
   }
 
-  if (order.payment_method === 'bizum' && store.settings.bizum_phone) {
+  if (
+    order.payment_method === 'bizum' &&
+    store.settings.bizum_phone &&
+    areManualBizumPaymentsEnabled()
+  ) {
     const concept = store.settings.bizum_concept_template.replace('{{order_number}}', order.number);
     const qr = await generateBizumQR({
       phone: store.settings.bizum_phone,

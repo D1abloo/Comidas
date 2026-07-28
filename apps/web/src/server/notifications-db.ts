@@ -30,3 +30,17 @@ export async function pgUpdateNotification(
     [id, status, errorMessage ?? null],
   );
 }
+
+export async function pgListNotifications(limit = 100): Promise<NotificationEvent[]> {
+  const { rows } = await pgQuery<NotificationEvent & { created_at: string | Date }>(
+    `SELECT id, order_id, channel, kind, recipient, status, error_message, created_at
+     FROM notification_events
+     ORDER BY created_at DESC
+     LIMIT $1`,
+    [limit],
+  );
+  return rows.map((row) => ({
+    ...row,
+    created_at: new Date(row.created_at).toISOString(),
+  }));
+}

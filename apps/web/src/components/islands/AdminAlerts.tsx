@@ -54,6 +54,10 @@ export default function AdminAlerts() {
         if (!booted.current) {
           alerts.forEach((a) => known.current.add(a.id));
           booted.current = true;
+          if (alerts.length) {
+            setToasts(alerts.slice(0, 5));
+            void ack(alerts.map((alert) => alert.id));
+          }
           return;
         }
 
