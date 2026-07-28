@@ -31,14 +31,21 @@ grep -q '^PUBLIC_APP_URL=' .env.deploy || echo "PUBLIC_APP_URL=https://\$DOMAIN"
 sed -i "s|^PUBLIC_APP_URL=.*|PUBLIC_APP_URL=https://\$DOMAIN|" .env.deploy
 sed -i "s|^DOMAIN=.*|DOMAIN=\$DOMAIN|" .env.deploy
 docker system prune -f --filter "until=72h" 2>/dev/null || true
-docker compose --env-file .env.deploy up -d --build
+docker builder prune -af 2>/dev/null || true
+# Un solo build (web) y reutilizar imagen para migrate — ahorra disco en VPS pequeñas
+docker compose --env-file .env.deploy build web
+docker tag comidas-web:latest comidas-migrate:latest 2>/dev/null || true
+docker builder prune -af 2>/dev/null || true
+docker compose --env-file .env.deploy up -d --no-build
 bash scripts/vps-nginx-ssl.sh
 docker compose --env-file .env.deploy ps
-echo "--- Memoria VPS ---"
+echo "--- Memoria / Disco VPS ---"
 free -h
+df -h / | tail -1
 swapon --show 2>/dev/null || true
 docker stats --no-stream 2>/dev/null || true
 curl -sI "https://\$DOMAIN/movil" | head -5
+curl -sI "https://\$DOMAIN/carta" | head -5
 REMOTE
 
 echo "✓ https://${DOMAIN}"
