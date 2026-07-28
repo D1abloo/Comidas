@@ -154,7 +154,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const response = await next();
   if (path.startsWith('/api/') && (response.status < 300 || response.status >= 400)) {
     if (!response.headers.has('cache-control')) response.headers.set('Cache-Control', 'no-store');
-    if (!response.headers.has('content-type')) {
+    const contentType = response.headers.get('content-type');
+    if (!contentType || contentType.startsWith('text/plain')) {
       response.headers.set('Content-Type', 'application/json; charset=utf-8');
     }
   }
