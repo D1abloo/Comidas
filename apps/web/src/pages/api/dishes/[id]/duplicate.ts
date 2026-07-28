@@ -20,5 +20,8 @@ export const POST: APIRoute = async ({ params, locals }) => {
   };
   store.dishes.push(copy);
   await persistCatalog(store);
-  return new Response(JSON.stringify({ dish: copy }));
+  return new Response(JSON.stringify({ dish: copy }), {
+    status: 201,
+    headers: { 'content-type': 'application/json' },
+  });
 };
