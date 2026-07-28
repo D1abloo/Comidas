@@ -3,16 +3,7 @@ import { getStore } from '../../../server/db';
 import { randomUUID } from 'node:crypto';
 import type { MenuSection } from '../../../server/types';
 import { persistCatalog } from '../../../server/store-service';
-import { parseMenuSectionPatch } from '../../../server/catalog-input';
-
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
+import { parseMenuSectionPatch, uniqueCatalogSlug } from '../../../server/catalog-input';
 
 export const GET: APIRoute = async () => {
   const store = getStore();
@@ -40,7 +31,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
     store.menu_sections[i] = {
       ...store.menu_sections[i]!,
       ...patch,
-      slug: patch.title ? slugify(patch.title) : store.menu_sections[i]!.slug,
+      slug: patch.title
+        ? uniqueCatalogSlug(
+            patch.title,
+            store.menu_sections.filter((section) => section.id !== body.id).map((section) => section.slug),
+          )
+        : store.menu_sections[i]!.slug,
     };
     await persistCatalog(store);
     return new Response(JSON.stringify({ section: store.menu_sections[i] }));
@@ -55,7 +51,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
   const section: MenuSection = {
     id: 'sec-' + randomUUID().slice(0, 8),
     title: patch.title!,
-    slug: slugify(patch.title!),
+    slug: uniqueCatalogSlug(
+      patch.title!,
+      store.menu_sections.map((candidate) => candidate.slug),
+    ),
     description: patch.description ?? '',
     emoji: patch.emoji ?? '🍽️',
     sort_order: patch.sort_order ?? store.menu_sections.length + 1,

@@ -7,6 +7,24 @@ const ALLERGENS = new Set([
   'sulfitos', 'altramuces',
 ]);
 
+export function catalogSlug(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+export function uniqueCatalogSlug(value: string, occupied: Iterable<string>): string {
+  const base = catalogSlug(value) || 'elemento';
+  const used = new Set(occupied);
+  if (!used.has(base)) return base;
+  let suffix = 2;
+  while (used.has(`${base}-${suffix}`)) suffix += 1;
+  return `${base}-${suffix}`;
+}
+
 function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('invalid_payload');
   return value as Record<string, unknown>;
@@ -88,7 +106,7 @@ export function parseDishPatch(raw: unknown, requireName = false): Partial<Dish>
   if (input.images !== undefined) {
     const images = stringList(input.images, 8, 2_100) ?? [];
     patch.images = images.map(sanitizeDishImageUrl).filter((url): url is string => Boolean(url));
-    if (images.length && !patch.images.length) throw new Error('invalid_images');
+    if (patch.images.length !== images.length) throw new Error('invalid_images');
   }
   if (input.nutrition !== undefined) {
     const nutrition = object(input.nutrition);

@@ -223,7 +223,7 @@ export default function CheckoutForm({
         <div className="flex justify-between mt-3 font-semibold"><span>Total</span><span>{eur(grand)}</span></div>
         {error && <p className="text-red-700 text-sm mt-4" role="alert">{error}</p>}
         <button disabled={loading || lines.length === 0 || availableMethods.length === 0} aria-busy={loading} className="btn-primary w-full mt-6 disabled:opacity-40">
-          {loading ? 'Procesando…' : 'Pagar y confirmar pedido'}
+          {loading ? 'Procesando…' : payment === 'cash' ? 'Confirmar pedido' : 'Pagar y confirmar pedido'}
         </button>
         <p className="text-xs text-bocado-mute mt-3 text-center">
           Podrás consultar el estado y el ticket desde “Mis pedidos”.

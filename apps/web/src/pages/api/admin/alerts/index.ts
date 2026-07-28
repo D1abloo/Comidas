@@ -18,6 +18,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
     return new Response(JSON.stringify({ error: 'unauthorized' }), { status: 401 });
   }
   const body = (await request.json().catch(() => ({}))) as { ids?: string[]; all?: boolean };
+  const validIds =
+    Array.isArray(body.ids) &&
+    body.ids.length >= 1 &&
+    body.ids.length <= 50 &&
+    body.ids.every((id) => typeof id === 'string' && /^[0-9a-f-]{36}$/i.test(id));
+  if (body.all !== true && !validIds) {
+    return new Response(JSON.stringify({ error: 'invalid_request' }), { status: 400 });
+  }
   if (body.all) {
     const all = await listUnseenAlerts();
     await markAlertsSeen(all.map((a) => a.id));

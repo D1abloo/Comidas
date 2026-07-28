@@ -1,5 +1,16 @@
 ---
 import LegalLayout from '../components/LegalLayout.astro';
+import { getStore } from '../server/db';
+import { areManualBizumPaymentsEnabled, areSimulatedPaymentsEnabled } from '../server/env';
+const settings = getStore().settings;
+const paymentMethods = [
+  settings.cash_enabled ? 'efectivo al recibir el pedido' : '',
+  settings.tpv_enabled && areSimulatedPaymentsEnabled() ? 'tarjeta' : '',
+  settings.bizum_enabled && areManualBizumPaymentsEnabled() ? 'Bizum' : '',
+].filter(Boolean);
+const paymentText = paymentMethods.length
+  ? `Los métodos disponibles actualmente son: ${paymentMethods.join(', ')}.`
+  : 'Los métodos de pago disponibles se muestran antes de confirmar el pedido.';
 ---
 <LegalLayout title="Condiciones de uso" eyebrow="Legal">
   <section>
@@ -21,8 +32,7 @@ import LegalLayout from '../components/LegalLayout.astro';
   <section>
     <h2>3. Pagos</h2>
     <p>
-      Aceptamos tarjeta (TPV), Bizum y efectivo según disponibilidad del restaurante. Los pagos con Bizum pueden
-      requerir confirmación manual en entorno demo.
+      {paymentText} Nunca se mostrará un método que no tenga un proveedor operativo o una forma de cobro habilitada.
     </p>
   </section>
 

@@ -44,12 +44,14 @@ export function buildOrderConfirmationEmail(
   const safeOrderNumber = escapeHtml(order.number);
   const safeAddress = escapeHtml(formatAddress(order.delivery_address));
   const safeCompany = escapeHtml(opts.companyName);
+  const ticketAction =
+    order.payment_method === 'cash' ? 'Ver ticket y seguir pedido' : 'Ver ticket y pagar';
 
   const html = `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="utf-8"><title>${safeSubject}</title></head>
 <body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111;max-width:560px;margin:0 auto;padding:24px">
-  <h1 style="font-size:20px;margin:0 0 8px">¡Pedido confirmado!</h1>
+  <h1 style="font-size:20px;margin:0 0 8px">¡Pedido recibido!</h1>
   <p style="color:#555;margin:0 0 20px">Hola <strong>${safeCustomer}</strong>, hemos recibido tu pedido <strong>${safeOrderNumber}</strong>.</p>
 
   <h2 style="font-size:14px;text-transform:uppercase;letter-spacing:.05em;color:#666">Tu ticket</h2>
@@ -68,7 +70,7 @@ export function buildOrderConfirmationEmail(
   <p style="margin:0 0 12px">Método de pago: <strong>${paymentLabel(order.payment_method)}</strong> · Estado: <strong>${paymentStatusLabel(order.payment_status)}</strong></p>
 
   <p style="margin:24px 0">
-    <a href="${ticketUrl}" style="display:inline-block;background:#D6FF3D;color:#0a0a0a;text-decoration:none;padding:12px 20px;border-radius:999px;font-weight:600">Ver ticket y pagar</a>
+    <a href="${ticketUrl}" style="display:inline-block;background:#D6FF3D;color:#0a0a0a;text-decoration:none;padding:12px 20px;border-radius:999px;font-weight:600">${ticketAction}</a>
     &nbsp;
     <a href="${trackUrl}" style="color:#111">Seguir pedido</a>
   </p>
@@ -78,7 +80,7 @@ export function buildOrderConfirmationEmail(
 </body>
 </html>`;
 
-  const text = `¡Pedido confirmado!
+  const text = `¡Pedido recibido!
 
 Hola ${order.customer.full_name},
 
@@ -100,7 +102,7 @@ ${formatAddress(order.delivery_address)}
 
 Pago: ${paymentLabel(order.payment_method)} (${paymentStatusLabel(order.payment_status)})
 
-Ticket / pago: ${ticketUrl}
+${order.payment_method === 'cash' ? 'Ticket / seguimiento' : 'Ticket / pago'}: ${ticketUrl}
 Seguir pedido: ${trackUrl}
 `;
 

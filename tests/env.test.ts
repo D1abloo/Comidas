@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
 import {
+  areManualBizumPaymentsEnabled,
   areSimulatedPaymentsEnabled,
   getDatabaseConfig,
   getEmailConfig,
@@ -59,9 +60,11 @@ test('los pagos simulados requieren activación explícita y modo no productivo'
 
   process.env.ENABLE_SIMULATED_PAYMENTS = 'true';
   assert.equal(areSimulatedPaymentsEnabled(), true);
+  assert.equal(areManualBizumPaymentsEnabled(), true);
 
   process.env.NODE_ENV = 'production';
   assert.equal(areSimulatedPaymentsEnabled(), false);
+  assert.equal(areManualBizumPaymentsEnabled(), false);
 });
 
 test('producción exige una base de datos persistente', () => {

@@ -4,7 +4,10 @@ import { generateBizumQR } from '../../../server/bizum';
 import { createInvoiceForOrder } from '../../../server/invoices';
 import { verifyOrderPaymentToken } from '../../../server/order-tokens';
 import { getOrderById, saveOrder } from '../../../server/order-service';
-import { areSimulatedPaymentsEnabled } from '../../../server/env';
+import {
+  areManualBizumPaymentsEnabled,
+  areSimulatedPaymentsEnabled,
+} from '../../../server/env';
 
 export const POST: APIRoute = async ({ request }) => {
   const { order_id, payment_token } = (await request.json().catch(() => ({}))) as {
@@ -33,6 +36,12 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   if (order.payment_method === 'bizum') {
+    if (!areManualBizumPaymentsEnabled()) {
+      return new Response(JSON.stringify({ error: 'payment_provider_unavailable' }), {
+        status: 503,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
     const phone = store.settings.bizum_phone;
     if (!phone) {
       return new Response(JSON.stringify({ error: 'Bizum no configurado en la empresa' }), { status: 400 });

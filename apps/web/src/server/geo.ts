@@ -1,4 +1,5 @@
 import type { Address } from './types.js';
+import { getAppUrl } from './env.js';
 
 /** Distancia en metros entre dos puntos WGS84. */
 export function distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -23,7 +24,10 @@ export async function geocodeAddress(address: Address): Promise<{ lat: number; l
     .join(', ');
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`;
-    const r = await fetch(url, { headers: { 'User-Agent': 'BocadO-Delivery/1.0 (demo)' } });
+    const r = await fetch(url, {
+      headers: { 'User-Agent': `BocadO-Delivery/1.0 (${getAppUrl()})` },
+      signal: AbortSignal.timeout(5_000),
+    });
     if (!r.ok) return null;
     const data = (await r.json()) as { lat: string; lon: string }[];
     if (!data[0]) return null;

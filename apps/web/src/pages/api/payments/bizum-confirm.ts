@@ -4,7 +4,7 @@ import { getStore } from '../../../server/db';
 import { createInvoiceForOrder } from '../../../server/invoices';
 import { verifyOrderPaymentToken } from '../../../server/order-tokens';
 import { getOrderById, saveOrder } from '../../../server/order-service';
-import { areSimulatedPaymentsEnabled } from '../../../server/env';
+import { areManualBizumPaymentsEnabled } from '../../../server/env';
 import { queueNotification } from '../../../server/notification-service';
 
 export const POST: APIRoute = async ({ request, locals }) => {
@@ -15,8 +15,14 @@ export const POST: APIRoute = async ({ request, locals }) => {
   if (typeof order_id !== 'string') {
     return new Response(JSON.stringify({ error: 'invalid_request' }), { status: 400 });
   }
+  if (!areManualBizumPaymentsEnabled()) {
+    return new Response(JSON.stringify({ error: 'payment_provider_unavailable' }), {
+      status: 503,
+      headers: { 'content-type': 'application/json' },
+    });
+  }
   const isAdmin = locals.user?.role === 'admin';
-  const isLocalSimulation = areSimulatedPaymentsEnabled() && verifyOrderPaymentToken(order_id, payment_token);
+  const isLocalSimulation = verifyOrderPaymentToken(order_id, payment_token);
   if (!isAdmin && !isLocalSimulation) {
     return new Response(JSON.stringify({ error: 'confirmation_not_authorized' }), { status: 403 });
   }

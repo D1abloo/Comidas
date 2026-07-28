@@ -38,6 +38,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
             'content-type': path.startsWith('/api/')
               ? 'application/json'
               : 'text/plain; charset=utf-8',
+            ...(path.startsWith('/api/') ? { 'cache-control': 'no-store' } : {}),
           },
         },
       );
@@ -114,6 +115,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
             headers: {
               'content-type': path.startsWith('/api/') ? 'application/json' : 'text/plain; charset=utf-8',
               'retry-after': String(result.retryAfterSeconds),
+              ...(path.startsWith('/api/') ? { 'cache-control': 'no-store' } : {}),
             },
           },
         );
@@ -150,6 +152,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const response = await next();
+  if (path.startsWith('/api/') && (response.status < 300 || response.status >= 400)) {
+    if (!response.headers.has('cache-control')) response.headers.set('Cache-Control', 'no-store');
+    if (!response.headers.has('content-type')) {
+      response.headers.set('Content-Type', 'application/json; charset=utf-8');
+    }
+  }
+  if (
+    path.startsWith('/admin') ||
+    path.startsWith('/repartidor') ||
+    path.startsWith('/perfil') ||
+    path.startsWith('/movil')
+  ) {
+    response.headers.set('Cache-Control', 'no-store');
+  }
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-Frame-Options', 'SAMEORIGIN');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');

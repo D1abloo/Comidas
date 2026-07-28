@@ -2,12 +2,8 @@ import type { APIRoute } from 'astro';
 import { getStore } from '../../../server/db';
 import { randomUUID } from 'node:crypto';
 import { persistCatalog } from '../../../server/store-service';
-import { parseDishPatch } from '../../../server/catalog-input';
+import { parseDishPatch, uniqueCatalogSlug } from '../../../server/catalog-input';
 import type { Dish } from '../../../server/types';
-
-function slugify(s: string) {
-  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-}
 
 export const GET: APIRoute = async ({ locals }) => {
   if (!locals.user || locals.user.role !== 'admin') {
@@ -40,10 +36,23 @@ export const POST: APIRoute = async ({ request, locals }) => {
     } catch {
       return new Response(JSON.stringify({ error: 'invalid_dish' }), { status: 400 });
     }
+    const restaurantId = patch.restaurant_id ?? store.dishes[i]!.restaurant_id;
+    const sectionId = patch.menu_section_id ?? store.dishes[i]!.menu_section_id;
+    if (!store.restaurants.some((restaurant) => restaurant.id === restaurantId)) {
+      return new Response(JSON.stringify({ error: 'invalid_restaurant' }), { status: 400 });
+    }
+    if (sectionId && !store.menu_sections.some((section) => section.id === sectionId)) {
+      return new Response(JSON.stringify({ error: 'invalid_section' }), { status: 400 });
+    }
     store.dishes[i] = {
       ...store.dishes[i]!,
       ...patch,
-      slug: patch.name ? slugify(patch.name) : store.dishes[i]!.slug,
+      slug: patch.name
+        ? uniqueCatalogSlug(
+            patch.name,
+            store.dishes.filter((dish) => dish.id !== raw.id).map((dish) => dish.slug),
+          )
+        : store.dishes[i]!.slug,
     };
     await persistCatalog(store);
     return new Response(JSON.stringify({ dish: store.dishes[i] }));
@@ -54,9 +63,19 @@ export const POST: APIRoute = async ({ request, locals }) => {
   } catch {
     return new Response(JSON.stringify({ error: 'invalid_dish' }), { status: 400 });
   }
+  const restaurantId = patch.restaurant_id ?? store.restaurants[0]?.id;
+  if (!restaurantId || !store.restaurants.some((restaurant) => restaurant.id === restaurantId)) {
+    return new Response(JSON.stringify({ error: 'invalid_restaurant' }), { status: 400 });
+  }
+  if (
+    patch.menu_section_id &&
+    !store.menu_sections.some((section) => section.id === patch.menu_section_id)
+  ) {
+    return new Response(JSON.stringify({ error: 'invalid_section' }), { status: 400 });
+  }
   const dish: Dish = {
     id: 'd-' + randomUUID().slice(0, 8),
-    slug: slugify(patch.name!),
+    slug: uniqueCatalogSlug(patch.name!, store.dishes.map((candidate) => candidate.slug)),
     created_at: new Date().toISOString(),
     rating: 0,
     tags: [],
@@ -77,7 +96,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     category: 'main',
     cuisine: 'Mediterránea',
     price_cents: 1000,
-    restaurant_id: store.restaurants[0]!.id,
+    restaurant_id: restaurantId,
     ...patch,
     name: patch.name!,
     images: patch.images?.length

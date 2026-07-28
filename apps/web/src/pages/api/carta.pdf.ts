@@ -17,7 +17,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     headers: {
       'content-type': 'application/pdf',
       'content-disposition': 'inline; filename="bocado-carta-completa.pdf"',
-      'cache-control': 'public, max-age=300',
+      'cache-control': 'no-store',
     },
   });
 };

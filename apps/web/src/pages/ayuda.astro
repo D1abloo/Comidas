@@ -1,8 +1,21 @@
 ---
 import Base from '../layouts/Base.astro';
+import { getStore } from '../server/db';
+import { areManualBizumPaymentsEnabled, areSimulatedPaymentsEnabled } from '../server/env';
+const settings = getStore().settings;
+const paymentMethods = [
+  settings.cash_enabled ? 'efectivo al recibir el pedido' : '',
+  settings.tpv_enabled && areSimulatedPaymentsEnabled() ? 'tarjeta' : '',
+  settings.bizum_enabled && areManualBizumPaymentsEnabled() ? 'Bizum' : '',
+].filter(Boolean);
 const faqs = [
   { q: '¿En cuánto tiempo llega mi pedido?', a: 'Entre 20 y 40 minutos según restaurante. Cada plato muestra su tiempo verificado.' },
-  { q: '¿Qué métodos de pago aceptáis?', a: 'Tarjeta TPV, Bizum mediante QR y efectivo al recibir el pedido.' },
+  {
+    q: '¿Qué métodos de pago aceptáis?',
+    a: paymentMethods.length
+      ? `Actualmente puedes pagar mediante ${paymentMethods.join(', ')}.`
+      : 'No hay métodos de pago habilitados temporalmente.',
+  },
   { q: '¿Puedo pedir factura con mis datos?', a: 'Sí. Al hacer el checkout puedes indicar tu CIF/NIF y la generaremos automáticamente en PDF.' },
   { q: '¿Cómo se gestionan los alérgenos?', a: 'Cada plato lista los 14 alérgenos UE. Si tienes alguna alergia, contáctanos directamente.' },
 ];

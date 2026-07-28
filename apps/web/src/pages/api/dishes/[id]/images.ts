@@ -27,11 +27,16 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
   const previousImages = dish.images;
   if (body.use_default) {
     dish.images = [dishImagePath(dish.slug)];
-  } else if (Array.isArray(body.images) && body.images.length > 0) {
+  } else if (
+    Array.isArray(body.images) &&
+    body.images.length > 0 &&
+    body.images.length <= 8 &&
+    body.images.every((url) => typeof url === 'string' && url.length <= 2_100)
+  ) {
     const sanitized = body.images
       .map((u) => (typeof u === 'string' ? sanitizeDishImageUrl(u) : null))
       .filter((u): u is string => Boolean(u));
-    if (!sanitized.length) {
+    if (sanitized.length !== body.images.length) {
       return new Response(JSON.stringify({ error: 'invalid_images' }), { status: 400 });
     }
     dish.images = sanitized;
@@ -54,6 +59,16 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   }
   const id = params.id;
   if (!id) return new Response(JSON.stringify({ error: 'missing_id' }), { status: 400 });
+  const declaredLength = Number(request.headers.get('content-length') ?? '0');
+  if (
+    Number.isFinite(declaredLength) &&
+    declaredLength > MAX_DISH_IMAGE_BYTES + 100_000
+  ) {
+    return new Response(JSON.stringify({ error: 'image_too_large' }), { status: 413 });
+  }
+  if (!request.headers.get('content-type')?.startsWith('multipart/form-data')) {
+    return new Response(JSON.stringify({ error: 'invalid_content_type' }), { status: 415 });
+  }
 
   const form = await request.formData().catch(() => null);
   const file = form?.get('image');
@@ -80,7 +95,13 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   await writeFile(`${uploadDirectory}/${filename}`, bytes, { flag: 'wx' });
   const previousImages = dish.images;
   dish.images = [`/uploads/${filename}`];
-  await persistCatalog(store);
+  try {
+    await persistCatalog(store);
+  } catch (error) {
+    dish.images = previousImages;
+    await removeDishUpload(`/uploads/${filename}`);
+    throw error;
+  }
   await Promise.all(previousImages.map(removeDishUpload));
 
   return new Response(JSON.stringify({ dish }), {
