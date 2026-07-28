@@ -9,28 +9,55 @@ export const GET: APIRoute = async ({ locals, request }) => {
   const encoder = new TextEncoder();
   let unsub: (() => void) | undefined;
   let heartbeat: ReturnType<typeof setInterval> | undefined;
+  let closed = false;
+
+  function cleanup() {
+    if (heartbeat) {
+      clearInterval(heartbeat);
+      heartbeat = undefined;
+    }
+    unsub?.();
+    unsub = undefined;
+  }
 
   const stream = new ReadableStream({
     start(controller) {
       controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'connected' })}\n\n`));
 
       unsub = subscribeOrderEvents((payload) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+        } catch {
+          closed = true;
+          cleanup();
+        }
       });
 
       heartbeat = setInterval(() => {
-        controller.enqueue(encoder.encode(': ping\n\n'));
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(': ping\n\n'));
+        } catch {
+          closed = true;
+          cleanup();
+        }
       }, 20000);
 
       request.signal.addEventListener('abort', () => {
-        if (heartbeat) clearInterval(heartbeat);
-        unsub?.();
-        controller.close();
+        if (closed) return;
+        closed = true;
+        cleanup();
+        try {
+          controller.close();
+        } catch {
+          // El adaptador puede haber cerrado ya el stream al abortar la petición.
+        }
       });
     },
     cancel() {
-      if (heartbeat) clearInterval(heartbeat);
-      unsub?.();
+      closed = true;
+      cleanup();
     },
   });
 
