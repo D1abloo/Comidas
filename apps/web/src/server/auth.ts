@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { randomUUID } from 'node:crypto';
 import type { AstroCookies } from 'astro';
 import { getStore } from './db.js';
-import { isDatabaseEnabled } from './env.js';
+import { isDatabaseEnabled, isProductionRuntime } from './env.js';
 import { pgFindUserByEmail, pgInsertUser } from './orders-db.js';
 import { getSessionSecretBytes } from './security.js';
 import type { Role, User } from './types.js';
@@ -53,7 +53,7 @@ export async function verifySession(token: string): Promise<SessionUser | null> 
 }
 
 function isSecureRequest(request?: Request): boolean {
-  if (!request) return process.env.NODE_ENV === 'production';
+  if (!request) return isProductionRuntime();
   const proto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
   if (proto) return proto === 'https';
   try {

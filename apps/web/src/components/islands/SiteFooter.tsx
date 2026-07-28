@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { canUseMarketing } from '../../utils/cookie-consent';
-import { InstagramIcon, TikTokIcon, XIcon } from './SocialIcons';
 
 function FooterLogo() {
   return (
@@ -21,16 +19,11 @@ function FooterLogo() {
   );
 }
 
-const SOCIAL = [
-  { id: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/', Icon: InstagramIcon },
-  { id: 'x', label: 'X (Twitter)', href: 'https://x.com/', Icon: XIcon },
-  { id: 'tiktok', label: 'TikTok', href: 'https://www.tiktok.com/', Icon: TikTokIcon },
-] as const;
-
 export default function SiteFooter() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [newsletterNote, setNewsletterNote] = useState<string | null>(null);
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
   const year = new Date().getFullYear();
 
   return (
@@ -49,20 +42,9 @@ export default function SiteFooter() {
               Comida de restaurantes de confianza, a domicilio. Seguimiento en vivo, alérgenos declarados y factura
               automática.
             </p>
-            <div className="flex gap-2 pt-2">
-              {SOCIAL.map((s) => (
-                <a
-                  key={s.id}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={s.label}
-                  className="w-10 h-10 rounded-full border border-white/15 grid place-items-center text-white hover:bg-bocado-lime hover:text-bocado-ink hover:border-bocado-lime transition-all duration-200"
-                >
-                  <s.Icon className="w-[18px] h-[18px]" />
-                </a>
-              ))}
-            </div>
+            <a href="/ayuda" className="inline-flex min-h-11 items-center text-sm font-semibold text-[#D6FF3D] underline underline-offset-4">
+              Contactar con soporte
+            </a>
           </div>
 
           <div className="lg:col-span-2">
@@ -83,10 +65,13 @@ export default function SiteFooter() {
               <li>
                 <button
                   type="button"
-                  className="hover:text-white hover:translate-x-0.5 inline-block transition-all text-left"
+                  className="inline-flex min-h-11 items-center gap-2 text-left transition-all hover:translate-x-0.5 hover:text-white"
                   onClick={() => window.dispatchEvent(new CustomEvent('bocado-show-install'))}
                 >
-                  📲 Instalar app
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                    <path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2ZM10 17h4M12 7v6m0 0 2-2m-2 2-2-2" />
+                  </svg>
+                  Instalar app
                 </button>
               </li>
             </ul>
@@ -119,15 +104,25 @@ export default function SiteFooter() {
               </p>
             ) : (
               <form
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
-                  if (!email) return;
-                  if (!canUseMarketing()) {
-                    setNewsletterNote('Activa las cookies de marketing en «Gestionar cookies» para suscribirte.');
-                    return;
-                  }
+                  if (!email || newsletterLoading) return;
+                  setNewsletterLoading(true);
                   setNewsletterNote(null);
-                  setSubscribed(true);
+                  try {
+                    const response = await fetch('/api/newsletter', {
+                      method: 'POST',
+                      headers: { 'content-type': 'application/json' },
+                      body: JSON.stringify({ email }),
+                    });
+                    const data = await response.json().catch(() => ({}));
+                    if (!response.ok) throw new Error(data.error === 'invalid_email' ? 'Introduce un email válido.' : 'No se pudo completar la suscripción.');
+                    setSubscribed(true);
+                  } catch (error) {
+                    setNewsletterNote(error instanceof Error ? error.message : 'No se pudo completar la suscripción.');
+                  } finally {
+                    setNewsletterLoading(false);
+                  }
                 }}
                 className="flex flex-col sm:flex-row gap-2"
               >
@@ -141,15 +136,21 @@ export default function SiteFooter() {
                 />
                 <button
                   type="submit"
+                  disabled={newsletterLoading}
+                  aria-busy={newsletterLoading}
                   className="h-11 px-6 rounded-xl bg-bocado-lime text-bocado-ink font-semibold text-sm hover:brightness-95 transition shrink-0"
                 >
-                  Suscribirme
+                  {newsletterLoading ? 'Enviando…' : 'Suscribirme'}
                 </button>
               </form>
             )}
             {newsletterNote && (
-              <p className="text-xs text-amber-200/90 mt-3">{newsletterNote}</p>
+              <p className="text-xs text-amber-200/90 mt-3" role="alert">{newsletterNote}</p>
             )}
+            <p className="mt-3 text-[10px] leading-relaxed text-white/40">
+              Al suscribirte aceptas recibir novedades. Puedes darte de baja desde cualquier mensaje. Consulta nuestra{' '}
+              <a href="/privacidad" className="underline hover:text-white">privacidad</a>.
+            </p>
             <p className="text-[10px] text-white/40 mt-4">
               Para restaurantes:{' '}
               <a href="/admin/login" className="underline hover:text-white">

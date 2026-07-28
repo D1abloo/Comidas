@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import type {
   AdminAlert,
   Company,
@@ -13,9 +13,9 @@ import type {
   User,
 } from './types.js';
 import type { Store } from './db.js';
-import { isDatabaseEnabled } from './env.js';
+import { getLocalDataDirectory, isDatabaseEnabled } from './env.js';
 
-const FILE_PATH = join(process.cwd(), '.data', 'bocado-store.json');
+const FILE_PATH = resolve(getLocalDataDirectory() ?? join(process.cwd(), '.data'), 'bocado-store.json');
 
 type OperationalState = {
   orders: Order[];

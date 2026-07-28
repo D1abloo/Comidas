@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import type { SessionUser } from './auth.js';
 import type { Order, Company, CompanySettings, OrderStatus, PaymentMethod } from './types.js';
 import { verifyOrderAccessToken } from './order-tokens.js';
+import { isProductionRuntime, readEnv } from './env.js';
 
 const DEFAULT_SESSION_SECRET = 'bocado-demo-secret-change-me';
 const INSECURE_SESSION_SECRETS = new Set([
@@ -9,14 +10,6 @@ const INSECURE_SESSION_SECRETS = new Set([
   'cambia-este-secreto-en-produccion',
   'genera-un-secreto-largo-aleatorio',
 ]);
-
-function readEnv(key: string): string | undefined {
-  const fromProcess = typeof process !== 'undefined' ? process.env[key] : undefined;
-  if (typeof fromProcess === 'string' && fromProcess.length > 0) return fromProcess;
-  const v = import.meta.env?.[key];
-  if (typeof v === 'string' && v.length > 0) return v;
-  return undefined;
-}
 
 let secretsChecked = false;
 
@@ -35,7 +28,7 @@ export function getOrderTokenSecretRaw(): string {
 export function assertProductionSecrets(): void {
   if (secretsChecked) return;
   secretsChecked = true;
-  if (!import.meta.env?.PROD) return;
+  if (!isProductionRuntime()) return;
   const secret = getSessionSecretRaw();
   if (INSECURE_SESSION_SECRETS.has(secret) || secret.length < 32) {
     throw new Error('SESSION_SECRET must be a unique value of at least 32 characters in production');
@@ -59,7 +52,7 @@ export function isAdminRegistrationAllowed(): boolean {
   const flag = readEnv('ALLOW_ADMIN_REGISTRATION');
   if (flag === 'true') return true;
   if (flag === 'false') return false;
-  return !import.meta.env?.PROD;
+  return !isProductionRuntime();
 }
 
 const ORDER_STATUSES: ReadonlySet<OrderStatus> = new Set([

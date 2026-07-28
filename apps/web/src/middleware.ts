@@ -1,7 +1,13 @@
 import { defineMiddleware } from 'astro:middleware';
 import { clearSession, getSessionFromCookies } from './server/auth.js';
 import { getStore } from './server/db.js';
-import { isDatabaseEnabled } from './server/env.js';
+import {
+  areSimulatedPaymentsEnabled,
+  assertRuntimeConfig,
+  getBizumCompanyPhone,
+  isDatabaseEnabled,
+  isEmailDeliveryConfigured,
+} from './server/env.js';
 import { pgFindUserById } from './server/orders-db.js';
 import { assertProductionSecrets, isAdminRegistrationAllowed } from './server/security.js';
 import { ensureOperationalStateHydrated } from './server/store-persistence.js';
@@ -14,6 +20,7 @@ let databaseHydration: Promise<void> | null = null;
 
 export const onRequest = defineMiddleware(async (context, next) => {
   assertProductionSecrets();
+  assertRuntimeConfig();
   const path = context.url.pathname;
   const method = context.request.method;
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
@@ -40,6 +47,12 @@ export const onRequest = defineMiddleware(async (context, next) => {
       const config = await pgLoadCompanyConfig();
       if (config.company) store.company = config.company;
       if (config.settings) store.settings = { ...store.settings, ...config.settings };
+      if (!store.settings.bizum_phone) store.settings.bizum_phone = getBizumCompanyPhone();
+      store.settings.bizum_enabled = store.settings.bizum_enabled && Boolean(store.settings.bizum_phone);
+      store.settings.tpv_enabled = store.settings.tpv_enabled && areSimulatedPaymentsEnabled();
+      store.settings.email_notifications_enabled =
+        store.settings.email_notifications_enabled && isEmailDeliveryConfigured();
+      store.settings.whatsapp_notifications_enabled = false;
       await hydrateCatalog(store);
     })().catch((error) => {
       databaseHydration = null;
@@ -70,13 +83,22 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const isRegistration = ['/registro', '/admin/registro'].includes(path);
     const isOrder = path === '/api/orders';
     const isPayment = path.startsWith('/api/payments/');
-    if (isLogin || isRegistration || isOrder || isPayment) {
-      const scope = isLogin ? 'login' : isRegistration ? 'registration' : isOrder ? 'order' : 'payment';
-      const limit = isLogin ? 10 : isRegistration ? 5 : isOrder ? 20 : 30;
+    const isNewsletter = path === '/api/newsletter';
+    if (isLogin || isRegistration || isOrder || isPayment || isNewsletter) {
+      const scope = isLogin
+        ? 'login'
+        : isRegistration
+          ? 'registration'
+          : isOrder
+            ? 'order'
+            : isNewsletter
+              ? 'newsletter'
+              : 'payment';
+      const limit = isLogin ? 10 : isRegistration ? 5 : isNewsletter ? 10 : isOrder ? 20 : 30;
       const result = checkRateLimit(
         `${scope}:${requestClientKey(context.request)}`,
         limit,
-        isLogin || isRegistration ? 15 * 60_000 : 60_000,
+        isLogin || isRegistration || isNewsletter ? 15 * 60_000 : 60_000,
       );
       if (!result.allowed) {
         return new Response(

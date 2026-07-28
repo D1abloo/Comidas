@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { getDatabaseUrl, isDatabaseEnabled } from './env.js';
+import { getDatabaseConfig, isDatabaseEnabled } from './env.js';
 
 const { Pool } = pg;
 
@@ -10,16 +10,16 @@ export function getPool(): pg.Pool {
     throw new Error('DATABASE_URL no configurada');
   }
   if (!pool) {
-    const useSsl = process.env.DATABASE_SSL === 'true';
+    const config = getDatabaseConfig();
     pool = new Pool({
-      connectionString: getDatabaseUrl(),
-      max: Math.max(1, Math.min(20, Number(process.env.DB_POOL_MAX ?? '5'))),
+      connectionString: config.url,
+      max: config.poolMax,
       connectionTimeoutMillis: 5_000,
       idleTimeoutMillis: 30_000,
       statement_timeout: 15_000,
       application_name: 'bocado-web',
-      ssl: useSsl
-        ? { rejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false' }
+      ssl: config.ssl
+        ? { rejectUnauthorized: config.rejectUnauthorized }
         : undefined,
     });
   }

@@ -226,7 +226,7 @@ export default function CheckoutForm({
           {loading ? 'Procesando…' : 'Pagar y confirmar pedido'}
         </button>
         <p className="text-xs text-bocado-mute mt-3 text-center">
-          Recibirás aviso por email cuando se actualice tu pedido.
+          Podrás consultar el estado y el ticket desde “Mis pedidos”.
         </p>
       </aside>
     </form>

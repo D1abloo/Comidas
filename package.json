@@ -13,6 +13,7 @@
     "typecheck": "npm run typecheck -w @bocado/web",
     "test": "tsx --test tests/*.test.ts",
     "check": "npm run typecheck && npm test && npm run build",
+    "smoke:live": "node scripts/smoke-live.mjs",
     "db:migrate": "node scripts/migrate-db.mjs",
     "courier:config:prod": "npm run config:prod -w @bocado/courier-app",
     "courier:sync": "npm run sync -w @bocado/courier-app",

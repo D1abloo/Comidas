@@ -27,6 +27,9 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://bocado:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/bocado
+      DATABASE_SSL: ${DATABASE_SSL:-false}
+      DATABASE_SSL_REJECT_UNAUTHORIZED: ${DATABASE_SSL_REJECT_UNAUTHORIZED:-true}
+      DB_POOL_MAX: ${DB_POOL_MAX:-5}
     working_dir: /app
     command: ["node", "/app/scripts/migrate-db.mjs"]
     restart: "no"
@@ -56,6 +59,10 @@ services:
       APP_DEMO_MODE: "false"
       ENABLE_SIMULATED_PAYMENTS: "false"
       EMAIL_ENABLED: ${EMAIL_ENABLED:-false}
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-console}
+      EMAIL_FROM: ${EMAIL_FROM:-BocadO <pedidos@bocado.app>}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      EMAIL_API_KEY: ${EMAIL_API_KEY:-}
       BIZUM_COMPANY_PHONE: ${BIZUM_COMPANY_PHONE:-}
     ports:
       - "127.0.0.1:4321:4321"

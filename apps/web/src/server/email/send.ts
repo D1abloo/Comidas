@@ -64,9 +64,5 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
     }
   }
 
-  return {
-    ok: false,
-    provider: cfg.provider,
-    error: `Proveedor "${cfg.provider}" no implementado aún. Usa console o resend.`,
-  };
+  return { ok: false, provider: 'unknown', error: 'Proveedor de email no válido.' };
 }

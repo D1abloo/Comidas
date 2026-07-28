@@ -1,12 +1,9 @@
 ---
+import HeroCarousel from './islands/HeroCarousel';
 ---
 <section class="home-hero">
   <div class="container-bocado home-hero-grid">
     <div class="home-hero-copy animate-fade-up">
-      <p class="hero-kicker">
-        <span class="hero-kicker-dot" aria-hidden="true"></span>
-        Delivery premium · Madrid
-      </p>
       <h1 class="hero-title">
         Comida de verdad,<br />
         <em>en tu puerta.</em>
@@ -69,15 +66,7 @@
     <div class="home-hero-visual animate-fade-up stagger-1">
       <div class="hero-collage">
         <div class="hero-collage-main">
-          <img
-            src="/carta/pizza-margherita-bufala.jpg"
-            alt="Pizza margherita artesanal"
-            width="800"
-            height="560"
-            class="w-full h-full object-cover"
-            loading="eager"
-            fetchpriority="high"
-          />
+          <HeroCarousel client:load />
         </div>
         <div class="hero-collage-side">
           <img src="/carta/ramen-tonkotsu.jpg" alt="Ramen tonkotsu con huevo marinado" width="400" height="260" loading="eager" />

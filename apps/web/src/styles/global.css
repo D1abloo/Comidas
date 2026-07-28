@@ -1148,6 +1148,31 @@
   .hero-collage-side img {
     @apply min-h-0 w-full flex-1 rounded-[22px] border border-[#E8E6DF] object-cover shadow-[0_16px_36px_-24px_rgba(16,32,25,.38)];
   }
+  .hero-carousel {
+    @apply relative h-full w-full overflow-hidden;
+  }
+  .hero-carousel-image {
+    @apply absolute inset-0 h-full w-full object-cover;
+    animation: hero-carousel-enter 420ms ease-out both;
+  }
+  .hero-carousel-controls {
+    @apply absolute bottom-3 left-1/2 z-10 flex min-h-11 -translate-x-1/2 items-center gap-1.5 rounded-full border border-white/30 bg-[#102019]/80 px-2 py-1.5 text-white shadow-lg backdrop-blur-md;
+  }
+  .hero-carousel-controls > button {
+    @apply grid h-8 w-8 shrink-0 place-items-center rounded-full transition-colors duration-200 hover:bg-white/15;
+  }
+  .hero-carousel-controls > button svg {
+    @apply h-4 w-4;
+  }
+  .hero-carousel-dots {
+    @apply flex items-center gap-1;
+  }
+  .hero-carousel-dot {
+    @apply h-2.5 w-2.5 rounded-full bg-white/45 transition-[width,background-color] duration-200;
+  }
+  .hero-carousel-dot--active {
+    @apply w-6 bg-[#D6FF3D];
+  }
   .hero-stats-card {
     @apply mt-3 grid grid-cols-2 rounded-[22px] border border-[#E8E6DF] bg-white p-3 shadow-[0_16px_42px_-28px_rgba(16,32,25,.35)] sm:grid-cols-4 sm:p-4;
   }
@@ -1499,6 +1524,17 @@
     transform: translateY(-4px);
   }
 }
+
+@keyframes hero-carousel-enter {
+  from {
+    opacity: 0.35;
+    transform: scale(1.018);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 @keyframes card-shimmer {
   from {
     transform: translateX(-100%);
@@ -1669,5 +1705,9 @@ summary:focus-visible,
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .hero-carousel-image {
+    animation: none !important;
   }
 }

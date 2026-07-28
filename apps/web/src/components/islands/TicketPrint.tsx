@@ -59,10 +59,13 @@ export default function TicketPrint({
     <>
       <div className="no-print fixed top-0 left-0 right-0 z-50 bg-bocado-ink text-white p-3 flex flex-wrap gap-2 justify-center shadow-lg">
         <button type="button" className="btn-lime text-sm" onClick={() => window.print()}>
-          🖨️ Imprimir ticket
+          <svg className="mr-2 inline h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+            <path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5h18v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z" />
+          </svg>
+          Imprimir ticket
         </button>
-        <button type="button" className="btn-ghost text-sm border-white/30 text-white" onClick={() => window.close()}>
-          Cerrar
+        <button type="button" className="btn-ghost text-sm border-white/30 text-white" onClick={() => { window.location.href = '/admin/impresion'; }}>
+          Volver
         </button>
         <span className="text-xs text-white/60 self-center">
           Impresora: {data.printer.name || 'Predeterminada del sistema'} · {width} mm

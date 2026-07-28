@@ -37,6 +37,7 @@ export async function onOrderCreated(store: Store, order: Order): Promise<void> 
     channel: 'email',
     kind: 'order_confirmation',
     recipient: order.customer.email,
+    deliver: false,
   });
 
   const result = await sendEmail({

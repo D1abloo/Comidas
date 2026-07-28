@@ -16,6 +16,7 @@ import type {
 import { extraDishes } from './extra-dishes.js';
 import { applyDishImages } from './dish-images.js';
 import { assignMenuSections, sortDishesForMenu } from './menu-assign.js';
+import { getBizumCompanyPhone } from './env.js';
 
 /**
  * Almacén en memoria. Se inicializa al arrancar el servidor con datos de demo.
@@ -73,7 +74,7 @@ function seed(): Store {
   };
 
   const settings: CompanySettings = {
-    bizum_phone: process.env.BIZUM_COMPANY_PHONE ?? '',
+    bizum_phone: getBizumCompanyPhone(),
     bizum_concept_template: 'BocadO {{order_number}}',
     tpv_enabled: false,
     cash_enabled: true,

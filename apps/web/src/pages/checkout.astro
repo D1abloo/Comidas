@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import CheckoutForm from '../components/islands/CheckoutForm.tsx';
 import { getStore } from '../server/db.ts';
+import { areSimulatedPaymentsEnabled } from '../server/env.ts';
 const user = Astro.locals.user;
 const settings = getStore().settings;
 ---
@@ -19,8 +20,8 @@ const settings = getStore().settings;
         deliveryFeeCents={settings.delivery_fee_cents}
         freeDeliveryFromCents={settings.free_delivery_from_cents}
         paymentAvailability={{
-          tpv: settings.tpv_enabled,
-          bizum: settings.bizum_enabled,
+          tpv: settings.tpv_enabled && areSimulatedPaymentsEnabled(),
+          bizum: settings.bizum_enabled && Boolean(settings.bizum_phone),
           cash: settings.cash_enabled,
         }}
       />

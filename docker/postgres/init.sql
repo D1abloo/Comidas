@@ -97,6 +97,14 @@ CREATE TABLE IF NOT EXISTS notification_events (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS newsletter_subscriptions (
+  id UUID PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'unsubscribed')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS invoices (
   id UUID PRIMARY KEY,
   number TEXT UNIQUE NOT NULL,
@@ -133,6 +141,7 @@ CREATE INDEX IF NOT EXISTS orders_created_at_idx ON orders(created_at DESC);
 CREATE INDEX IF NOT EXISTS order_items_order_id_idx ON order_items(order_id);
 CREATE INDEX IF NOT EXISTS order_items_dish_id_idx ON order_items(dish_id);
 CREATE INDEX IF NOT EXISTS admin_alerts_seen_idx ON admin_alerts(seen, created_at DESC);
+CREATE INDEX IF NOT EXISTS newsletter_subscriptions_status_idx ON newsletter_subscriptions(status, created_at DESC);
 
 INSERT INTO company_settings (id, settings) VALUES ('default', '{
   "bizum_phone": "",

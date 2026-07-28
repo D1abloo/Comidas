@@ -1,9 +1,24 @@
 import { useCallback, useState } from 'react';
 import PrinterDetect from './PrinterDetect.tsx';
 
-export default function SettingsForm({ initialCompany, initialSettings }: { initialCompany: any; initialSettings: any }) {
+type Capabilities = { tpv: boolean; email: boolean; whatsapp: boolean };
+
+export default function SettingsForm({
+  initialCompany,
+  initialSettings,
+  capabilities,
+}: {
+  initialCompany: any;
+  initialSettings: any;
+  capabilities: Capabilities;
+}) {
   const [company, setCompany] = useState(initialCompany);
-  const [settings, setSettings] = useState(initialSettings);
+  const [settings, setSettings] = useState({
+    ...initialSettings,
+    tpv_enabled: capabilities.tpv && initialSettings.tpv_enabled,
+    email_notifications_enabled: capabilities.email && initialSettings.email_notifications_enabled,
+    whatsapp_notifications_enabled: capabilities.whatsapp && initialSettings.whatsapp_notifications_enabled,
+  });
   const [saved, setSaved] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,17 +82,22 @@ export default function SettingsForm({ initialCompany, initialSettings }: { init
 
         <h3 className="font-semibold tracking-tight mt-8">Métodos de pago</h3>
         <div className="mt-3 flex flex-wrap gap-4 text-sm">
-          <label className="flex items-center gap-2"><input type="checkbox" checked={settings.tpv_enabled} onChange={(e) => setSettings({ ...settings, tpv_enabled: e.target.checked })} /> Tarjeta (TPV)</label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" disabled={!capabilities.tpv} checked={settings.tpv_enabled} onChange={(e) => setSettings({ ...settings, tpv_enabled: e.target.checked })} />
+            Tarjeta (TPV)
+          </label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={settings.cash_enabled} onChange={(e) => setSettings({ ...settings, cash_enabled: e.target.checked })} /> Efectivo</label>
           <label className="flex items-center gap-2"><input type="checkbox" checked={settings.bizum_enabled} onChange={(e) => setSettings({ ...settings, bizum_enabled: e.target.checked })} /> Bizum</label>
         </div>
+        {!capabilities.tpv && <p className="mt-2 text-xs text-bocado-mute">TPV oculto en checkout hasta conectar un proveedor real. La simulación solo puede activarse explícitamente en desarrollo.</p>}
 
         <h3 className="font-semibold tracking-tight mt-8">Avisos automáticos</h3>
         <div className="mt-3 grid gap-3 text-sm">
-          <label className="flex items-center gap-2"><input type="checkbox" checked={settings.email_notifications_enabled} onChange={(e) => setSettings({ ...settings, email_notifications_enabled: e.target.checked })} /> Email</label>
-          <label className="flex items-center gap-2"><input type="checkbox" checked={settings.whatsapp_notifications_enabled} onChange={(e) => setSettings({ ...settings, whatsapp_notifications_enabled: e.target.checked })} /> WhatsApp</label>
-          <F label="Teléfono WhatsApp empresa"><input className="input" value={settings.whatsapp_business_phone ?? ''} onChange={(e) => setSettings({ ...settings, whatsapp_business_phone: e.target.value })} /></F>
+          <label className="flex items-center gap-2"><input type="checkbox" disabled={!capabilities.email} checked={settings.email_notifications_enabled} onChange={(e) => setSettings({ ...settings, email_notifications_enabled: e.target.checked })} /> Email</label>
+          <label className="flex items-center gap-2"><input type="checkbox" disabled={!capabilities.whatsapp} checked={settings.whatsapp_notifications_enabled} onChange={(e) => setSettings({ ...settings, whatsapp_notifications_enabled: e.target.checked })} /> WhatsApp</label>
         </div>
+        {!capabilities.email && <p className="mt-2 text-xs text-bocado-mute">Email desactivado hasta configurar Resend con una clave válida.</p>}
+        {!capabilities.whatsapp && <p className="mt-1 text-xs text-bocado-mute">WhatsApp permanece desactivado hasta conectar un proveedor de mensajería.</p>}
 
         <h3 className="font-semibold tracking-tight mt-8">Impresora de tickets</h3>
         <p className="text-sm text-bocado-mute mt-1">
