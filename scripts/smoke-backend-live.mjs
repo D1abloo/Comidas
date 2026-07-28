@@ -102,7 +102,7 @@ await expectJson(anonymous, '/api/orders', 400, jsonInit('POST', '{'));
 await expectJson(admin, '/api/settings', 400, jsonInit('PATCH', '{'));
 await expectJson(admin, '/api/admin/alerts', 400, jsonInit('POST', {}));
 
-const crossSite = await anonymous.request('/api/newsletter', {
+const crossSite = await fetch(`${baseUrl}/api/newsletter`, {
   method: 'POST',
   headers: {
     'content-type': 'application/json',
@@ -110,6 +110,7 @@ const crossSite = await anonymous.request('/api/newsletter', {
     'sec-fetch-site': 'cross-site',
   },
   body: JSON.stringify({ email: 'blocked@example.test' }),
+  redirect: 'manual',
 });
 await expectResponse(crossSite, 403, 'POST /api/newsletter cross-site', /application\/json/);
 
