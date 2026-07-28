@@ -42,10 +42,12 @@ export default function SiteHeader({
   user,
   currentPath,
   searchQuery = '',
+  paymentLabel,
 }: {
   user: User | null;
   currentPath: string;
   searchQuery?: string;
+  paymentLabel: string;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -91,7 +93,7 @@ export default function SiteHeader({
                 <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"></path>
                 <circle cx="7" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle>
               </svg>
-              <span><strong>Envío gratis</strong> en pedidos +25 € · Bizum, tarjeta o efectivo</span>
+              <span><strong>Envío gratis</strong> en pedidos +25 € · {paymentLabel}</span>
             </span>
             <button
               type="button"

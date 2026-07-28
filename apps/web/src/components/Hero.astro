@@ -2,14 +2,23 @@
 import HeroCarousel from './islands/HeroCarousel';
 ---
 <section class="home-hero">
+  <HeroCarousel client:load />
+  <div class="home-hero-scrim" aria-hidden="true"></div>
+
   <div class="container-bocado home-hero-grid">
-    <div class="home-hero-copy animate-fade-up">
+    <div class="home-hero-copy">
+      <p class="hero-kicker">
+        <span class="hero-kicker-dot" aria-hidden="true"></span>
+        Cocina honesta · entrega rápida
+      </p>
       <h1 class="hero-title">
-        Comida de verdad,<br />
+        Comida de<br />
+        verdad,<br />
         <em>en tu puerta.</em>
       </h1>
       <p class="hero-description">
-        Pizzas al horno, cazuelas caseras y bowls frescos. Ingredientes de calidad, seguimiento en vivo y factura al instante.
+        Pizzas al horno, cazuelas caseras y bowls frescos. Ingredientes de calidad,
+        seguimiento en vivo y factura al instante.
       </p>
 
       <form action="/buscar" method="get" class="hero-search" role="search">
@@ -22,7 +31,7 @@ import HeroCarousel from './islands/HeroCarousel';
         </span>
         <input id="hero-q" name="q" type="search" placeholder="¿Qué te apetece hoy? Pizza, ramen, postre…" autocomplete="off" />
         <button type="submit" class="hero-search-btn">
-          Buscar
+          <span>Buscar</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
             <path d="M5 12h14M14 7l5 5-5 5"></path>
           </svg>
@@ -52,7 +61,7 @@ import HeroCarousel from './islands/HeroCarousel';
           <span class="hero-benefit-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="12" rx="2"></rect><path d="M3 10h18M7 15h3"></path></svg>
           </span>
-          <span><small>Pago seguro</small><strong>Bizum, tarjeta o efectivo</strong></span>
+          <span><small>Pago disponible</small><strong>Efectivo en la entrega</strong></span>
         </li>
         <li>
           <span class="hero-benefit-icon" aria-hidden="true">
@@ -62,42 +71,33 @@ import HeroCarousel from './islands/HeroCarousel';
         </li>
       </ul>
     </div>
+  </div>
 
-    <div class="home-hero-visual animate-fade-up stagger-1">
-      <div class="hero-collage">
-        <div class="hero-collage-main">
-          <HeroCarousel client:load />
-        </div>
-        <div class="hero-collage-side">
-          <img src="/carta/ramen-tonkotsu.jpg" alt="Ramen tonkotsu con huevo marinado" width="400" height="260" loading="eager" />
-          <img src="/carta/gazpacho-andaluz.jpg" alt="Gazpacho andaluz con hierbas frescas" width="400" height="260" loading="lazy" />
-        </div>
+  <div class="container-bocado hero-stats-wrap">
+    <div class="hero-stats-card" aria-label="Datos destacados">
+      <div class="hero-stat">
+        <span class="hero-stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2.8 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"></path></svg>
+        </span>
+        <span><strong>4,9</strong><small>Valoración media</small></span>
       </div>
-      <div class="hero-stats-card" aria-label="Datos destacados">
-        <div class="hero-stat">
-          <span class="hero-stat-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2.8 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"></path></svg>
-          </span>
-          <span><strong>4,9</strong><small>Valoración<br />media</small></span>
-        </div>
-        <div class="hero-stat">
-          <span class="hero-stat-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 6h14v13H5zM8 3v6m8-6v6M8 13h8m-8 3h5"></path></svg>
-          </span>
-          <span><strong>+4.000</strong><small>Pedidos<br />servidos</small></span>
-        </div>
-        <div class="hero-stat">
-          <span class="hero-stat-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
-          </span>
-          <span><strong>25 min</strong><small>Entrega media<br />20–40 min</small></span>
-        </div>
-        <div class="hero-stat">
-          <span class="hero-stat-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 20V9a6 6 0 0 1 12 0v11M4 20h16M9 6.5V4m6 2.5V4M9 13h6"></path></svg>
-          </span>
-          <span><strong>30+</strong><small>Platos en carta<br />Actualizada a diario</small></span>
-        </div>
+      <div class="hero-stat">
+        <span class="hero-stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 6h14v13H5zM8 3v6m8-6v6M8 13h8m-8 3h5"></path></svg>
+        </span>
+        <span><strong>+4.000</strong><small>Pedidos servidos</small></span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+        </span>
+        <span><strong>25 min</strong><small>Entrega media</small></span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 20V9a6 6 0 0 1 12 0v11M4 20h16M9 6.5V4m6 2.5V4M9 13h6"></path></svg>
+        </span>
+        <span><strong>30+</strong><small>Platos en carta</small></span>
       </div>
     </div>
   </div>
