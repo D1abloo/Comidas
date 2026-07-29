@@ -7,18 +7,33 @@ import OrderTrackerBar from '../components/islands/OrderTrackerBar.tsx';
 import InstallPrompt from '../components/islands/InstallPrompt.tsx';
 import CookieConsent from '../components/islands/CookieConsent.tsx';
 import FloatingCartFab from '../components/islands/FloatingCartFab.tsx';
+import { getAppUrl } from '../server/env';
+
 interface Props { title?: string; description?: string; hideChrome?: boolean; manifestHref?: string }
 const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda online de comida a domicilio con fotos reales, tiempos verificados y entrega rápida.', hideChrome = false, manifestHref = '/manifest.webmanifest' } = Astro.props as Props;
-const origin = Astro.site ?? Astro.url.origin;
-const canonicalUrl = new URL(Astro.url.pathname, origin).toString();
-const previewImage = new URL('/icons/icon-512.png', origin).toString();
+
+let siteOrigin = Astro.url.origin;
+try {
+  siteOrigin = new URL(getAppUrl()).origin;
+} catch {
+  /* fallback request origin */
+}
+const path = Astro.url.pathname.endsWith('/') && Astro.url.pathname.length > 1
+  ? Astro.url.pathname.slice(0, -1)
+  : Astro.url.pathname;
+const canonicalUrl = new URL(path || '/', siteOrigin).toString();
+const previewImage = new URL('/icons/icon-512.png', siteOrigin).toString();
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'FoodEstablishment',
   name: 'BocadO',
-  url: new URL('/', origin).toString(),
+  url: new URL('/', siteOrigin).toString(),
   image: previewImage,
   servesCuisine: ['Mediterránea', 'Española', 'Italiana', 'Asiática'],
+  potentialAction: {
+    '@type': 'OrderAction',
+    target: new URL('/carta', siteOrigin).toString(),
+  },
 };
 ---
 <!doctype html>
@@ -31,11 +46,13 @@ const structuredData = {
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href={canonicalUrl} />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="BocadO" />
     <meta property="og:locale" content="es_ES" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalUrl} />
     <meta property="og:image" content={previewImage} />
+    <meta property="og:image:alt" content="BocadO — comida a domicilio" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />

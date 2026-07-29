@@ -5,6 +5,7 @@ import AdminSidebar from '../components/islands/AdminSidebar.tsx';
 import AdminTopbar from '../components/islands/AdminTopbar.tsx';
 import AdminAlerts from '../components/islands/AdminAlerts.tsx';
 import AdminNativeInit from '../components/islands/AdminNativeInit.tsx';
+import MobileRouteGuard from '../components/islands/MobileRouteGuard.tsx';
 interface Props { title: string; crumb?: string }
 const { title, crumb = 'Inicio' } = Astro.props as Props;
 const user = Astro.locals.user!;
@@ -17,11 +18,13 @@ const path = Astro.url.pathname;
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#f4f2ec" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="robots" content="noindex,nofollow" />
     <link rel="manifest" href="/admin-manifest.webmanifest" />
     <title>{title} · BocadO Admin</title>
   </head>
   <body class="admin-app text-bocado-ink font-admin">
     <DemoBanner />
+    <MobileRouteGuard client:load role="admin" />
     <AdminNativeInit client:load />
     <AdminAlerts client:load />
     <div class="admin-shell">

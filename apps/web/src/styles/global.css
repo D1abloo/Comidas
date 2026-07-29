@@ -632,7 +632,7 @@
     @apply px-2 py-1 text-[11px] min-h-0;
   }
   .food-card {
-    @apply relative rounded-3xl bg-white border border-bocado-line/70 overflow-hidden shadow-card animate-fade-up transition-all duration-300 hover:shadow-card-lift hover:-translate-y-1 hover:border-bocado-lime/35;
+    @apply relative rounded-3xl bg-white border border-bocado-line/70 overflow-hidden shadow-card transition-all duration-300 hover:shadow-card-lift hover:-translate-y-1 hover:border-bocado-lime/35;
   }
   .food-card::after {
     content: '';
@@ -1486,6 +1486,42 @@
   }
   .catalog-browse-count {
     @apply mb-4 text-sm font-medium text-[#686D68];
+  }
+  .dish-card {
+    @apply flex flex-col overflow-hidden rounded-[20px] border border-[#E8E6DF] bg-white shadow-[0_10px_30px_-24px_rgba(16,32,25,.38)] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-[3px] hover:border-[#C9D6BC] hover:shadow-[0_16px_38px_-24px_rgba(16,32,25,.45)];
+  }
+  .dish-card-media {
+    @apply relative block aspect-[4/3] overflow-hidden bg-[#ECEAE3];
+  }
+  .dish-card-media-bg {
+    @apply absolute inset-0 bg-gradient-to-br from-[#E8E6DF] to-[#F4F2EC];
+  }
+  .dish-card-media img {
+    @apply relative z-[1] h-full w-full transition-transform duration-300 ease-out;
+  }
+  .dish-card:hover .dish-card-media img {
+    transform: scale(1.04);
+  }
+  .dish-card-body {
+    @apply flex flex-1 flex-col gap-1 px-4 pb-2 pt-3;
+  }
+  .dish-card-rest {
+    @apply text-[10px] font-bold uppercase tracking-[0.08em] text-[#6A6D68];
+  }
+  .dish-card-body h3 {
+    @apply font-display text-base leading-snug text-[#102019];
+  }
+  .dish-card-body h3 a {
+    @apply hover:text-[#5F941C];
+  }
+  .dish-card-meta {
+    @apply mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-[#777A75];
+  }
+  .dish-card-footer {
+    @apply mt-auto flex items-center justify-between border-t border-[#EEECE6] px-4 py-3;
+  }
+  .dish-card-footer strong {
+    @apply text-base font-bold text-[#102019];
   }
   .catalog-section-icon {
     @apply grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[#EDF4E5] text-[#5F941C];

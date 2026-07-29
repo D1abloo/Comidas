@@ -191,7 +191,7 @@ export default function CatalogBrowse({ dishes, sections, restaurants, initialSe
         <p className="catalog-browse-count">
           {filtered.length} {filtered.length === 1 ? 'plato' : 'platos'}
         </p>
-        <DishGrid dishes={filtered} restaurants={restaurants} />
+        <DishGrid dishes={filtered} restaurants={restaurants} compact />
       </div>
     </div>
   )

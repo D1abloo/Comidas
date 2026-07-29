@@ -1,9 +1,4 @@
 ---
-import MobileApp from '../../../layouts/MobileApp.astro';
-import MobileAdminApp from '../../../components/islands/MobileAdminApp.tsx';
-
-const user = Astro.locals.user!;
+/** App nativa admin: mismo panel web completo (/admin), no UI reducida. */
+return Astro.redirect('/admin');
 ---
-<MobileApp title="BocadO · Admin" role="admin">
-  <MobileAdminApp client:load userName={user.full_name} />
-</MobileApp>

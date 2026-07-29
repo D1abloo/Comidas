@@ -1,38 +1,55 @@
-import { useEffect } from 'react';
-import { isBocadoMobileApp } from '../../lib/capacitor-app';
+import { useEffect } from 'react'
+import { isBocadoMobileApp } from '../../lib/capacitor-app'
 
-const STOREFRONT_PREFIXES = ['/', '/menu', '/carrito', '/checkout', '/login', '/perfil', '/seccion'];
+/** Rutas de tienda que no deben usarse en la app nativa de equipo. */
+const STOREFRONT_PREFIXES = [
+  '/menu',
+  '/carrito',
+  '/checkout',
+  '/login',
+  '/registro',
+  '/perfil',
+  '/buscar',
+  '/carta',
+  '/platos',
+  '/restaurantes',
+]
 
 function isStorefrontPath(path: string) {
-  if (path === '/') return true;
-  return STOREFRONT_PREFIXES.some((p) => p !== '/' && path.startsWith(p));
+  if (path === '/') return true
+  return STOREFRONT_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))
 }
 
 export default function MobileRouteGuard({
   role,
 }: {
-  role?: 'admin' | 'courier';
+  role?: 'admin' | 'courier'
 }) {
   useEffect(() => {
-    if (!isBocadoMobileApp()) return;
+    if (!isBocadoMobileApp()) return
 
-    const home = role === 'admin' ? '/movil/admin' : role === 'courier' ? '/movil/repartidor' : '/movil';
-    const path = window.location.pathname;
+    const path = window.location.pathname
 
-    if (path.startsWith('/movil')) return;
-
-    if (role === 'admin' && path.startsWith('/admin')) {
-      window.location.replace('/movil/admin');
-      return;
+    // Admin nativo = mismo panel web completo
+    if (role === 'admin') {
+      if (path.startsWith('/admin') || path === '/movil') return
+      if (path.startsWith('/movil/admin')) {
+        window.location.replace('/admin')
+        return
+      }
+      if (isStorefrontPath(path)) {
+        window.location.replace('/admin')
+      }
+      return
     }
-    if (role === 'courier' && path.startsWith('/repartidor')) {
-      window.location.replace('/movil/repartidor');
-      return;
-    }
-    if (isStorefrontPath(path)) {
-      window.location.replace(home);
-    }
-  }, [role]);
 
-  return null;
+    if (role === 'courier') {
+      if (path.startsWith('/movil/repartidor') || path.startsWith('/repartidor')) return
+      if (isStorefrontPath(path) || path.startsWith('/admin')) {
+        window.location.replace('/movil/repartidor')
+      }
+    }
+  }, [role])
+
+  return null
 }

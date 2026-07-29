@@ -59,7 +59,7 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     id: 'system',
     label: 'Sistema',
     items: [
-      { href: '/movil/admin', label: 'App móvil', emoji: '📱', match: '/movil', description: 'Panel admin en el móvil' },
+      { href: '/admin', label: 'Panel admin', emoji: '📱', match: '/admin', exact: true, description: 'Mismo panel que en la app' },
       { href: '/repartidor', label: 'Panel repartidor', emoji: '🛵', match: '/repartidor', description: 'Vista web del repartidor' },
       { href: '/admin/usuarios', label: 'Usuarios', emoji: '👥', match: '/admin/usuarios', description: 'Clientes y equipo admin' },
       { href: '/admin/ajustes', label: 'Ajustes', emoji: '⚙️', match: '/admin/ajustes', description: 'Envío, tienda y email' },

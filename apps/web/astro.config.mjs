@@ -3,6 +3,7 @@ import react from '@astrojs/react';
 import node from '@astrojs/node';
 
 export default defineConfig({
+  site: process.env.PUBLIC_APP_URL || 'https://bocado.31-70-114-94.sslip.io',
   output: 'server',
   adapter: node({ mode: 'standalone' }),
   integrations: [react()],
