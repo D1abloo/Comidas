@@ -1497,7 +1497,18 @@
     @apply absolute inset-0 bg-gradient-to-br from-[#E8E6DF] to-[#F4F2EC];
   }
   .dish-card-media img {
-    @apply relative z-[1] h-full w-full transition-transform duration-300 ease-out;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease-out;
+  }
+  .dish-card-media img.dish-card-img--contain {
+    object-fit: contain;
+    background: #fff;
+    padding: 1.25rem;
   }
   .dish-card:hover .dish-card-media img {
     transform: scale(1.04);

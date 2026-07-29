@@ -89,7 +89,7 @@ function DishTile({
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
             fetchPriority={priority ? 'high' : 'auto'}
-            className={isBrandDrink ? 'object-contain p-6 bg-white' : 'object-cover'}
+            className={isBrandDrink ? 'dish-card-img--contain' : undefined}
             onError={(e) => {
               const el = e.currentTarget
               if (!el.src.includes('placeholder')) el.src = DISH_IMAGE_FALLBACK
