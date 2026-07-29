@@ -1,8 +1,14 @@
 User-agent: *
 Allow: /
+
 Disallow: /admin/
 Disallow: /repartidor/
 Disallow: /movil/
 Disallow: /api/
+Disallow: /login
+Disallow: /registro
+Disallow: /perfil
+Disallow: /cesta
+Disallow: /checkout
 
-Sitemap: /sitemap.xml
+Sitemap: https://bocado.31-70-114-94.sslip.io/sitemap.xml

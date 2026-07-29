@@ -9,8 +9,20 @@ import CookieConsent from '../components/islands/CookieConsent.tsx';
 import FloatingCartFab from '../components/islands/FloatingCartFab.tsx';
 import { getAppUrl } from '../server/env';
 
-interface Props { title?: string; description?: string; hideChrome?: boolean; manifestHref?: string }
-const { title = 'BocadO — Comida real, entrega rápida', description = 'Tienda online de comida a domicilio con fotos reales, tiempos verificados y entrega rápida.', hideChrome = false, manifestHref = '/manifest.webmanifest' } = Astro.props as Props;
+interface Props {
+  title?: string;
+  description?: string;
+  hideChrome?: boolean;
+  manifestHref?: string;
+  robots?: string;
+}
+const {
+  title = 'BocadO — Comida a domicilio en menos de 25 minutos',
+  description = 'Pide comida a domicilio en BocadO: carta real, tiempos verificados, seguimiento en vivo y entrega rápida cerca de ti.',
+  hideChrome = false,
+  manifestHref = '/manifest.webmanifest',
+  robots = 'index,follow,max-image-preview:large,max-snippet:-1',
+} = Astro.props as Props;
 
 let siteOrigin = Astro.url.origin;
 try {
@@ -43,7 +55,7 @@ const structuredData = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#FAF8F3" />
     <meta name="description" content={description} />
-    <meta name="robots" content="index,follow" />
+    <meta name="robots" content={robots} />
     <link rel="canonical" href={canonicalUrl} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="BocadO" />

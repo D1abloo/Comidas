@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-const appUrl = process.env.BOCADO_APP_URL || 'https://example.invalid';
-const allowLocalCleartext = process.env.BOCADO_ALLOW_LOCAL_CLEARTEXT === 'true';
+const appUrl = 'https://bocado.31-70-114-94.sslip.io';
+const allowLocalCleartext = false;
 
 const config: CapacitorConfig = {
   appId: 'app.bocado.repartidor',
@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
   webDir: 'www',
   server: {
     url: `${appUrl.replace(/\/$/, '')}/repartidor`,
-    cleartext: allowLocalCleartext && appUrl.startsWith('http://'),
+    cleartext: allowLocalCleartext,
     androidScheme: 'https',
   },
   android: {

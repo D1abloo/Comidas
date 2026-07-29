@@ -21,36 +21,211 @@ if (Astro.request.method === 'POST') {
     error = e.message ?? 'Error';
   }
 }
+
+const heroImage = '/carta/smash-doble-bacon.jpg';
 ---
-<Base title="Acceder · BocadO" hideChrome>
-  <section class="min-h-[calc(100vh-28px)] grid place-items-center px-6 bg-gradient-to-b from-bocado-paper to-bocado-lime/10">
-    <div class="premium-panel w-full max-w-md p-10 shadow-premium animate-fade-up">
-      <a href="/" class="inline-flex items-center gap-2">
-        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-          <circle cx="16" cy="16" r="13" stroke="#0a0a0a" stroke-width="1.6" />
-          <path d="M22 7 L27 11 L23 13 Z" fill="#D6FF3D" stroke="#0a0a0a" stroke-width="1" stroke-linejoin="round" />
-          <circle cx="16" cy="16" r="2" fill="#0a0a0a" />
-        </svg>
-        <span class="font-semibold tracking-[-0.02em] text-[18px]">Bocad<span style="color:#D6FF3D">O</span></span>
-      </a>
-      <h1 class="mt-6 font-display text-3xl">Accede a tu cuenta</h1>
-      <p class="text-sm text-bocado-mute mt-1">¿Aún no tienes? <a href="/registro" class="underline">Crear cuenta</a></p>
+<Base
+  title="Acceder | BocadO comida a domicilio"
+  description="Entra en tu cuenta BocadO para pedir comida a domicilio, seguir tu pedido en vivo y repetir tus platos favoritos."
+  hideChrome
+  robots="noindex,nofollow"
+>
+  <section class="auth-split" aria-label="Acceso a BocadO">
+    <aside class="auth-split-visual" aria-hidden="true">
+      <div class="auth-split-visual-bg" style={`--auth-hero: url('${heroImage}')`}></div>
+      <div class="auth-split-visual-shade"></div>
+      <div class="auth-split-visual-inner">
+        <span class="auth-split-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm12 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke="currentColor" stroke-width="1.6"/><path d="M5 15h2.2l1.3-4h5.4l2.1 4H19M9 7h3.5L14 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Entrega rápida y segura
+        </span>
 
-      <form method="POST" class="mt-6 space-y-3">
-        <input type="hidden" name="_next" value={safeNext} />
-        <label class="block"><span class="label">Email</span>
-          <input class="input mt-1" name="email" type="email" required autocomplete="username" />
-        </label>
-        <label class="block"><span class="label">Contraseña</span>
-          <input class="input mt-1" name="password" type="password" required autocomplete="current-password" />
-        </label>
-        {error && <p class="text-sm text-red-600">{error}</p>}
-        <button class="btn-primary w-full mt-2">Acceder</button>
-      </form>
+        <h1 class="auth-split-headline">
+          Comida de verdad,<br />
+          en menos de<br />
+          <span class="auth-split-accent">25 minutos</span>
+        </h1>
+        <p class="auth-split-lede">
+          Miles de platos deliciosos de tus restaurantes favoritos, entregados en tu puerta.
+        </p>
 
-      <div class="mt-6 text-xs text-bocado-mute text-center">
-        ¿Eres administrador? <a href="/admin/login" class="underline">Acceso del equipo</a>
+        <div class="auth-split-stats">
+          <div class="auth-split-stat">
+            <span class="auth-split-stat-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12 3.2 2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.6 7.2 18.1l.9-5.4L4.2 8.9l5.4-.8L12 3.2Z"/></svg>
+            </span>
+            <strong>4.9/5</strong>
+            <span>Valoración</span>
+          </div>
+          <div class="auth-split-stat">
+            <span class="auth-split-stat-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v4.5l3 1.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            </span>
+            <strong>15-25 min</strong>
+            <span>Entrega media</span>
+          </div>
+          <div class="auth-split-stat">
+            <span class="auth-split-stat-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.4S4.5 15.2 4.5 9.8A3.8 3.8 0 0 1 12 7.6a3.8 3.8 0 0 1 7.5 2.2C19.5 15.2 12 20.4 12 20.4Z"/></svg>
+            </span>
+            <strong>+2.000</strong>
+            <span>Pedidos diarios</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="auth-split-panel">
+      <div class="auth-split-card">
+        <a href="/" class="auth-split-logo" aria-label="BocadO — inicio">
+          Bocad<span>O</span>
+        </a>
+
+        <h2 class="auth-split-title">Bienvenido de nuevo</h2>
+        <p class="auth-split-subtitle">Accede a tu cuenta para continuar.</p>
+
+        <form method="POST" class="auth-split-form" id="auth-login-form" novalidate>
+          <input type="hidden" name="_next" value={safeNext} />
+
+          <label class="auth-split-field" for="auth-email">
+            <span class="auth-split-label">Email</span>
+            <span class="auth-split-input-wrap">
+              <span class="auth-split-input-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 6.5h16v11H4v-11Z" stroke="currentColor" stroke-width="1.6"/><path d="m5 7.5 7 5.5 7-5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <input
+                class="auth-split-input"
+                id="auth-email"
+                name="email"
+                type="email"
+                required
+                autocomplete="username"
+                placeholder="tu@email.com"
+              />
+            </span>
+          </label>
+
+          <label class="auth-split-field" for="auth-password">
+            <span class="auth-split-label">Contraseña</span>
+            <span class="auth-split-input-wrap">
+              <span class="auth-split-input-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </span>
+              <input
+                class="auth-split-input auth-split-input--password"
+                id="auth-password"
+                name="password"
+                type="password"
+                required
+                autocomplete="current-password"
+                placeholder="••••••••••"
+              />
+              <button
+                type="button"
+                class="auth-split-eye"
+                id="auth-toggle-password"
+                aria-label="Mostrar contraseña"
+                aria-controls="auth-password"
+                aria-pressed="false"
+              >
+                <svg class="auth-split-eye-show" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7Z" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.8" stroke="currentColor" stroke-width="1.6"/></svg>
+                <svg class="auth-split-eye-hide hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 4 16 16M9.9 9.9A3 3 0 0 0 12 15a3 3 0 0 0 2.1-.9M7.1 7.3C4.7 8.7 3 12 3 12s3.5 7 9 7c1.6 0 3-.3 4.2-.8M16.5 14.2c.9-.7 1.7-1.6 2.3-2.2.4-.4.7-.8.9-1s-3.5-7-9.2-7c-.7 0-1.4.1-2 .2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </button>
+            </span>
+          </label>
+
+          {error && (
+            <p class="auth-split-error" role="alert">{error}</p>
+          )}
+
+          <div class="auth-split-row">
+            <label class="auth-split-remember">
+              <input type="checkbox" name="remember" value="1" />
+              <span>Recordarme</span>
+            </label>
+            <a class="auth-split-forgot" href="/ayuda">¿Olvidaste tu contraseña?</a>
+          </div>
+
+          <button type="submit" class="auth-split-submit" id="auth-submit">
+            <span class="auth-split-submit-label">Acceder <span aria-hidden="true">→</span></span>
+            <span class="auth-split-submit-loading" hidden aria-hidden="true">Entrando…</span>
+          </button>
+        </form>
+
+        <div class="auth-split-sep" role="separator">
+          <span>o continuar con</span>
+        </div>
+
+        <button type="button" class="auth-split-google" id="auth-google" aria-describedby="auth-google-note">
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34.2 6.1 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/>
+            <path fill="#FF3D00" d="M6.3 14.7 12.9 19.6C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 8 3l5.7-5.7C34.2 6.1 29.4 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+            <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.2 35.3 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+            <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-1.1 3.1-3.5 5.5-6.6 6.5l.1.1 6.3 5.3C36.8 38.7 44 33 44 24c0-1.3-.1-2.7-.4-3.9z"/>
+          </svg>
+          Continuar con Google
+        </button>
+        <p id="auth-google-note" class="auth-split-google-note" hidden>
+          Google estará disponible pronto. Usa email y contraseña.
+        </p>
+
+        <p class="auth-split-register">
+          ¿Aún no tienes cuenta? <a href="/registro">Crear cuenta</a>
+        </p>
+
+        <ul class="auth-split-trust">
+          <li>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10" stroke="currentColor" stroke-width="1.6"/></svg>
+            Tus datos están cifrados
+          </li>
+          <li>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 19 6.5v5.2c0 4.4-2.9 7.7-7 8.8-4.1-1.1-7-4.4-7-8.8V6.5L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            Pago seguro
+          </li>
+          <li>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Privacidad garantizada
+          </li>
+        </ul>
       </div>
     </div>
   </section>
+
+  <script is:inline>
+    (() => {
+      const input = document.getElementById('auth-password');
+      const toggle = document.getElementById('auth-toggle-password');
+      if (input && toggle) {
+        toggle.addEventListener('click', () => {
+          const show = input.type === 'password';
+          input.type = show ? 'text' : 'password';
+          toggle.setAttribute('aria-pressed', show ? 'true' : 'false');
+          toggle.setAttribute('aria-label', show ? 'Ocultar contraseña' : 'Mostrar contraseña');
+          toggle.querySelector('.auth-split-eye-show')?.classList.toggle('hidden', show);
+          toggle.querySelector('.auth-split-eye-hide')?.classList.toggle('hidden', !show);
+        });
+      }
+      const google = document.getElementById('auth-google');
+      const note = document.getElementById('auth-google-note');
+      google?.addEventListener('click', () => {
+        if (!note) return;
+        note.hidden = false;
+        google.setAttribute('aria-expanded', 'true');
+      });
+      const form = document.getElementById('auth-login-form');
+      const submit = document.getElementById('auth-submit');
+      form?.addEventListener('submit', () => {
+        if (!submit) return;
+        submit.disabled = true;
+        submit.classList.add('is-loading');
+        const label = submit.querySelector('.auth-split-submit-label');
+        const loading = submit.querySelector('.auth-split-submit-loading');
+        if (label) label.hidden = true;
+        if (loading) {
+          loading.hidden = false;
+          loading.removeAttribute('aria-hidden');
+        }
+      });
+    })();
+  </script>
 </Base>

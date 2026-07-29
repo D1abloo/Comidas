@@ -20,7 +20,19 @@ const faqs = [
   { q: '¿Cómo se gestionan los alérgenos?', a: 'Cada plato lista los 14 alérgenos UE. Si tienes alguna alergia, contáctanos directamente.' },
 ];
 ---
-<Base title="Ayuda · BocadO">
+<Base
+  title="Ayuda y preguntas frecuentes | BocadO"
+  description="Resuelve dudas sobre tiempos de entrega, pagos, facturas y alérgenos en BocadO. Soporte claro para pedidos a domicilio."
+>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  })} />
   <section class="container-bocado py-16 max-w-3xl">
     <p class="label">Ayuda</p>
     <h1 class="text-3xl md:text-5xl font-semibold tracking-[-0.02em] mt-3">Preguntas frecuentes</h1>

@@ -6,7 +6,10 @@ import { getStore } from '../server/db';
 const store = getStore();
 const restById = Object.fromEntries(store.restaurants.map((r) => [r.id, r]));
 ---
-<Base title="Restaurantes · BocadO">
+<Base
+  title="Restaurantes | BocadO comida a domicilio"
+  description="Descubre los restaurantes de BocadO: cocina de barrio, platos con fotos reales y entrega a domicilio rápida."
+>
   <section class="container-bocado mt-12">
     <p class="label">Restaurantes seleccionados</p>
     <h1 class="text-3xl md:text-5xl font-semibold tracking-[-0.02em] mt-3">Una cocina, una historia.</h1>

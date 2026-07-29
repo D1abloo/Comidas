@@ -44,7 +44,10 @@ if (bestsellers.length < 4) {
     .map((d) => ({ ...d, sold_count: soldCount.get(d.id) ?? 0 }));
 }
 ---
-<Base>
+<Base
+  title="BocadO — Comida a domicilio rápida y de calidad"
+  description="Pide platos de restaurantes de barrio con fotos reales, envío en 15-25 min y seguimiento en vivo. Carta, menú del día y pago seguro."
+>
   <Hero />
   <CategoryStrip />
 
