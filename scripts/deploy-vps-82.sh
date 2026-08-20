@@ -1,57 +1,64 @@
 #!/usr/bin/env bash
-# Despliegue BocadO en VPS 82.223.54.195 (stack aislado: proyecto docker "bocado")
+# Solo Postgres BocadO en VPS 82.223.54.195 (la app vive en Vercel).
 set -euo pipefail
 
 VPS="${VPS:-root@82.223.54.195}"
-DOMAIN="${DOMAIN:-bocado.82-223-54-195.sslip.io}"
 PROJECT="${COMPOSE_PROJECT:-bocado}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REMOTE_DIR="${REMOTE_DIR:-/root/comidas}"
 
-echo "→ Sync → $VPS:$REMOTE_DIR"
-rsync -az --delete \
+echo "→ Sync DB files → $VPS:$REMOTE_DIR"
+rsync -az \
   --exclude node_modules --exclude .git --exclude dist \
   --exclude .data --exclude apks --exclude '.env.local' \
   --exclude 'apps/web/.env.local' --exclude '.env.deploy' \
-  "$ROOT/" "$VPS:$REMOTE_DIR/"
+  "$ROOT/docker-compose.yml" "$ROOT/docker" "$ROOT/scripts" \
+  "$VPS:$REMOTE_DIR/"
 
-echo "→ Build + up ($DOMAIN, project=$PROJECT)"
-ssh "$VPS" bash -s -- "$DOMAIN" "$PROJECT" "$REMOTE_DIR" <<'REMOTE'
+# ensure remote dir layout
+ssh "$VPS" "mkdir -p $REMOTE_DIR/docker/postgres"
+
+echo "→ Upsert Postgres only (project=$PROJECT)"
+ssh "$VPS" bash -s -- "$PROJECT" "$REMOTE_DIR" <<'REMOTE'
 set -euo pipefail
-DOMAIN="$1"
-PROJECT="$2"
-REMOTE_DIR="$3"
+PROJECT="$1"
+REMOTE_DIR="$2"
 cd "$REMOTE_DIR"
-chmod +x scripts/vps-proxy-cloudops.sh scripts/deploy-vps-82.sh
-
 touch .env.deploy
 chmod 600 .env.deploy
 grep -q '^POSTGRES_PASSWORD=' .env.deploy || echo "POSTGRES_PASSWORD=$(openssl rand -hex 24)" >> .env.deploy
-grep -q '^SESSION_SECRET=' .env.deploy || echo "SESSION_SECRET=$(openssl rand -hex 32)" >> .env.deploy
-grep -q '^ORDER_TOKEN_SECRET=' .env.deploy || echo "ORDER_TOKEN_SECRET=$(openssl rand -hex 32)" >> .env.deploy
-grep -q '^ALLOW_ADMIN_REGISTRATION=' .env.deploy || echo "ALLOW_ADMIN_REGISTRATION=false" >> .env.deploy
-grep -q '^POSTGRES_PUBLISH_PORT=' .env.deploy || echo "POSTGRES_PUBLISH_PORT=5433" >> .env.deploy
-sed -i "s|^DOMAIN=.*||; s|^PUBLIC_APP_URL=.*||" .env.deploy
-echo "DOMAIN=$DOMAIN" >> .env.deploy
-echo "PUBLIC_APP_URL=https://$DOMAIN" >> .env.deploy
-# limpia líneas vacías duplicadas
+grep -q '^POSTGRES_PUBLISH_PORT=' .env.deploy || echo "POSTGRES_PUBLISH_PORT=5432" >> .env.deploy
+# App is on Vercel — do not run web here
+sed -i '/^PUBLIC_APP_URL=/d' .env.deploy
+echo "PUBLIC_APP_URL=https://bocado-olive.vercel.app" >> .env.deploy
 sed -i '/^$/d' .env.deploy
 
-export COMPOSE_PROJECT_NAME="$PROJECT"
-docker compose --project-name "$PROJECT" --env-file .env.deploy build web
-# migrate reutiliza la misma imagen
-docker tag "${PROJECT}-web:latest" "${PROJECT}-migrate:latest"
-docker compose --project-name "$PROJECT" --env-file .env.deploy up -d --no-build
+docker compose --project-name "$PROJECT" --env-file .env.deploy up -d postgres
+docker compose --project-name "$PROJECT" --env-file .env.deploy stop web migrate 2>/dev/null || true
+docker compose --project-name "$PROJECT" --env-file .env.deploy rm -f web migrate 2>/dev/null || true
 
-DOMAIN="$DOMAIN" bash scripts/vps-proxy-cloudops.sh
+# Remove leftover BocadO nginx vhost if present
+NGINX_CONF=/opt/cloudops/infra/docker/nginx-frontend-ssl.conf
+if [ -f "$NGINX_CONF" ] && grep -q BOCADO_VHOST_BEGIN "$NGINX_CONF"; then
+  python3 - <<'PY'
+from pathlib import Path
+p = Path('/opt/cloudops/infra/docker/nginx-frontend-ssl.conf')
+text = p.read_text()
+begin, end = '# BOCADO_VHOST_BEGIN', '# BOCADO_VHOST_END'
+i0, i1 = text.find(begin), text.find(end)
+if i0 >= 0 and i1 > i0:
+    i1 = text.find('\n', i1) + 1
+    new = text[:i0] + text[i1:]
+    with p.open('r+') as f:
+        f.seek(0); f.write(new); f.truncate()
+print('nginx cleaned')
+PY
+  docker exec cloudops-frontend nginx -t && docker exec cloudops-frontend nginx -s reload || true
+fi
 
 docker compose --project-name "$PROJECT" --env-file .env.deploy ps
-echo "--- health ---"
-sleep 3
-curl -s "http://127.0.0.1:4321/api/health" || true
-echo
-curl -sI "https://$DOMAIN/carta" | head -5 || curl -sI "http://$DOMAIN/carta" | head -5 || true
-df -h / | tail -1
+docker exec "${PROJECT}-postgres-1" pg_isready -U bocado -d bocado
+echo "✓ DB only on :${POSTGRES_PUBLISH_PORT:-5432} — app: https://bocado-olive.vercel.app"
 REMOTE
 
-echo "✓ https://${DOMAIN}"
+echo "✓ Vercel app + VPS Postgres"

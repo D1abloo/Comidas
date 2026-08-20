@@ -1,15 +1,18 @@
-# Vercel
+# Despliegue BocadO
 
-Despliegue SSR con `@astrojs/vercel` cuando `DEPLOY_TARGET=vercel`.
+## Producción
+- **App:** Vercel → https://bocado-olive.vercel.app
+- **BBDD:** solo en VPS `82.223.54.195` (Docker project `bocado`, puerto host `5432`, volumen `bocado_pg`)
 
-- Build: `DEPLOY_TARGET=vercel npm run build -w @bocado/web`
-- Proyecto Vercel: conectado al repo GitHub `D1abloo/Comidas`
-- Variables: `DATABASE_URL` (Postgres en VPS `82.223.54.195:5432`), `SESSION_SECRET`,
-  `ORDER_TOKEN_SECRET`, `PUBLIC_APP_URL`, `DATABASE_SSL=false`
+Variables Vercel: `DATABASE_URL` → `postgres://bocado:…@82.223.54.195:5432/bocado`,
+`SESSION_SECRET`, `ORDER_TOKEN_SECRET`, `PUBLIC_APP_URL=https://bocado-olive.vercel.app`,
+`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, `DEPLOY_TARGET=vercel`, `DATABASE_SSL=false`.
 
-La BBDD de producción vive en la VPS (compose project `bocado`, volumen
-`bocado_pg`), separada de cloudops/Spendlyx. El puerto host `5432` publica solo
-BocadO; cloudops Postgres queda en red Docker interna.
+## VPS (solo DB)
+```bash
+npm run deploy:vps:82
+```
+No arranca `web` en la VPS. No hay vhost nginx de BocadO.
 
-Limitaciones: SSE/realtime y procesos largos pueden degradarse en serverless.
-El destino principal sigue siendo Docker en VPS (`npm run deploy:vps:82`).
+## Google OAuth
+Redirect URI: `https://bocado-olive.vercel.app/api/auth/google/callback`
