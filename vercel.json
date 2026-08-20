@@ -1,7 +1,3 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "astro",
-  "buildCommand": "DEPLOY_TARGET=vercel npm run build -w @bocado/web",
-  "installCommand": "npm install",
-  "regions": ["cdg1"]
+  "$schema": "https://openapi.vercel.sh/vercel.json"
 }
