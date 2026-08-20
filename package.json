@@ -35,8 +35,11 @@
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f web",
     "deploy:vps": "bash scripts/deploy-vps.sh",
+    "deploy:vps:82": "bash scripts/deploy-vps-82.sh",
+    "deploy:vercel": "DEPLOY_TARGET=vercel npx vercel --prod",
     "smoke:orders": "bash scripts/smoke-orders.sh",
-    "apps:config:prod": "npm run mobile:config:prod && npm run courier:config:prod && npm run admin:config:prod"
+    "apps:config:prod": "npm run mobile:config:prod && npm run courier:config:prod && npm run admin:config:prod",
+    "deploy:vps:82": "bash scripts/deploy-vps-82.sh"
   },
   "engines": {
     "node": ">=22.12"

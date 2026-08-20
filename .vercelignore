@@ -1,0 +1,12 @@
+apks
+apps/admin-app
+apps/courier-app
+apps/mobile-app
+**/*.apk
+**/.data
+**/android
+**/ios
+docs
+tests
+.agents
+.cursor
