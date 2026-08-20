@@ -5,6 +5,12 @@ import { safeRedirectPath } from '../server/security';
 
 let error = '';
 const safeNext = safeRedirectPath(Astro.url.searchParams.get('next'), '/perfil');
+const oauthError = Astro.url.searchParams.get('error');
+if (oauthError === 'google_denied') error = 'Has cancelado el acceso con Google.';
+else if (oauthError === 'google_disabled') error = 'Google no está configurado en este entorno.';
+else if (oauthError === 'google_invalid' || oauthError === 'google_failed') {
+  error = 'No se pudo iniciar sesión con Google. Inténtalo de nuevo.';
+}
 if (Astro.request.method === 'POST') {
   try {
     const fd = await Astro.request.formData();
@@ -156,7 +162,12 @@ const heroImage = '/carta/smash-doble-bacon.jpg';
           <span>o continuar con</span>
         </div>
 
-        <button type="button" class="auth-split-google" id="auth-google" aria-describedby="auth-google-note">
+        <a
+          class="auth-split-google"
+          id="auth-google"
+          href={`/api/auth/google?next=${encodeURIComponent(safeNext)}`}
+          aria-label="Continuar con Google"
+        >
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
             <path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34.2 6.1 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/>
             <path fill="#FF3D00" d="M6.3 14.7 12.9 19.6C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 8 3l5.7-5.7C34.2 6.1 29.4 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
@@ -164,10 +175,7 @@ const heroImage = '/carta/smash-doble-bacon.jpg';
             <path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-1.1 3.1-3.5 5.5-6.6 6.5l.1.1 6.3 5.3C36.8 38.7 44 33 44 24c0-1.3-.1-2.7-.4-3.9z"/>
           </svg>
           Continuar con Google
-        </button>
-        <p id="auth-google-note" class="auth-split-google-note" hidden>
-          Google estará disponible pronto. Usa email y contraseña.
-        </p>
+        </a>
 
         <p class="auth-split-register">
           ¿Aún no tienes cuenta? <a href="/registro">Crear cuenta</a>
@@ -205,13 +213,6 @@ const heroImage = '/carta/smash-doble-bacon.jpg';
           toggle.querySelector('.auth-split-eye-hide')?.classList.toggle('hidden', !show);
         });
       }
-      const google = document.getElementById('auth-google');
-      const note = document.getElementById('auth-google-note');
-      google?.addEventListener('click', () => {
-        if (!note) return;
-        note.hidden = false;
-        google.setAttribute('aria-expanded', 'true');
-      });
       const form = document.getElementById('auth-login-form');
       const submit = document.getElementById('auth-submit');
       form?.addEventListener('submit', () => {

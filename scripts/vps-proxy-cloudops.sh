@@ -82,6 +82,16 @@ server {
         proxy_cache off;
         proxy_read_timeout 1h;
     }
+    location ^~ /api/auth/ {
+        proxy_pass http://${WEB_NAME}:4321;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_buffering off;
+        proxy_read_timeout 60s;
+    }
     location / {
         proxy_pass http://${WEB_NAME}:4321;
         proxy_http_version 1.1;
